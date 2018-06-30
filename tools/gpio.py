@@ -26,20 +26,17 @@ class GPIO:
             # Use 'gpio readall' to get BCM pin layout for RasPi model
             self.GPIO.setmode(self.GPIO.BCM)
 
-    def get_input(self, pin):
+    def get_input(self):
         """Reads value of pin"""
-        return self.GPIO.input(pin)
+        return self.GPIO.input(self.pin)
 
-    def set_status(self, pin, status):
+    def set_status(self, status):
         """
         Sets the pin status as on/HIGH(1) off/LOW(0)
             NOTE: Can pass tuples into status for quick succession changes
         """
-        self.GPIO.output(pin, status)
+        self.GPIO.output(self.pin, status)
 
-    def cleanup(self, pin=None):
-        """Resets GPIO by pin or for entire board"""
-        if pin is None:
-            self.GPIO.cleanup()
-        else:
-            self.GPIO.cleanup(pin)
+    def cleanup(self):
+        """Resets GPIO by pin"""
+        self.GPIO.cleanup(self.pin)

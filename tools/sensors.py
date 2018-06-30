@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from .gpio import GPIO
+import time
 
 class TempSensor:
     """
@@ -79,4 +81,36 @@ class DallasTempSensor(TempSensor):
             'temp': self.round_reads(temp)
         }
         return reading
+
+
+class PIRSensor:
+    """
+    Functions for a PIR motion sensor
+    """
+    def __init__(self, pin):
+        """
+        Args:
+            pin: int, the BCM pin related to the PIR sensor
+        """
+        self.sensor = GPIO(pin, mode='bcm')
+
+    def arm(self, sleep_sec=0.1, duration_sec=300):
+        """
+        Primes the sensor for detecting motion.
+            If motion detected, returns unix time
+        Args:
+            sleep_sec: float, seconds to sleep between checks
+            duration_sec: int, seconds to run script before exit
+        """
+        # Get current time
+        start_time = time.time()
+        end_time = start_time + duration_sec
+
+        while end_time > time.time():
+            if self.sensor.get_input() == 1:
+                return time.time()
+            time.sleep(sleep_sec)
+        return None
+
+
 

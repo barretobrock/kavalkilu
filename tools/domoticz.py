@@ -1,7 +1,7 @@
 import subprocess
 
 
-class DomoticzComm:
+class Domoticz:
     """
     Send and receive data from a computer running Domoticz Home Automation server
     Args for __init__:
