@@ -9,5 +9,9 @@ setup(
     author='bobrock',
     author_email='',
     description='',
-    long_description=open('README.md').read()
+    long_description=open('README.md').read(),
+    install_requires=[
+        'paramiko',
+        'selenium',
+    ]
 )
