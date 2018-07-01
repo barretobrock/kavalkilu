@@ -14,12 +14,18 @@ class Relay:
         self.relay = GPIO(pin, mode='bcm')
 
     def turn_on(self):
-        """Turn relay to ON position"""
-        self.relay.set_status(1)
+        """
+        Turn relay to ON position
+            NOTE: This is for the NC-type relay
+        """
+        self.relay.set_status(0)
 
     def turn_off(self):
-        """Turn relay to OFF position"""
-        self.relay.set_status(0)
+        """
+        Turn relay to OFF position
+            NOTE: This is for the NC-type relay
+        """
+        self.relay.set_status(1)
 
     def toggle(self):
         """Toggle relay"""

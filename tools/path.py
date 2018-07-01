@@ -6,8 +6,9 @@ import os
 class Paths:
     def __init__(self):
         # ip addresses
-        self.gatewaypi_ip = '192.168.0.5'
+        self.pihole_ip = '192.168.0.5'
         self.server_ip = '192.168.0.5'
+        self.huebridge_ip = '192.168.0.146'
         self.webcam_ip = '192.168.0.7'
         self.server_hostname = 'bobrock'
         # directories
