@@ -63,6 +63,10 @@ class HueBulb:
         """Turns light off"""
         self.light_obj.on = False
 
+    def get_status(self):
+        """Determine if light is on/off"""
+        return self.light_obj.on
+
     def blink(self, times, wait=0.5):
         """Blinks light x times, waiting y seconds between"""
         for x in range(0, times):

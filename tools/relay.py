@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .gpio import GPIO
+import time
 
 
 class Relay:
@@ -13,12 +14,15 @@ class Relay:
         """
         self.relay = GPIO(pin, mode='bcm')
 
-    def turn_on(self):
+    def turn_on(self, back_off_sec=0):
         """
         Turn relay to ON position
             NOTE: This is for the NC-type relay
         """
         self.relay.set_status(0)
+        if back_off_sec > 0:
+            time.sleep(back_off_sec)
+            self.turn_off()
 
     def turn_off(self):
         """
@@ -26,10 +30,6 @@ class Relay:
             NOTE: This is for the NC-type relay
         """
         self.relay.set_status(1)
-
-    def toggle(self):
-        """Toggle relay"""
-        self.relay.set_status(not bool(self.relay.get_input()))
 
     def close(self):
         """Cleans up relay connection"""

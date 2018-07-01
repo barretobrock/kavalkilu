@@ -4,6 +4,7 @@ from .date import DateTools
 from .domoticz import Domoticz
 from .email import Email
 from .gpio import GPIO
+from .light import LED, HueBulb
 from .log import Log
 from .openhab import OpenHab
 from .path import Paths
