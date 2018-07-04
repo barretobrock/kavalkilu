@@ -4,6 +4,7 @@ setup(
     name='kavalkilu',
     version='0.2',
     packages=['', 'comm', 'tools', 'sensors', 'switches', 'setup_tools'],
+    py_modules=['kavalkilu'],
     url='',
     license='',
     author='bobrock',

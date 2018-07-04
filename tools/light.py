@@ -83,6 +83,8 @@ class HueBulb:
 
     def blink(self, times, wait=0.5, trans_time=0.1, bright_lvl=1):
         """Blinks light x times, waiting y seconds between"""
+        # Set what mode light is currently in
+        cur_mode = self.get_status()
         default_trans_time = self.transition_time()
         # Set new transition time
         self.transition_time(trans_time)
@@ -94,6 +96,9 @@ class HueBulb:
             time.sleep(wait / 2)
         # Return to default transition time
         self.transition_time(default_trans_time)
+        if cur_mode:
+            # Turn light back on if it was previously on
+            self.turn_on()
 
     def brightness(self, level):
         """Set brightness to x%
@@ -156,7 +161,7 @@ class HueBulb:
         end_time = time.time() + duration_s
 
         while end_time > time.time():
-            self.hue(randint(5000, 12750))
+            self.hue(randint(5000, 10500))
             self.saturation(randint(150, 255))
             self.brightness(randint(50, 255))
             self.transition_time(randint(1, 3))
