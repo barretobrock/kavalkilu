@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import RPi.GPIO as gpio
+import os
 
 
 class GPIO:
@@ -14,7 +14,7 @@ class GPIO:
     """
 
     def __init__(self, pin, mode='bcm', setwarn=False):
-        self.GPIO = gpio
+        self.GPIO = __import__('RPi').GPIO
         self.pin = pin
         self.GPIO.setwarnings(setwarn)
         self.status = 'Unset'
