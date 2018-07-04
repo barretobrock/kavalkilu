@@ -100,11 +100,11 @@ class HueBulb:
         Args:
             level: float, the brightness level to set
         """
-        if level > 1:
+        if level < 1:
             # Set level to percentage
-            level = level / self.FULL_BRIGHTNESS
+            level = int(level * self.FULL_BRIGHTNESS)
 
-        self.light_obj.brightness = int(self.FULL_BRIGHTNESS * level)
+        self.light_obj.brightness = level
 
     def saturation(self, level):
         """
@@ -112,11 +112,11 @@ class HueBulb:
         Args:
             level: int, saturation level
         """
-        if level > 1:
+        if level < 1:
             # Set level to a percentage
-            level = level / self.FULL_SATURATION
+            level = int(level * self.FULL_SATURATION)
 
-        self.light_obj.saturation = int(self.FULL_SATURATION * level)
+        self.light_obj.saturation = level
 
     def hue(self, level):
         """Set hue level of light"""
