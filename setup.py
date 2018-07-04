@@ -1,6 +1,5 @@
 
 from distutils.command.install import INSTALL_SCHEMES
-from os.path import join, abspath, dirname
 from distutils.core import setup
 from setuptools.command.install import install
 
@@ -14,7 +13,6 @@ setup_args = {
     'version': '0.2.1',
     'license': 'MIT',
     'description': 'A Library for Integrating Home Automation Components',
-    'long_description': open(join(abspath(dirname(__file__)), "README.md")).read(),
     'url': 'https://github.com/barretobrock/kavalkilu',
     'package_dir': {
         'kavalkilu': 'kavalkilu',
