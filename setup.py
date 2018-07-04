@@ -1,9 +1,9 @@
-from kavalkilu import __version__
+
 from distutils.core import setup
 
 setup(
     name='kavalkilu',
-    version=__version__,
+    version='0.2.1',
     py_modules=['kavalkilu'],
     url='https://github.com/barretobrock/kavalkilu',
     license='',
