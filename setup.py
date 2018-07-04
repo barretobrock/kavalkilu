@@ -14,29 +14,6 @@ setup_args = {
     'license': 'MIT',
     'description': 'A Library for Integrating Home Automation Components',
     'url': 'https://github.com/barretobrock/kavalkilu',
-    'package_dir': {
-        'kavalkilu': 'kavalkilu',
-        'kavalkilu.comm': 'kavalkilu/comm',
-        'kavalkilu.sensors': 'kavalkilu/sensors',
-        'kavalkilu.switches': 'kavalkilu/switches',
-        'kavalkilu.tools': 'kavalkilu/tools'
-    },
-    'packages': [
-        'kavalkilu',
-        'kavalkilu.tools.date',
-        'kavalkilu.tools.domoticz',
-        'kavalkilu.tools.email',
-        'kavalkilu.tools.gpio',
-        'kavalkilu.tools.light',
-        'kavalkilu.tools.log',
-        'kavalkilu.tools.openhab',
-        'kavalkilu.tools.path',
-        'kavalkilu.tools.relay',
-        'kavalkilu.tools.secure_copy',
-        'kavalkilu.tools.selenium',
-        'kavalkilu.tools.sensors',
-    ],
-    'include_package_data': True,
-    'zip_safe': False
+    'packages': ['kavalkilu']
 }
 setup(**setup_args)
