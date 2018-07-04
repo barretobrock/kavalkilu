@@ -1,14 +1,13 @@
-from setuptools import setup
+from kavalkilu import __version__
+from distutils.core import setup
 
 setup(
     name='kavalkilu',
-    version='0.2',
-    packages=['', 'comm', 'tools', 'sensors', 'switches', 'setup_tools'],
+    version=__version__,
     py_modules=['kavalkilu'],
-    url='',
+    url='https://github.com/barretobrock/kavalkilu',
     license='',
-    author='bobrock',
-    author_email='',
-    description='',
-    long_description=open('README.md').read()
+    author='Barret O',
+    author_email='barret@barretobrock.ee',
+    description='A Home Automation Library'
 )
