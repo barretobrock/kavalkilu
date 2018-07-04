@@ -43,6 +43,20 @@ class HueBulb:
     p = Paths()
     b_ip = p.huebridge_ip
 
+    # Some interesting color coordinates
+    DEFAULT = [0.4596, 0.4105]
+    DEEP_RED = [0.9, 0.5]
+    RED = [.6679, .3187]
+    GREEN = [.085, .82]
+    LIGHT_BLUE = [.15, .23]
+    PURPLE = [.23, .05]
+    PINK = [.4149, .1776]
+    ORANGE = [.62, .37]
+    YELLOW = [.52, .43]
+    DEEP_BLUE = [.12, .03]
+    FULL_BRIGHTNESS = 254
+    FULL_SATURATION = 254
+
     def __init__(self, light_id, bridge_ip=b_ip):
         """
         Args:
@@ -67,12 +81,19 @@ class HueBulb:
         """Determine if light is on/off"""
         return self.light_obj.on
 
-    def blink(self, times, wait=0.5):
+    def blink(self, times, wait=0.5, trans_time=0.1, bright_lvl=1):
         """Blinks light x times, waiting y seconds between"""
+        default_trans_time = self.light_obj.transitiontime
+        # Set new transition time
+        self.light_obj.transitiontime = trans_time
         for x in range(0, times):
+            self.brightness(self.FULL_BRIGHTNESS * bright_lvl)
             self.turn_on()
-            time.sleep(wait)
+            time.sleep(wait / 2)
             self.turn_off()
+            time.sleep(wait / 2)
+        # Return to default transition time
+        self.light_obj.transitiontime = default_trans_time
 
     def brightness(self, level):
         """Set brightness to x%
@@ -81,13 +102,25 @@ class HueBulb:
         """
         if level > 1:
             # Set level to percentage
-            level = level / 100
+            level = level / self.FULL_BRIGHTNESS
 
-        self.light_obj.brightness = 254 * level
+        self.light_obj.brightness = self.FULL_BRIGHTNESS * level
+
+    def saturation(self, level):
+        """
+        Set saturation level (lower number gets closer to white)
+        Args:
+            level: int, saturation level
+        """
+        if level > 1:
+            # Set level to a percentage
+            level = level / self.FULL_SATURATION
+
+        self.light_obj.saturation = self.FULL_SATURATION * level
 
     def color(self, color_coord):
         """Set the color of the light with x,y coordinates (0-1)"""
-        self.light_obj.xy(color_coord)
+        self.light_obj.xy = color_coord
 
     def rand_color(self):
         """Sets random color"""
