@@ -3,6 +3,8 @@
 
 from .gpio import GPIO
 import time
+from importlib import import_module
+
 
 class TempSensor:
     """
@@ -33,13 +35,13 @@ class DHTTempSensor(TempSensor):
     """
     DHT Temperature sensor
     """
-    def __init__(self, pin):
+    def __init__(self, pin, decimals=2):
         """
         Args:
             pin: int, BCM pin number for data pin to DHT sensor
         """
-        TempSensor.__init__(self)
-        self.dht = __import__('Adafruit_DHT')
+        TempSensor.__init__(self, d=decimals)
+        self.dht = import_module('Adafruit_DHT')
         self.sensor = self.dht.DHT22
         self.pin = pin
 

@@ -6,11 +6,14 @@ import os
 class Paths:
     def __init__(self):
         # ip addresses
-        self.pihole_ip = '192.168.0.5'
+        self.server_hostname = 'bobrock'
         self.server_ip = '192.168.0.5'
+        self.pihole_ip = self.server_ip
+        self.openhab_ip = self.server_ip
         self.huebridge_ip = '192.168.0.146'
         self.webcam_ip = '192.168.0.7'
-        self.server_hostname = 'bobrock'
+        self.roku_ip = '192.168.0.9'
+        self.garagepi_ip = '192.168.0.18'
         # directories
         self.home_dir = os.path.expanduser("~")
         self.image_dir = os.path.join(self.home_dir, 'images')

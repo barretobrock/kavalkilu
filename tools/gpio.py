@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from importlib import import_module
 
 
 class GPIO:
@@ -14,7 +15,7 @@ class GPIO:
     """
 
     def __init__(self, pin, mode='bcm', setwarn=False):
-        self.GPIO = __import__('RPi').GPIO
+        self.GPIO = import_module('RPi.GPIO')
         self.pin = pin
         self.GPIO.setwarnings(setwarn)
         self.status = 'Unset'

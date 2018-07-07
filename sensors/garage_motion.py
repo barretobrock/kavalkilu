@@ -18,11 +18,11 @@ for light in lights:
 tripped = md.arm(sleep_sec=0.1, duration_sec=300)
 if tripped:
     for light in light_list:
-        if not light.status:
+        if not light.get_status():
             light.turn_on()
 else:
     # Turn off the light if it's been on for the past 5 min cycle without any trips
     for light in light_list:
-        if light.status:
+        if light.get_status():
             light.turn_off()
 
