@@ -3,6 +3,7 @@
 
 from .path import Paths
 import requests
+import datetime
 
 
 class OpenHab:
@@ -29,6 +30,10 @@ class OpenHab:
         """
         if isinstance(data, str):
             data = str(data).encode('utf-8')
+        elif isinstance(data, datetime.datetime):
+            # Convert to a timestamp str
+            data = data.strftime('%Y-%m-%dT%H:%M:%S')
+
         self.whole_url = '{}{}'.format(self.item_url, item_name)
         openhab_response = requests.post(self.whole_url, data=data,
                                          allow_redirects=True, headers={'Connection': 'close'})
