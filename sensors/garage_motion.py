@@ -16,6 +16,7 @@ lights = ['Garage 1', 'Garage 2']
 oh = OpenHab()
 # Initiate Log
 log = Log('garage_motion', os.path.abspath('/home/pi/logs'), 'motion')
+log.debug('Logging initiated')
 
 # Set up motion detector
 md = PIRSensor(MOTION_PIN)
@@ -25,7 +26,7 @@ for light in lights:
     light_list.append(HueBulb(light))
 
 tripped = md.arm(sleep_sec=0.1, duration_sec=300)
-if tripped:
+if tripped > 0:
     for light in light_list:
         if not light.get_status():
             light.turn_on()
@@ -40,3 +41,6 @@ else:
             light.turn_off()
             log.debug('Lights were on. Turned off')
 
+log.debug('Logging variable left at: {}'.format(tripped))
+
+log.close()
