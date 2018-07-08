@@ -109,9 +109,14 @@ class PIRSensor:
         end_time = start_time + duration_sec
 
         while end_time > time.time():
-            if self.sensor.get_input() == 1:
-                return time.time()
+            # Measure once
+            m1 = self.sensor.get_input()
+            # Pause
             time.sleep(sleep_sec)
+            # Measure twice
+            m2 = self.sensor.get_input()
+            if all([m1 == 1, m2 == 1]):
+                return time.time()
         return None
 
 
