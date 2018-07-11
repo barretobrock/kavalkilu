@@ -14,8 +14,9 @@ lights = ['Garage 1', 'Garage 2']
 
 # Set up OpenHab connection
 oh = OpenHab()
-# Initiate Log
-log = Log('garage_motion', os.path.abspath('/home/pi/logs'), 'motion')
+# Initiate Log, including a suffix to the log name to denote which instance of log is running
+log_suffix = datetime.now().strftime('%H%M')
+log = Log('garage_motion_{}'.format(log_suffix), os.path.abspath('/home/pi/logs'), 'motion')
 log.debug('Logging initiated')
 
 # Set up motion detector
