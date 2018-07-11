@@ -26,7 +26,7 @@ for light in lights:
     light_list.append(HueBulb(light))
 
 tripped = md.arm(sleep_sec=0.1, duration_sec=300)
-if tripped > 0:
+if tripped is not None:
     for light in light_list:
         if not light.get_status():
             light.turn_on()
