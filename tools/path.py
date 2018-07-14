@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import json
 
 
 class Paths:
@@ -43,4 +44,9 @@ class Paths:
             fpath = os.path.join(self.key_dir, tfile)
             if os.path.isfile(fpath):
                 with open(fpath) as f:
-                    self.key_dict[tfile.replace('.txt', '')] = f.read().replace('\n', '')
+                    try:
+                        creds = json.loads(f.read())
+                    except json.JSONDecodeError:
+                        # File was not in JSON format (possibly no brackets or double quotes)
+                        creds = f.read().replace('\n', '')
+                self.key_dict[tfile.replace('.txt', '')] = creds
