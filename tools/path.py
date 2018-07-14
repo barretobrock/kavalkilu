@@ -43,10 +43,11 @@ class Paths:
         for tfile in file_list:
             fpath = os.path.join(self.key_dir, tfile)
             if os.path.isfile(fpath):
-                with open(fpath) as f:
+                with open(fpath, 'r') as f:
+                    value = f.read()
                     try:
-                        creds = json.loads(f.read())
+                        creds = json.loads(value)
                     except json.JSONDecodeError:
                         # File was not in JSON format (possibly no brackets or double quotes)
-                        creds = f.read().replace('\n', '')
+                        creds = value.replace('\n', '')
                 self.key_dict[tfile.replace('.txt', '')] = creds
