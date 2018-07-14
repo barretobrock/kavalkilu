@@ -8,6 +8,20 @@ from random import random, randint, uniform
 from phue import Bridge
 
 
+hue_lights = [
+    {
+        'hue_name': 'Floor Lamp',
+        'oh_item_prefix': 'Light_Elutuba_FloorLamp'
+    }, {
+        'hue_name': 'Garage 1',
+        'oh_item_prefix': 'Light_Garaaz_Light1'
+    }, {
+        'hue_name': 'Garage 2',
+        'oh_item_prefix': 'Light_Garaaz_Light2'
+    },
+]
+
+
 class LED:
     """LED light functions"""
     def __init__(self, pin):
@@ -15,26 +29,23 @@ class LED:
         Args:
             pin: int, BCM pin to relay
         """
-        self.relay = GPIO(pin, mode='bcm')
+        self.led_pin = GPIO(pin, mode='bcm', status='output')
 
     def turn_on(self):
-        """
-        Turn LED ON
-        """
-        self.relay.set_status(1)
+        """Turn LED ON"""
+        self.led_pin.set_output(1)
 
     def turn_off(self):
-        """
-        Turn LED OFF
-        """
-        self.relay.set_status(0)
+        """Turn LED OFF"""
+        self.led_pin.set_output(0)
 
     def blink(self, times, wait=0.1):
         """Blinks LED x times, waiting y seconds between"""
         for x in range(0, times):
             self.turn_on()
-            time.sleep(wait)
+            time.sleep(wait / 2)
             self.turn_off()
+            time.sleep(wait / 2)
 
 
 class HueBulb:

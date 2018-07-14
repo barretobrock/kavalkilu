@@ -94,7 +94,7 @@ class PIRSensor:
         Args:
             pin: int, the BCM pin related to the PIR sensor
         """
-        self.sensor = GPIO(pin, mode='bcm')
+        self.sensor = GPIO(pin, mode='bcm', status='input')
 
     def arm(self, sleep_sec=0.1, duration_sec=300):
         """
@@ -120,4 +120,39 @@ class PIRSensor:
         return None
 
 
+class DistanceSensor:
+    """Functions for the HC-SR04 Ultrasonic range sensor"""
+    def __init__(self, trigger, echo):
+        # Set up the trigger
+        self.trigger = GPIO(trigger, status='output')
+        # Set up feedback
+        self.echo = GPIO(echo, status='input')
 
+    def measure(self, wait_time=2, pulse_time=0.00001, round_decs=2):
+        """Take distance measurement in mm"""
+        # Wait for sensor to settle
+        self.trigger.set_output(0)
+        time.sleep(wait_time)
+        # Pulse trigger
+        self.trigger.set_output(1)
+        time.sleep(pulse_time)
+        self.trigger.set_output(0)
+
+        # Get feedback
+        while self.echo.get_input() == 0:
+            pulse_start = time.time()
+
+        while self.echo.get_input() == 1:
+            pulse_end = time.time()
+
+        pulse_duration = pulse_end - pulse_start
+
+        distance = pulse_duration * 17150 * 100
+        distance = round(distance, round_decs)
+
+        return distance
+
+    def close(self):
+        """Clean up the pins associated with the sensor"""
+        self.echo.cleanup()
+        self.trigger.cleanup()

@@ -11,14 +11,16 @@ class GPIO:
     Args:
         pin: int, BCM pin on GPIO
         mode: str, what setup mode to run ('board', 'bcm')
+        status: str, whether to read info or send it (input, output)
         setwarn: bool, if True, allows GPIO warnings
     """
 
-    def __init__(self, pin, mode='bcm', setwarn=False):
+    def __init__(self, pin, mode='bcm', status='input', setwarn=False):
         self.GPIO = import_module('RPi.GPIO')
         self.pin = pin
         self.GPIO.setwarnings(setwarn)
-        self.status = 'Unset'
+        self.status = status.lower()
+
         # Determine pin mode
         if mode == 'board':
             # BOARD
@@ -28,31 +30,33 @@ class GPIO:
             # Use 'gpio readall' to get BCM pin layout for RasPi model
             self.GPIO.setmode(self.GPIO.BCM)
 
-    def get_input(self):
-        """Reads value of pin, only if the pin is set up for reading inputs"""
-        # For first-time setting
-        if self.status == 'Unset':
-            self.status = 'Input'
+        # Set status
+        self.set_status()
+
+    def set_status(self):
+        """Sets the pin status as on/HIGH(1) off/LOW(0)"""
+        if self.status == 'output':
+            self.GPIO.setup(self.pin, self.GPIO.OUT)
+        elif self.status == 'input':
             self.GPIO.setup(self.pin, self.GPIO.IN)
 
-        if self.status == 'Input':
+    def get_input(self):
+        """Reads value of pin, only if the pin is set up for reading inputs"""
+        if self.status == 'input':
             return self.GPIO.input(self.pin)
         else:
             # In case pin has been set up for output
             #   Can't read input when setup as output
-            return None
+            raise ValueError('Status for GPIO object is not "input"')
 
-    def set_status(self, status):
-        """
-        Sets the pin status as on/HIGH(1) off/LOW(0)
-            NOTE: Can pass tuples into status for quick succession changes
-        """
-        if self.status == 'Unset':
-            self.status = 'Output'
-            self.GPIO.setup(self.pin, self.GPIO.OUT)
-
-        if self.status == 'Output':
-            self.GPIO.output(self.pin, status)
+    def set_output(self, position):
+        """Writes value (0,1) to pin"""
+        if position not in [0, 1]:
+            raise ValueError('Invalid position selected: (0, 1)')
+        if self.status == 'output':
+            self.GPIO.output(self.pin, position)
+        else:
+            raise ValueError('Status for GPIO object is not "output"')
 
     def wait_for_action(self, action='rising', timeout=5000):
         """
