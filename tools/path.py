@@ -34,6 +34,7 @@ class Paths:
             'tweepy_api.txt',
             'personal_tweepy_api.txt',
             'webcam_api.txt',
+            'mysqldb.txt'
         ]
 
         self.key_dict = {}
