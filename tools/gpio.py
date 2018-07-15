@@ -13,25 +13,31 @@ class GPIO:
         mode: str, what setup mode to run ('board', 'bcm')
         status: str, whether to read info or send it (input, output)
         setwarn: bool, if True, allows GPIO warnings
+        is_activelow: bool, if True, relay is off until setup. Delays setup until activation
     """
 
-    def __init__(self, pin, mode='bcm', status='input', setwarn=False):
+    def __init__(self, pin, mode='bcm', status='input', setwarn=False, is_activelow=False):
         self.GPIO = import_module('RPi.GPIO')
         self.pin = pin
         self.GPIO.setwarnings(setwarn)
+        self.mode = mode
         self.status = status.lower()
+        self.is_activelow = is_activelow
 
-        # Determine pin mode
-        if mode == 'board':
+        # Set pin mode
+        self.set_mode()
+        if not self.is_activelow:
+            # Set status if relay is not activelow
+            self.set_status()
+
+    def set_mode(self):
+        if self.mode == 'board':
             # BOARD
             self.GPIO.setmode(self.GPIO.BOARD)
-        elif mode == 'bcm':
+        elif self.mode == 'bcm':
             # BCM
             # Use 'gpio readall' to get BCM pin layout for RasPi model
             self.GPIO.setmode(self.GPIO.BCM)
-
-        # Set status
-        self.set_status()
 
     def set_status(self):
         """Sets the pin status as on/HIGH(1) off/LOW(0)"""
