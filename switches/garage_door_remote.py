@@ -7,7 +7,7 @@ from kavalkilu.tools.relay import Relay
 PIN = 25
 
 # Set up garage relay
-gr = Relay(PIN)
+gr = Relay(PIN, is_activelow=False)
 
 # Activate door
 gr.turn_on()
