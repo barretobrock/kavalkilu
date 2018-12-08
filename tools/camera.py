@@ -167,4 +167,4 @@ js = """
     }}
 """.format(sched_list)
 
-print(js)
+#print(js)
