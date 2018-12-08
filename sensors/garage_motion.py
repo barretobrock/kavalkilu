@@ -49,7 +49,8 @@ if tripped is not None:
         loc_id = row['id']
         break
     # Write timestamp to garage location
-    motion_log = conn.execute('INSERT INTO motions (`loc_id`, `record_date`) VALUES ({}, "{}")'.format(loc_id, trip_time))
+    insertion_query = 'INSERT INTO motions (`loc_id`, `record_date`) VALUES ({}, "{}")'.format(loc_id, trip_time)
+    motion_log = conn.execute(insertion_query)
     conn.close()
 else:
     # Turn off the light if it's been on for the past 5 min cycle without any trips

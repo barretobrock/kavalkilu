@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Commonly-used paths
+    NOTE: IP addresses found in /etc/hosts
+"""
+
 import os
 import json
+import re
 
 
 class Paths:
@@ -11,10 +17,18 @@ class Paths:
         self.server_ip = '192.168.0.5'
         self.pihole_ip = self.server_ip
         self.openhab_ip = self.server_ip
-        self.huebridge_ip = '192.168.0.146'
-        self.webcam_ip = '192.168.0.7'
+        # IP Cameras
+        self.elutuba_ipc = '192.168.0.7'
+        self.kamin_ipc = '192.168.0.20'
+        self.garage_ipc = '192.168.0.24'
+        self.raspicam = '192.168.0.21'
+        # Others
         self.roku_ip = '192.168.0.9'
+        self.chromecast_ip = '192.168.0.10'
+        self.ecobee_ip = '192.168.0.10'
+        self.huebridge_ip = '192.168.0.19'
         self.garagepi_ip = '192.168.0.18'
+
         # directories
         self.home_dir = os.path.expanduser("~")
         self.image_dir = os.path.join(self.home_dir, 'images')
@@ -35,7 +49,8 @@ class Paths:
             'tweepy_api.txt',
             'personal_tweepy_api.txt',
             'webcam_api.txt',
-            'mysqldb.txt'
+            'mysqldb.txt',
+            'amcrest.txt'
         ]
 
         self.key_dict = {}
