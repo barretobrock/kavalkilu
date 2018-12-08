@@ -5,7 +5,7 @@ from .path import Paths
 
 p = Paths()
 
-creds = p.key_dict['webcam_api']
+#creds = p.key_dict['webcam_api']
 
 ip_list = [p.elutuba_ipc, p.garage_ipc, p.kamin_ipc]
 
