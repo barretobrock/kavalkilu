@@ -11,6 +11,7 @@ ip_list = [p.elutuba_ipc, p.garage_ipc, p.kamin_ipc]
 
 ip = ip_list[0]
 
+
 class AmcrestWeb:
     """Selenium-based controls for automating boring camera tasks"""
     def __init__(self, ip, creds, driver_path='/usr/bin/chromedriver'):
