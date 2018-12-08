@@ -1,12 +1,19 @@
+"""Setup kavalkilu.
+Resources to build this:
+    https://packaging.python.org/en/latest/distributing.html
+    https://github.com/pypa/sampleproject
+"""
+from setuptools import setup, find_packages
 
-from distutils.core import setup
 
 setup_args = {
     'name': 'kavalkilu',
-    'version': '0.2.1',
+    'version': '0.2.2',
     'license': 'MIT',
-    'description': 'A Library for Integrating Home Automation Components',
+    'description': 'A    Library for Integrating Home Automation Components',
     'url': 'https://github.com/barretobrock/kavalkilu',
-    'packages': ['kavalkilu']
+    'author': 'Barret Obrock',
+    'author_email': 'barret@barretobrock.ee',
+    'packages': find_packages()
 }
 setup(**setup_args)
