@@ -87,6 +87,18 @@ class AmcrestWeb:
                 day_btns[day].click
 
 
+sched_list = [
+    {
+        # Weekend
+        'days': [0, 6],
+        'times': ['0:00-03:50', '22:00-23:59']
+    }, {
+        # Weekdays
+        'days': list(range(1, 6)),
+        'times': ['0:00-03:50', '07:30-16:20', '22:00-23:59']
+    }
+]
+
 js = """
     function sleep(ms) {{
       return new Promise(resolve => setTimeout(resolve, ms));
