@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 from kavalkilu.tools.sensors import PIRSensor
 from kavalkilu.tools.light import HueBulb, hue_lights
 from kavalkilu.tools.openhab import OpenHab

@@ -1,3 +1,6 @@
+/*
+Script to 1) detect leaks and 2) send a signal that a leak was detected
+*/
 #include "nRF24L01.h" //NRF24L01 library created by TMRh20 https://github.com/TMRh20/RF24
 #include "RF24.h"
 #include "SPI.h"
