@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-# import custom modules
 from kavalkilu.tools.path import Paths
 from kavalkilu.tools.log import Log
-from primary.maintools import Paths
-from logger.pylogger import Log
 import pandas as pd
 import numpy as np
 import plotly.plotly as py

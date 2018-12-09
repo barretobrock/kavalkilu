@@ -5,8 +5,8 @@ import obd
 from datetime import datetime as dt
 import time
 from collections import OrderedDict
-from primary.maintools import CSVHelper, Paths
-from logger.pylogger import Log
+from kavalkilu.tools import Paths, Log
+from kavalkilu.tools.databases import CSVHelper
 
 
 def is_engine_on(conn):

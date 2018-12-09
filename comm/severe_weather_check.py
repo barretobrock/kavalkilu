@@ -6,10 +6,9 @@ import sys
 import json
 from collections import OrderedDict
 from urllib.request import urlopen
-from kavalkilu.tools import Paths, DateTools, Log,
-# custom modules
-from primary.maintools import Paths, DateTools, CSVHelper
-from comm.commtools import PBullet
+from kavalkilu.tools import Paths, DateTools, Log
+from kavalkilu.tools.databases import CSVHelper
+from kavalkilu.tools.message import PBullet
 
 
 p = Paths()

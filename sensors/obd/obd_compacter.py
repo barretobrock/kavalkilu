@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from primary.maintools import Paths, CSVHelper
-from logger.pylogger import Log
-
+from kavalkilu.tools import Paths, Log
+from kavalkilu.tools.databases import CSVHelper
 
 p = Paths()
 logg = Log('obd.compacter', p.log_dir, 'obd_compacter', log_lvl="DEBUG")

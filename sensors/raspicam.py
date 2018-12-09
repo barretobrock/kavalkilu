@@ -3,6 +3,7 @@
 import os
 from kavalkilu.tools.path import Paths
 from kavalkilu.tools.message import PBullet
+from kavalkilu.tools.camera import Camera
 
 p = Paths()
 c = Camera()
