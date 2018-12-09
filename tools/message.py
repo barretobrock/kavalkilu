@@ -10,6 +10,7 @@ import mimetypes
 from smtplib import SMTP
 import datetime
 import os
+import socket
 
 
 class Email:
@@ -105,3 +106,123 @@ class Email:
             self.log.exception('Connection with server timed out.')
         except:
             self.log.exception('Could not connect with email server.')
+
+
+class PBullet:
+    """
+    Connects to Pushbullet API
+    Args for __init__:
+        api: str, Pushbullet API key
+    """
+    def __init__(self, api):
+        self.pushbullet = __import__('pushbullet')
+
+        self.api = api
+        self.pb = self.pushbullet.PushBullet(self.api)
+
+    def send_message(self, title, message):
+        """Sends a message"""
+        self.pb.push_note(title, message)
+
+    def send_address(self, title, address):
+        """Sends an address"""
+        self.pb.push_address(title, address)
+
+    def send_link(self, text, link):
+        """Sends a link"""
+        self.pb.push_link(text, link)
+
+    def send_img(self, filepath, title, filetype='image/png'):
+        """Sends an image"""
+        with open(filepath, 'rb') as thing:
+            file_data = self.pb.upload_file(thing, title, file_type=filetype)
+        push = self.pb.push_file(**file_data)
+
+
+class INET:
+    """
+    Performs variety of internet connection tests
+    """
+    def __init__(self):
+        pass
+
+    def get_ip_address(self):
+        """Retrieves the local IP address"""
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            return s.getsockname()[0]
+        except:
+            return ''
+
+    def ping_success(self, is_internal=False):
+        """
+        Checks if connected to internet
+        Args:
+            is_internal: boolean, pings internal network if True. default False
+        """
+        if is_internal:
+            host = "192.168.0.1"
+        else:
+            host = "8.8.8.8"
+        response = os.system("ping -c 1 {}".format(host))
+        if response == 0:
+            return True
+        else:
+            return False
+
+
+class TWAPI:
+    def __init__(self):
+        self.API = __import__('tweepy').API
+
+
+class Twitter(TWAPI):
+    def __init__(self, key_dict):
+        self.twp = __import__('tweepy')
+        # Import keys
+        self.CONSUMER_KEY = key_dict['consumer_key']
+        self.CONSUMER_SECRET = key_dict['consumer_secret']
+        self.ACCESS_KEY = key_dict['access_key']
+        self.ACCESS_SECRET = key_dict['access_secret']
+        auth = self.twp.OAuthHandler(self.CONSUMER_KEY, self.CONSUMER_SECRET)
+        auth.set_access_token(self.ACCESS_KEY, self.ACCESS_SECRET)
+        super(Twitter, self).__init__(auth)
+
+    def get_messages(self):
+        msgs = self.direct_messages()
+        return msgs
+
+    def get_followers(self):
+        followers = self.followers()
+        return followers
+
+    def post(self, text, log=None, char_limit=140):
+        if text != "":
+            if len(text) > char_limit:
+                text = text[:char_limit]
+            try:
+                self.update_status(status=text)
+            except:
+                if log is not None:
+                    log.exception('Failed to post tweet.')
+                else:
+                    raise ValueError('Tweet failed to post!')
+                    pass
+
+    def send_message(self, user_id, text):
+        if text != "":
+            self.send_direct_message(user_id=user_id, text=text)
+
+    def delete_tweet(self, datetime_lim, containing=""):
+        timeline = self.twp.Cursor(self.user_timeline).items()
+        for tweet in timeline:
+            if tweet.created_at < datetime_lim:
+                if containing != "":
+                    if containing in tweet.text:
+                        print("Destroying {}\n{}".format(tweet.id, tweet.text))
+                        self.destroy_status(tweet.id)
+                else:
+                    print("Destroying {}\n{}".format(tweet.id, tweet.text))
+                    self.destroy_status(tweet.id)
+
