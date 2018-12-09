@@ -27,13 +27,15 @@ test = pd.DataFrame({
     'DOWNLOAD': down,
     'UPLOAD': up,
 }, index=[0])
+# Enforce column order
+test = test[['TIMESTAMP', 'DOWNLOAD', 'UPLOAD']]
 
 # Append data to csv file
 if os.path.exists(save_path):
     # Append
-    test.to_csv(save_path, mode='a', header=False)
+    test.to_csv(save_path, mode='a', header=False, index=False)
 else:
     # Write
-    test.to_csv(save_path)
+    test.to_csv(save_path, index=False)
 
 logg.close()
