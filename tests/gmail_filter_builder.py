@@ -2,56 +2,16 @@
 For building an managing filters in gmail
 """
 import os
+import json
 
 
-gmail_filters = {
-    'keeleopi/german': {
-        'from': ['feedblitz@transparent.com'],
-        'contains': ["German Language Blog"],
-    },
-    'oluline/finants': {
-        'from': ['do-not-reply@coautilitiesemail.com', 'fnbodirect@notify.fnbodirect.com',
-                 'customer.service@mail.synchronybank.com', 'noreply@ufcu.org',
-                 'postparkmesa@maac.com', 'no-reply@rentcafe.com']
-    },
-    'reklaamid': {
-        'from': [
-            'info@mailer.netflix.com',
-            'customer.service@candlemart.com',
-            '*@lwv.org',
-            'reviews@candlemart.com',
-            'hrc@hrc.org',
-            'sunny@candlemart.com',
-            'yourfriends@ties.com',
-            '*@redditgifts.com',
-            '*@asaustin.org',
-            'assistant-noreply@google.com',
-            '*.goodreads.com',
-            'usmail@expediamail.com',
-            'no-reply@vertex.com',
-            'noreply-local-guides@google.com',
-            'wholefoodsmarket@mail.wholefoodsmarket.com',
-            'finnairplus@email.finnair.com',
-            'reply@mail.familysearch.org',
-            'sales@muehleusa.com',
-            'newsletter@email.norwegianreward.com',
-            'Honda@emails.honda.com',
-            '*@roundrockhonda.com',
-            'reply@e.netgear.com',
-            'store-news@woot.com',
-            'cinamon@key.cinamonkino.com',
-            'info@sukamaailm.ee',
-            'info@hooandja.ee',
-            'IKEA-USA@e.ikea-usa.com',
-            'no-reply@pocopay.com'
-        ],
-        'and_not_from': ['USPSInformedDelivery@usps.gov']
-    }
-}
+filter_fp = os.path.join(os.path.expanduser('~'), *['keys', 'email_filters.json'])
+
+with open(filter_fp, 'r') as fp:
+    gmail_filters = json.load(fp)
 
 
 def build_filter_str(filter_section_key, filter_section_value):
-    """"""
     if filter_section_key in ['from', 'to']:
         filter_str = '{}:({})'.format(filter_section_key, ' OR '.join(filter_section_value))
     elif filter_section_key in ['contains']:
@@ -64,9 +24,9 @@ def build_filter_str(filter_section_key, filter_section_value):
     return filter_str
 
 
-def get_filter(fname):
+def get_filter(filter_dict, filter_name):
     pieces = []
-    for k, v in gmail_filters[gmail_filter].items():
+    for k, v in filter_dict[filter_name].items():
         pieces.append(build_filter_str(k, v))
     result_str = ''
     for piece in pieces:
@@ -77,6 +37,11 @@ def get_filter(fname):
         else:
             result_str += ' OR {}'.format(piece)
     return result_str
+
+
+def write_new_filters(filter_dict, filepath):
+    with open(filepath, 'w') as f:
+        json.dump(filter_dict, f)
 
 
 get_filter('reklaamid')
