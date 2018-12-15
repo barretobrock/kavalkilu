@@ -16,7 +16,7 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     - Currently, there's an issue with the package not updating when using `pip`.
         To bypass this, I copy the contents of the package directory to the 
         package location in `site-packages`:
-        `cp -r ~/kavalkilu ~/.local/lib/python3.6/site-packages`
+        `sudo cp -r ~/kavalkilu ~/.local/lib/python3.6/site-packages`
 
 ## Tips
 
