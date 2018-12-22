@@ -4,8 +4,10 @@ import json
 from collections import OrderedDict
 from datetime import datetime as dtt
 from datetime import timedelta
+import pandas as pd
 from urllib.request import urlopen
-from kavalkilu.tools import ChromeDriver, Action, Paths
+from kavalkilu.tools.selenium import ChromeDriver, Action
+from kavalkilu.tools.path import Paths
 
 
 class DarkSkyWeather:
@@ -19,8 +21,9 @@ class DarkSkyWeather:
         self.day_text = day_text
         self.latlong = latlong
         self.url_prefix = 'https://api.darksky.net/forecast'
-        self.DARK_SKY_API = 'd29a1b0c076c61f04234a4dcecceaa07'
-        self.DARK_SKY_URL = "{}/{}/{}?units=si&exclude=currently,flags".format(self.url_prefix, self.DARK_SKY_API, self.latlong)
+        p = Paths()
+        self.DARK_SKY_API = p.key_dict['darksky_api']
+        self.DARK_SKY_URL = "{}/{}/{}?units=si&exclude=flags".format(self.url_prefix, self.DARK_SKY_API, self.latlong)
 
     def get_data(self):
         """Returns weather data on given location"""
@@ -29,16 +32,20 @@ class DarkSkyWeather:
         data = json.loads(darksky)
         return data
 
-    def day_summary(self, hour_str_list):
+    def day_summary(self, hour_list=None):
         """
         Creates summary of day's weather for location
         Args:
-            hour_str_list: list of str, hours of day for specific temperatures
+            hour_list: list of hours of day for specific temperatures
+                If None, will return next 6 hours
         """
         now = dtt.today()
         data = self.get_data()
         hourly_weather = data.get('hourly').get('data')
         times = [dtt.fromtimestamp(int(x.get('time'))).strftime('%Y%m%d %H') for x in hourly_weather]
+
+        if hour_list is None:
+            hour_list = pd.date_range(now, (now + timedelta(hours=6)), freq='H')
         # determine when to get weather info
         num_days = 0
         if self.day_text == 'TODAY':
