@@ -13,7 +13,7 @@ oh = OpenHab()
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log_suffix = datetime.now().strftime('%H%M')
-log = Log('ecobee_temp_{}'.format(log_suffix), os.path.abspath('/home/pi/logs'), 'temp', 'INFO')
+log = Log('ecobee_temp_{}'.format(log_suffix), os.path.join(os.path.expanduser('~'), 'logs'), 'temp', 'INFO')
 log.debug('Logging initiated')
 
 temp_dict = oh.read_value('actualTemperature')
