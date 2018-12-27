@@ -19,11 +19,11 @@ sensors = [
         'sn': '28-0516a4a84eff',
         'loc': 'porch_upper_sun',
         'loc_id': 5
-    },# {
-      #  'sn': '',
-      #  'loc': 'porch_lower_shade',
-      #  'loc_id': 6
-    #}
+    }, {
+        'sn': '28-0416c17b86ff',
+        'loc': 'porch_lower_shade',
+        'loc_id': 6
+    }
 ]
 
 oh = OpenHab()
