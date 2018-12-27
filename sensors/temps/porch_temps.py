@@ -47,7 +47,7 @@ temp_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 for sensor in sensors:
     # Instantiate the temp sensors
     t = daltemp(sensor['sn'])
-    sensor['val'] = t.measure()
+    sensor['val'] = t.measure()['temp']
     sensor['ts'] = temp_time
     # Update values in OpenHab
     sensor_name = 'Temp_{}'.format(sensor['loc'].replace('_', ' ').title().replace(' ', '_'))
