@@ -21,4 +21,25 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 ## Tips
 
 
+### Initial Pi Setup
+    __Note: 
+        This is to prepare a Raspberry Pi device for installation of this package. 
+        This is mildly different from a requirements.txt file.__ 
+
+ - Install git and others
+    `sudo apt-get install git git-core python3-pip python3-dev Adafruit_DHT`
+ - Install wiringPi
+    ```bash
+    # Go home
+    cd
+    # Make an "extras" folder to hold other packages we'll install
+    mkdir extras
+    cd extras
+    # Clone in WiringPi
+    git clone git://git.drogon.net/wiringPi
+    cd wiringPi
+    # Build the file
+    ./build
+    ```
+
 

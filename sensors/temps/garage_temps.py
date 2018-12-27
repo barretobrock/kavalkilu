@@ -52,13 +52,15 @@ val_dict = {
     'hum_db': 'humidity',
     'loc': loc_id
 }
-# Write timestamp and temps to garage location
-temp_ins_q = 'INSERT INTO {temp_db} (`loc_id`, `record_date`, `record_value`) ' \
-             'VALUES ({loc}, "{ts}", {temp});'.format(**val_dict)
-temp_log = conn.execute(temp_ins_q)
-hum_ins_q = 'INSERT INTO {hum_db} (`loc_id`, `record_date`, `record_value`) ' \
-             'VALUES ({loc}, "{ts}", {hum});'.format(**val_dict)
-hum_log = conn.execute(hum_ins_q)
+
+for tbl in ['temps', 'humidity']:
+    # For humidity and temp, insert into tables
+    insert_query = """
+        INSERT INTO {tbl} (`loc_id`, `record_date`, `record_value`)
+        VALUES ({loc}, "{ts}", {hum})
+    """.format(tbl=tbl, **val_dict)
+    insert_log = conn.execute(insert_query)
+
 conn.close()
 
 log.debug('Temp logging successfully completed.')
