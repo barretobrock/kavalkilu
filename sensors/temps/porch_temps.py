@@ -50,7 +50,7 @@ for sensor in sensors:
     sensor['val'] = t.measure()
     sensor['ts'] = temp_time
     # Update values in OpenHab
-    sensor_name = 'Temp_{}'.format(sensors['loc'].replace('_', ' ').title().replace(' ', '_'))
+    sensor_name = 'Temp_{}'.format(sensor['loc'].replace('_', ' ').title().replace(' ', '_'))
     req = oh.update_value(sensor_name, '{}'.format(sensor['val']))
     sleep(1)
     formatted_query = insert_query.format(**sensor)
