@@ -22,12 +22,13 @@ class TempSensor:
                 keys - 'humidity', 'temp'
         """
         # Loop through readings, remove any float issues by rounding off to 2 decimals
-        for k, v in data.items():
-            if isinstance(v, int):
-                # Enforce float
-                v = float(v)
-            if isinstance(v, float):
-                data[k] = round(v, self.decimals)
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, int):
+                    # Enforce float
+                    v = float(v)
+                if isinstance(v, float):
+                    data[k] = round(v, self.decimals)
         return data
 
 
