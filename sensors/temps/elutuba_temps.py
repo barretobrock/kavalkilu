@@ -1,53 +1,56 @@
 """Read temperature and humidity from garage"""
-from time import sleep
+
 from kavalkilu.tools.sensors import DHTTempSensor as DHT
 from kavalkilu.tools.openhab import OpenHab
 from kavalkilu.tools.log import Log
 from kavalkilu.tools.databases import MySQLLocal
-from datetime import datetime
+import pandas as pd
 
 
 # Set the pin
 TEMP_PIN = 4
-LIVING_ROOM_LOC = 7
+LOC_ID = 7
+# Name of object in OpenHab
+oh_name = 'Elutuba'
 VAL_TBLS = ['temps', 'humidity']
 
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log_suffix = datetime.now().strftime('%H%M')
+now = pd.datetime.now()
+log_suffix = now.strftime('%H%M')
 log = Log('elutuba_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
 log.debug('Logging initiated')
 # Instantiate the temp sensor
 tsensor = DHT(TEMP_PIN, decimals=3)
 
-n_reads = 5
-# Take five readings, pick the average
-readings = []
-for x in range(0, n_reads):
-    readings.append(tsensor.measure())
-    sleep(1)
-
-temp_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-temp_avg = float(sum(d['temp'] for d in readings)) / len(readings)
-hum_avg = float(sum(d['humidity'] for d in readings)) / len(readings)
+# Take 5 readings, 1 second apart and get average
+avg_reading = tsensor.measure(n_times=5)
+temp_time = now.strftime('%Y-%m-%d %H:%M:%S')
+temp_avg, hum_avg = (avg_reading[k] for k in ['temp', 'humidity'])
 
 # Update values in OpenHab
-for name, val in zip(['Env_Elutuba_DHT', 'Temp_Elutuba', 'Hum_Elutuba'], [temp_time, temp_avg, hum_avg]):
+oh_values = {
+    'Env_{}_Update'.format(oh_name): temp_time,
+    'Temp_{}'.format(oh_name): temp_avg,
+    'Hum_{}'.format(oh_name): hum_avg
+}
+
+for name, val in oh_values.items():
     req = oh.update_value(name, '{}'.format(val))
 
 # Log motion into homeautodb
-# Connect
 ha_db = MySQLLocal('homeautodb')
 conn = ha_db.engine.connect()
 
 # Build a dictionary of the values we're moving around
-vals = [{'loc': LIVING_ROOM_LOC, 'ts': temp_time, 'val': x, 'tbl': y} for x, y in zip([temp_avg, hum_avg], VAL_TBLS)]
+vals = [{'loc_id': LOC_ID, 'record_date': temp_time,
+         'record_value': x, 'tbl': y} for x, y in zip([temp_avg, hum_avg], VAL_TBLS)]
 
 for val_dict in vals:
     # For humidity and temp, insert into tables
     insert_query = """
         INSERT INTO {tbl} (`loc_id`, `record_date`, `record_value`)
-        VALUES ({loc}, "{ts}", {val})
+        VALUES ({loc_id}, "{record_date}", {record_value})
     """.format(**val_dict)
     insert_log = conn.execute(insert_query)
 

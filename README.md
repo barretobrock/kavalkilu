@@ -3,12 +3,12 @@ Some updated scripts for personal use throughout various personal projects (most
 
 ## Installation
 ```bash
-pip3 install git+https://github.com/barretobrock/kavalkilu.git  
+sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git  
 ```
 
 ## Update
 ```bash
-pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
+sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 ```
 
 ## Troubleshooting
