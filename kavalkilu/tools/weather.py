@@ -6,72 +6,70 @@ from datetime import datetime as dtt
 from datetime import timedelta
 import pandas as pd
 from urllib.request import urlopen
-from kavalkilu.tools.selenium import ChromeDriver, Action
-from kavalkilu.tools.path import Paths
+from .selenium import ChromeDriver, Action
+from .path import Paths
 
 
 class DarkSkyWeather:
     """
     Use Dark Sky API to get weather forecast
     Args for __init__:
-        day_text: str, 'TODAY' or 'TOMORROW'
         latlong: str, format: "latitude,longitude"
     """
-    def __init__(self, day_text, latlong='59.4049,24.6768'):
-        self.day_text = day_text
+    def __init__(self, latlong='59.4049,24.6768', tz='US/Central'):
         self.latlong = latlong
+        self.tz = tz
         self.url_prefix = 'https://api.darksky.net/forecast'
         p = Paths()
         self.DARK_SKY_API = p.key_dict['darksky_api']
         self.DARK_SKY_URL = "{}/{}/{}?units=si&exclude=flags".format(self.url_prefix, self.DARK_SKY_API, self.latlong)
+        self.data = self._get_data()
 
-    def get_data(self):
+    def _get_data(self):
         """Returns weather data on given location"""
         # get weather forecast from dark sky api
         darksky = urlopen(self.DARK_SKY_URL).read().decode('utf-8')
         data = json.loads(darksky)
         return data
 
-    def day_summary(self, hour_list=None):
-        """
-        Creates summary of day's weather for location
-        Args:
-            hour_list: list of hours of day for specific temperatures
-                If None, will return next 6 hours
-        """
-        now = dtt.today()
-        data = self.get_data()
-        hourly_weather = data.get('hourly').get('data')
-        times = [dtt.fromtimestamp(int(x.get('time'))).strftime('%Y%m%d %H') for x in hourly_weather]
+    def _format_tables(self, data):
+        """Takes in a grouping of data and returns as a pandas dataframe"""
+        if isinstance(data, list):
+            # Dealing with multiple rows of data
+            df = pd.DataFrame(data)
+        elif isinstance(data, dict):
+            # Dealing with a single row of data
+            df = pd.DataFrame(data, index=[0])
 
-        if hour_list is None:
-            hour_list = pd.date_range(now, (now + timedelta(hours=6)), freq='H')
-        # determine when to get weather info
-        num_days = 0
-        if self.day_text == 'TODAY':
-            num_days = 0
-        elif self.day_text == 'TOMORROW':
-            num_days = 1
-        date_str = (now + timedelta(days=num_days)).strftime('%Y%m%d')
-        text_list = []
-        if len(hour_str_list) > 0:
-            for i in hour_str_list:
-                try:
-                    ts = times.index("{} {}".format(date_str, i))
-                    sumry = hourly_weather[ts].get('summary')
-                    temp = round(float(hourly_weather[ts].get('temperature')), 1)
-                    apptemp = round(float(hourly_weather[ts].get('apparentTemperature')), 1)
-                    precip = float(hourly_weather[ts].get('precipIntensity'))
-                    forecast_txt = "{}.00: {} (feels {}) {}".format(i, temp, apptemp, sumry)
-                    if precip > 0.09:
-                        forecast_txt += ' {precip}\n'
-                    else:
-                        forecast_txt += '\n'
-                    text_list.append(forecast_txt)
-                except:
-                    pass
-        text_list = [self.day_text + ':\n'] + text_list
-        return ''.join(text_list)
+        # Convert any "time" column to locally-formatted datetime
+        time_cols = [col for col in df.columns if 'time' in col.lower()]
+        if len(time_cols) > 0:
+            for time_col in time_cols:
+                # Convert column to datetime
+                dtt_col = pd.to_datetime(df[time_col], unit='s')
+                # Convert datetime col to local timezone and remove tz
+                dtt_col = dtt_col.dt.tz_localize('utc').dt.tz_convert(self.tz).dt.tz_localize(None)
+                df[time_col] = dtt_col
+
+        return df
+
+    def current_summary(self):
+        """Get current weather summary"""
+        data = self.data['currently']
+        df = self._format_tables(data)
+        return df
+
+    def hourly_summary(self):
+        """Get 48 hour weather forecast"""
+        data = self.data['hourly']['data']
+        df = self._format_tables(data)
+        return df
+
+    def daily_summary(self):
+        """Get 7-day weather forecast"""
+        data = self.data['daily']['data']
+        df = self._format_tables(data)
+        return df
 
 
 class YrNoWeather:

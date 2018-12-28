@@ -11,6 +11,16 @@ sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git
 sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 ```
 
+## Testing
+ - First, tag the commit
+    ```bash
+    git tag -a qa -m "KILU-1: QA Testing"
+    ```
+ - Then, install
+    ```bash
+    sudo pip3 install -e git+https://github.com/barretobrock/kavalkilu.git@qa#egg=kavalkilu_qa
+    ```
+
 ## Troubleshooting
  - **EDIT: This no longer seems necessary** 
     First time building a proper package, so there's a lot that might go wrong. 
