@@ -10,6 +10,8 @@ import os
 
 # Set the pin
 TEMP_PIN = 24
+GARAGE_LOC = 2
+
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log_suffix = datetime.now().strftime('%H%M')
@@ -37,28 +39,16 @@ for name, val in zip(['Env_Garaaz_DHT', 'Temp_Garaaz', 'Hum_Garaaz'], [temp_time
 # Connect
 ha_db = MySQLLocal('homeautodb')
 conn = ha_db.engine.connect()
-# Find garage location
-location_resp = conn.execute('SELECT id FROM locations WHERE location = "garage"')
-for row in location_resp:
-    loc_id = row['id']
-    break
 
 # Build a dictionary of the values we're moving around
-val_dict = {
-    'ts': temp_time,
-    'temp': temp_avg,
-    'hum': hum_avg,
-    'temp_db': 'temps',
-    'hum_db': 'humidity',
-    'loc': loc_id
-}
+vals = [{'loc': LIVING_ROOM_LOC, 'ts': temp_time, 'val': x, 'tbl': y} for x, y in zip([temp_avg, hum_avg], VAL_TBLS)]
 
-for tbl in ['temps', 'humidity']:
+for val_dict in vals:
     # For humidity and temp, insert into tables
     insert_query = """
         INSERT INTO {tbl} (`loc_id`, `record_date`, `record_value`)
-        VALUES ({loc}, "{ts}", {hum})
-    """.format(tbl=tbl, **val_dict)
+        VALUES ({loc}, "{ts}", {val})
+    """.format(**val_dict)
     insert_log = conn.execute(insert_query)
 
 conn.close()

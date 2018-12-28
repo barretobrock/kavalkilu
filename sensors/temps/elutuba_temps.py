@@ -10,6 +10,8 @@ from datetime import datetime
 # Set the pin
 TEMP_PIN = 4
 LIVING_ROOM_LOC = 7
+VAL_TBLS = ['temps', 'humidity']
+
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log_suffix = datetime.now().strftime('%H%M')
@@ -21,9 +23,9 @@ tsensor = DHT(TEMP_PIN, decimals=3)
 n_reads = 5
 # Take five readings, pick the average
 readings = []
-for x in range(0, 5):
+for x in range(0, n_reads):
     readings.append(tsensor.measure())
-    sleep(2)
+    sleep(1)
 
 temp_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 temp_avg = float(sum(d['temp'] for d in readings)) / len(readings)
@@ -39,19 +41,14 @@ ha_db = MySQLLocal('homeautodb')
 conn = ha_db.engine.connect()
 
 # Build a dictionary of the values we're moving around
-val_dict = {
-    'ts': temp_time,
-    'temp': temp_avg,
-    'hum': hum_avg,
-    'loc': LIVING_ROOM_LOC
-}
+vals = [{'loc': LIVING_ROOM_LOC, 'ts': temp_time, 'val': x, 'tbl': y} for x, y in zip([temp_avg, hum_avg], VAL_TBLS)]
 
-for tbl in ['temps', 'humidity']:
+for val_dict in vals:
     # For humidity and temp, insert into tables
     insert_query = """
         INSERT INTO {tbl} (`loc_id`, `record_date`, `record_value`)
-        VALUES ({loc}, "{ts}", {hum})
-    """.format(tbl=tbl, **val_dict)
+        VALUES ({loc}, "{ts}", {val})
+    """.format(**val_dict)
     insert_log = conn.execute(insert_query)
 
 conn.close()

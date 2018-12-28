@@ -58,6 +58,8 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     sudo pip3 install Adafruit_DHT sqlalchemy 
     # Make directories for storing things
     mkdir data keys logs extras
+    # Add in kavalkilu repo
+    git clone https://github.com/barretobrock/kavalkilu.git
     ```
  - Install wiringPi
     ```bash
