@@ -5,6 +5,9 @@ import os
 import glob
 import csv
 from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Numeric, DateTime
+from sqlalchemy.orm import sessionmaker
 from collections import OrderedDict
 from .path import Paths
 
@@ -50,6 +53,29 @@ class MySQLLocal:
     def __del__(self):
         """When last reference of this is finished, ensure the connection is closed"""
         self.connection.close()
+
+
+class Current(declarative_base()):
+    __table_args__ = {
+        'extend_existing': True
+    }
+
+    __table_repr__ = ""
+
+    def __repr__(self):
+        return self.__table_repr__
+
+
+class Temps(Current):
+    Current.__tablename__ = 'temps'
+
+    Current.id = Column(Integer, primary_key=True, autoincrement=True)
+    Current.loc_id = Column(Integer, primary_key=False)
+    Current.record_date = Column(DateTime)
+    Current.record_value = Column(Numeric())
+
+    Current.__table_repr__ = "(loc_id='{}', record_date='{}', record_value='{}')".format(2, temp_time, temp_avg)
+
 
 
 class CSVHelper:

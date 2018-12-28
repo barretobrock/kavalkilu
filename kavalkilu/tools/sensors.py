@@ -21,14 +21,20 @@ class TempSensor:
             data: dict, temp/humidity data to round
                 keys - 'humidity', 'temp'
         """
+        def rounder(value):
+            """Rounds the value"""
+            if isinstance(value, int):
+                value = float(value)
+            if isinstance(value, float):
+                value = round(value, self.decimals)
+            return value
+
         # Loop through readings, remove any float issues by rounding off to 2 decimals
         if isinstance(data, dict):
             for k, v in data.items():
-                if isinstance(v, int):
-                    # Enforce float
-                    v = float(v)
-                if isinstance(v, float):
-                    data[k] = round(v, self.decimals)
+                data[k] = rounder(v)
+        elif isinstance(data, (int, float)):
+            data = rounder(data)
         return data
 
 
@@ -46,16 +52,23 @@ class DHTTempSensor(TempSensor):
         self.sensor = self.dht.DHT22
         self.pin = pin
 
-    def measure(self):
+    def measure(self, n_times=1, sleep_between_secs=1):
         """Take a measurement"""
-        humidity, temp = self.dht.read_retry(self.sensor, self.pin)
-        readings = {
-            'humidity': humidity,
-            'temp': temp
-        }
-        # Loop through readings, remove any float issues by rounding off to 2 decimals
-        readings = self.round_reads(readings)
-        return readings
+
+        total_readings = []
+        for i in range(0, n_times):
+            humidity, temp = self.dht.read_retry(self.sensor, self.pin)
+            # Loop through readings, remove any float issues by rounding off to 2 decimals
+            reading = self.round_reads({
+                'humidity': humidity,
+                'temp': temp
+            })
+            total_readings.append(reading)
+            time.sleep(sleep_between_secs)
+        # Get average of all readings
+        readings = {k: sum(x[k] for x in total_readings) / len(total_readings) for k in ['temp', 'humidity']}
+
+        return self.round_reads(readings)
 
 
 class DallasTempSensor(TempSensor):
