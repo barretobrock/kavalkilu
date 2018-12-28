@@ -5,9 +5,8 @@ import os
 import glob
 import csv
 import sqlalchemy
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Table, Column, Integer, String, Numeric, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Numeric, DateTime
 from sqlalchemy.orm import sessionmaker
 from collections import OrderedDict
 from .path import Paths
@@ -16,6 +15,7 @@ from .path import Paths
 class MySQLLocal:
     """Stuff for connecting to local (LAN) MySQLdbs
     without having to remember the proper methods"""
+    Base = declarative_base()
 
     def __init__(self, database_name, connection_dict=None):
         """
@@ -51,18 +51,18 @@ class MySQLLocal:
             self.cursor.rollback()
             raise
 
-    def write_dataframe(self, table, tbl_name, df):
+    def write_dataframe(self, table, df):
         """
         Writes a pandas dataframe to database
         Args:
-            table: ORM-type class
-            tbl_name: str, the name of the table
+            table: sqlalchemy.Table class
             df: pandas.DataFrame
         """
         list_to_write = df.to_dict(orient='records')
 
         metadata = sqlalchemy.schema.MetaData(bind=self.engine, reflect=True)
-        table = sqlalchemy.Table(tbl_name, metadata, autoload=True)
+        # Rewrite the metadata section of the table
+        table.__table__.metadata = metadata
 
         # Open the session
         Session = sessionmaker(bind=self.engine)
@@ -82,26 +82,13 @@ Base = declarative_base()
 
 
 class Temps(Base):
-    __tablename__ = 'temps'
-    __table_args__ = {
-        'extend_existing': True
-    }
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    loc_id = Column(Integer, primary_key=False)
-    record_date = Column(DateTime)
-    record_value = Column(Numeric())
-
-    def __init__(self, loc_id, record_date, record_value):
-        self.loc_id = loc_id
-        self.record_date = record_date
-        self.record_value = record_value
-        self.__table_repr__ = "(loc_id='{}', record_date='{}', record_value='{}')".format(loc_id, record_date, record_value)
-
-    def __repr__(self):
-        return self.__table_repr__
-
-
+    __table__ = Table('temps', Base.metadata,
+                      Column('id', Integer, primary_key=True, autoincrement=True),
+                      Column('loc_id', Integer, primary_key=False),
+                      Column('record_date', DateTime),
+                      Column('record_value', Numeric()),
+                      autoload=True,
+                      extend_existing=True)
 
 
 class CSVHelper:

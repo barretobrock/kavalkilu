@@ -58,6 +58,13 @@ for val_dict in vals:
     insert_log = conn.execute(insert_query)
 
 
+# TEST 2
+val_dict = vals[0]
+tbl = val_dict.pop('tbl')
+df = pd.DataFrame(val_dict, index=[0])
+t_tbl = Temps
+ha_db.write_dataframe(Temps, 'temps', df)
+
 # TEST
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
