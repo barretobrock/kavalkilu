@@ -51,24 +51,24 @@ class MySQLLocal:
             self.cursor.rollback()
             raise
 
-    def write_dataframe(self, table, df):
+    def write_dataframe(self, table_name, df):
         """
         Writes a pandas dataframe to database
         Args:
-            table: sqlalchemy.Table class
+            table_name: str, name of the table in the database
             df: pandas.DataFrame
         """
+        conn = self.engine.connect()
+        Base = declarative_base()
         list_to_write = df.to_dict(orient='records')
 
         metadata = sqlalchemy.schema.MetaData(bind=self.engine, reflect=True)
-        # Rewrite the metadata section of the table
-        table.__table__.metadata = metadata
-
+        table = sqlalchemy.Table(table_name, metadata, autoload=True)
         # Open the session
         Session = sessionmaker(bind=self.engine)
         session = Session()
 
-        self.connection.execute(table.insert(), list_to_write)
+        conn.execute(table.insert(), list_to_write)
 
         session.commit()
         session.close()
@@ -78,17 +78,18 @@ class MySQLLocal:
         self.connection.close()
 
 
-Base = declarative_base()
+class HomeAutoDB:
+    def __init__(self, engine):
+        self.engine = engine
 
-
-class Temps(Base):
-    __table__ = Table('temps', Base.metadata,
-                      Column('id', Integer, primary_key=True, autoincrement=True),
-                      Column('loc_id', Integer, primary_key=False),
-                      Column('record_date', DateTime),
-                      Column('record_value', Numeric()),
-                      autoload=True,
-                      extend_existing=True)
+    def temps_tbl(self):
+        return Table('temps', sqlalchemy.schema.MetaData(bind=self.engine),
+                     Column('id', Integer, primary_key=True, autoincrement=True),
+                     Column('loc_id', Integer, primary_key=False),
+                     Column('record_date', DateTime),
+                     Column('record_value', Numeric()),
+                     autoload=True,
+                     extend_existing=True)
 
 
 class CSVHelper:

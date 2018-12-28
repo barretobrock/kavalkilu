@@ -3,7 +3,7 @@
 from kavalkilu.tools.sensors import DHTTempSensor as DHT
 from kavalkilu.tools.openhab import OpenHab
 from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal, Temps
+from kavalkilu.tools.databases import MySQLLocal
 import pandas as pd
 
 
@@ -41,7 +41,6 @@ for name, val in oh_values.items():
 # Log motion into homeautodb
 # Connect
 ha_db = MySQLLocal('homeautodb')
-conn = ha_db.engine.connect()
 
 # Build a dictionary of the values we're moving around
 vals = [{'loc_id': LOC_ID, 'record_date': temp_time,
@@ -51,54 +50,7 @@ for val_dict in vals:
     # For humidity and temp, insert into tables
     tbl = val_dict.pop('tbl')
     df = pd.DataFrame(val_dict, index=[0])
-    insert_query = """
-        INSERT INTO {tbl} (`loc_id`, `record_date`, `record_value`)
-        VALUES ({loc}, "{ts}", {val})
-    """.format(**val_dict)
-    insert_log = conn.execute(insert_query)
-
-
-# TEST 2
-val_dict = vals[0]
-tbl = val_dict.pop('tbl')
-df = pd.DataFrame(val_dict, index=[0])
-t_tbl = Temps
-ha_db.write_dataframe(Temps, 'temps', df)
-
-# TEST
-import sqlalchemy
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Numeric, DateTime
-from sqlalchemy.orm import sessionmaker
-
-engine = ha_db.engine
-conn = engine.connect()
-Base = declarative_base()
-
-
-# Declaration of class in order to write to database
-#   This structure is standard and should align with SQLAlchemy's doc
-
-
-table_to_write_to = 'temps'
-list_to_write = df.to_dict(orient='records')
-
-metadata = sqlalchemy.schema.MetaData(bind=engine, reflect=True)
-table = sqlalchemy.Table(table_to_write_to, metadata, autoload=True)
-
-# Open the session
-Session = sessionmaker(bind=engine)
-session = Session()
-
-# Insert the dataframe into the database as one bulky move
-conn.execute(table.insert(), list_to_write)
-
-session.commit()
-session.close()
-
-# END TEST
-
-conn.close()
+    ha_db.write_dataframe(tbl, df)
 
 log.debug('Temp logging successfully completed.')
 
