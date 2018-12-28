@@ -4,6 +4,7 @@
 import os
 import glob
 import csv
+import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Numeric, DateTime
@@ -50,31 +51,56 @@ class MySQLLocal:
             self.cursor.rollback()
             raise
 
+    def write_dataframe(self, table, tbl_name, df):
+        """
+        Writes a pandas dataframe to database
+        Args:
+            table: ORM-type class
+            tbl_name: str, the name of the table
+            df: pandas.DataFrame
+        """
+        list_to_write = df.to_dict(orient='records')
+
+        metadata = sqlalchemy.schema.MetaData(bind=self.engine, reflect=True)
+        table = sqlalchemy.Table(tbl_name, metadata, autoload=True)
+
+        # Open the session
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+
+        self.connection.execute(table.insert(), list_to_write)
+
+        session.commit()
+        session.close()
+
     def __del__(self):
         """When last reference of this is finished, ensure the connection is closed"""
         self.connection.close()
 
 
-class Current(declarative_base()):
+Base = declarative_base()
+
+
+class Temps(Base):
+    __tablename__ = 'temps'
     __table_args__ = {
         'extend_existing': True
     }
 
-    __table_repr__ = ""
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    loc_id = Column(Integer, primary_key=False)
+    record_date = Column(DateTime)
+    record_value = Column(Numeric())
+
+    def __init__(self, loc_id, record_date, record_value):
+        self.loc_id = loc_id
+        self.record_date = record_date
+        self.record_value = record_value
+        self.__table_repr__ = "(loc_id='{}', record_date='{}', record_value='{}')".format(loc_id, record_date, record_value)
 
     def __repr__(self):
         return self.__table_repr__
 
-
-class Temps(Current):
-    Current.__tablename__ = 'temps'
-
-    Current.id = Column(Integer, primary_key=True, autoincrement=True)
-    Current.loc_id = Column(Integer, primary_key=False)
-    Current.record_date = Column(DateTime)
-    Current.record_value = Column(Numeric())
-
-    Current.__table_repr__ = "(loc_id='{}', record_date='{}', record_value='{}')".format(2, temp_time, temp_avg)
 
 
 
