@@ -6,7 +6,7 @@ import glob
 
 
 p = Paths()
-logg = Log('obd.uploader', p.log_dir, 'obd_uploader', log_lvl="DEBUG")
+logg = Log('obd.uploader', 'obd_uploader', log_lvl="DEBUG")
 logg.debug('Log initiated')
 
 fscp = FileSCP(p.privatekey_path, p.server_ip, p.server_hostname)

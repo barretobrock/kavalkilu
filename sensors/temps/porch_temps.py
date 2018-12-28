@@ -29,7 +29,7 @@ sensors = [
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log_suffix = datetime.now().strftime('%H%M')
-log = Log('porch_temp_{}'.format(log_suffix), os.path.abspath('/home/pi/logs'), 'temp', 'INFO')
+log = Log('porch_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
 log.debug('Logging initiated')
 
 # Log motion into homeautodb

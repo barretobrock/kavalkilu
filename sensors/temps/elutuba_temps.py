@@ -5,15 +5,15 @@ from kavalkilu.tools.openhab import OpenHab
 from kavalkilu.tools.log import Log
 from kavalkilu.tools.databases import MySQLLocal
 from datetime import datetime
-import os
 
 
 # Set the pin
-TEMP_PIN = 24
+TEMP_PIN = 4
+LIVING_ROOM_LOC = 7
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log_suffix = datetime.now().strftime('%H%M')
-log = Log('garage_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
+log = Log('elutuba_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
 log.debug('Logging initiated')
 # Instantiate the temp sensor
 tsensor = DHT(TEMP_PIN, decimals=3)
@@ -30,27 +30,20 @@ temp_avg = float(sum(d['temp'] for d in readings)) / len(readings)
 hum_avg = float(sum(d['humidity'] for d in readings)) / len(readings)
 
 # Update values in OpenHab
-for name, val in zip(['Env_Garaaz_DHT', 'Temp_Garaaz', 'Hum_Garaaz'], [temp_time, temp_avg, hum_avg]):
+for name, val in zip(['Env_Elutuba_DHT', 'Temp_Elutuba', 'Hum_Elutuba'], [temp_time, temp_avg, hum_avg]):
     req = oh.update_value(name, '{}'.format(val))
 
 # Log motion into homeautodb
 # Connect
 ha_db = MySQLLocal('homeautodb')
 conn = ha_db.engine.connect()
-# Find garage location
-location_resp = conn.execute('SELECT id FROM locations WHERE location = "garage"')
-for row in location_resp:
-    loc_id = row['id']
-    break
 
 # Build a dictionary of the values we're moving around
 val_dict = {
     'ts': temp_time,
     'temp': temp_avg,
     'hum': hum_avg,
-    'temp_db': 'temps',
-    'hum_db': 'humidity',
-    'loc': loc_id
+    'loc': LIVING_ROOM_LOC
 }
 
 for tbl in ['temps', 'humidity']:

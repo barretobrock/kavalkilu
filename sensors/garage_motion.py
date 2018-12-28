@@ -16,7 +16,7 @@ lights = [x for x in hue_lights if 'Garage' in x['hue_name']]
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log_suffix = datetime.now().strftime('%H%M')
-log = Log('garage_motion_{}'.format(log_suffix), os.path.abspath('/home/pi/logs'), 'motion', 'INFO')
+log = Log('garage_motion_{}'.format(log_suffix), 'motion', log_lvl='INFO')
 log.debug('Logging initiated')
 
 # Set up motion detector

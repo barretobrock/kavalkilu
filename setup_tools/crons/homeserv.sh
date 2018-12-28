@@ -10,6 +10,7 @@
 # -----------------------------
 # MYSQL STUFF
 0 * * * * /usr/bin/python3 /home/bobrock/scripts/pihole_to_mysqldb.py
+1 5 * * * /usr/bin/python3 /home/bobrock/kavalkilu/sensors/pihole_to_mysql.py
 2 * * * * /usr/bin/python3 /home/bobrock/scripts/speedtest_to_mysql.py
 # AUTOMATION STUFF
 */30 * * * * /usr/bin/python3 /home/bobrock/blue2/comm/speedtest_logger.py

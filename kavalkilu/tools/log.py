@@ -15,15 +15,23 @@ class Log:
     Initiates an object to log processes from error-level to debug-level
     Args from __init__:
         log_name: str, display name of the log
-        log_dir: str, directory to save the log
         log_filename_prefix: str, filename prefix (ex. 'npslog')
+            default: log_name
+        log_dir: str, directory to save the log
+            default: "~/logs"
         log_lvl: str, minimum logging level to write to log (Hierarchy: DEBUG -> INFO -> WARN -> ERROR)
+            default: 'INFO'
     """
-    def __init__(self, log_name, log_dir, log_filename_prefix, log_lvl='DEBUG'):
+    def __init__(self, log_name, log_filename_prefix=None, log_dir=None, log_lvl='INFO'):
         # Name of log in logfile
         self.log_name = log_name
+        if log_filename_prefix is None:
+            log_filename_prefix = log_name
         # Set name of file
         self.log_filename = "{}_{}.log".format(log_filename_prefix, dt.today().strftime('%Y%m%d'))
+        # Set log directory (if none)
+        if log_dir is None:
+            log_dir = os.path.join(os.path.expanduser('~'), 'logs')
         # Check if logging directory exists
         if not os.path.exists(log_dir):
             # If doesn't exist, create
@@ -87,5 +95,12 @@ class Log:
         for handler in handlers:
             handler.close()
             self.logger.removeHandler(handler)
+
+    def __del__(self):
+        """In case logger hasn't been properly closed"""
+        try:
+            self.close()
+        except:
+            pass
 
 

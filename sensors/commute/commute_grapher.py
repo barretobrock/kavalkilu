@@ -151,7 +151,7 @@ def mon_boxplot(df, data_col, mon_col, save_dir, plot_online=False):
 
 p = Paths()
 
-logg = Log('commute.grapher', p.log_dir, 'commute', log_lvl="DEBUG")
+logg = Log('commute.grapher', 'commute', log_lvl="DEBUG")
 logg.debug('Log initiated')
 
 api = json.loads(p.key_dict['plotly_api'])

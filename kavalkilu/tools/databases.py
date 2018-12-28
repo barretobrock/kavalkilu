@@ -35,6 +35,21 @@ class MySQLLocal:
         connection_url = 'mysql+mysqldb://{un}:{pw}@{host}:{port}/{database}'
         connection_url = connection_url.format(**connection_dict)
         self.engine = create_engine(connection_url)
+        self.connection = self.engine.connect()
+        self.cursor = self.connection.begin()
+
+    def write_sql(self, query):
+        """Writes a sql query to the database"""
+        try:
+            self.connection.execute(query)
+            self.cursor.commit()
+        except:
+            self.cursor.rollback()
+            raise
+
+    def __del__(self):
+        """When last reference of this is finished, ensure the connection is closed"""
+        self.connection.close()
 
 
 class CSVHelper:

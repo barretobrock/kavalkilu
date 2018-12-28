@@ -194,7 +194,7 @@ def message_generator(activity_type, **kwargs):
 ymdfmt = '%Y-%m-%d %H:%M:%S'
 p = Paths()
 
-logg = Log('commute.calculator', p.log_dir, 'commute', log_lvl="DEBUG")
+logg = Log('commute.calculator', 'commute', log_lvl="DEBUG")
 logg.debug('Log initiated')
 
 client_secret_path = p.google_client_secret
