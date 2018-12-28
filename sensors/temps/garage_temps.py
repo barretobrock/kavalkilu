@@ -39,7 +39,6 @@ for name, val in oh_values.items():
     req = oh.update_value(name, '{}'.format(val))
 
 # Log motion into homeautodb
-# Connect
 ha_db = MySQLLocal('homeautodb')
 
 # Build a dictionary of the values we're moving around
