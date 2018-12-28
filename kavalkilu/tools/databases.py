@@ -51,6 +51,28 @@ class MySQLLocal:
             self.cursor.rollback()
             raise
 
+    def write_df_to_sql(self, tbl_name, df):
+        """
+        Generates an INSERT statement from a pandas DataFrame
+        Args:
+            tbl_name: str, name of the table to write to
+            df: pandas.DataFrame
+        """
+        # Develop a way to mass-insert a dataframe to a table, matching its format
+        query_base = """
+            INSERT INTO {tbl} {cols}
+            VALUES {vals}
+        """
+        query_dict = {
+            'tbl': tbl_name,
+            'cols': '({})'.format(', '.join('`{}`'.format(col) for col in df.columns)),
+            'vals': ', '.join(
+                ['({})'.format(', '.join('"{}"'.format(val) for val in row.tolist())) for idx, row in df.iterrows()])
+        }
+        formatted_query = query_base.format(**query_dict)
+
+        query_log = self.connection.execute(formatted_query)
+
     def write_dataframe(self, table_name, df):
         """
         Writes a pandas dataframe to database

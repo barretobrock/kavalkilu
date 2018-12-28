@@ -1,39 +1,66 @@
 """Collect local temperature data"""
 
 from kavalkilu.tools.weather import DarkSkyWeather
+from kavalkilu.tools.openhab import OpenHab
+from kavalkilu.tools.log import Log
+from kavalkilu.tools.databases import MySQLLocal
 import pandas as pd
 
 
 local_latlong = '30.3428,-97.7582'
 dsky = DarkSkyWeather(local_latlong)
-dsky_data = dsky.get_data()
+
+# Get a dataframe of the current weather
+current_df = dsky.current_summary()
+
+# Initiate Openhab
+oh = OpenHab()
+LOC_ID = 8
+VAL_TBLS = ['temps', 'humidity']
+now = pd.datetime.now()
+
+# Initiate Log, including a suffix to the log name to denote which instance of log is running
+log_suffix = now.strftime('%H%M')
+log = Log('ecobee_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
+log.debug('Logging initiated')
+
+temp_dict = oh.read_value('Temp_Upstairs')
+hum_dict = oh.read_value('Hum_Upstairs')
+
+ha_db = MySQLLocal('homeautodb')
+conn = ha_db.engine.connect()
 
 
-def format_tables(data, tz='US/Central'):
-    """Takes in a grouping of data and returns as a pandas dataframe"""
-    if isinstance(data, list):
-        # Dealing with multiple rows of data
-        df = pd.DataFrame(data)
-    elif isinstance(data, dict):
-        # Dealing with a single row of data
-        df = pd.DataFrame(data, index=[0])
+temp_time = now.strftime('%Y-%m-%d %H:%M:%S')
+temp_avg = round(float(temp_dict['state']), 2)
+hum_avg = round(float(hum_dict['state']), 2)
 
-    # Convert any "time" column to locally-formatted datetime
-    time_cols = [col for col in df.columns if 'time' in col.lower()]
-    if len(time_cols) > 0:
-        for time_col in time_cols:
-            # Convert column to datetime
-            dtt_col = pd.to_datetime(df[time_col], unit='s')
-            # Convert datetime col to local timezone and remove tz
-            dtt_col = dtt_col.dt.tz_localize('utc').dt.tz_convert(tz).dt.tz_localize(None)
-            df[time_col] = dtt_col
+# Build a dictionary of the values we're moving around
+vals = [{'loc_id': LOC_ID, 'record_date': temp_time,
+         'record_value': x, 'tbl': y} for x, y in zip([temp_avg, hum_avg], VAL_TBLS)]
 
-    return df
+for val_dict in vals:
+    # For humidity and temp, insert into tables
+    insert_query = """
+        INSERT INTO {tbl} (`loc_id`, `record_date`, `record_value`)
+        VALUES ({loc_id}, "{record_date}", {record_value})
+    """.format(**val_dict)
+    insert_log = conn.execute(insert_query)
 
 
+df = dsky.current_summary()
+df['loc_id'] = LOC_ID
+df = df[['loc_id', 'time', 'temperature']]
+df = df.rename(columns={
+    'time': 'record_date',
+    'temperature': 'record_value'
+})
+df = df.append(df)
 
 
 
-data.keys()
+conn.close()
 
-current_df = pd.DataFrame(data['currently'], index=[0])
+log.debug('Temp logging successfully completed.')
+
+log.close()
