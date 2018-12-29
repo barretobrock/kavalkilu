@@ -119,18 +119,9 @@ entries['record_date'] = pd.to_datetime(
 entries['record_date'] = entries['record_date'].dt.strftime('%F %T')
 # Write to MySQL db
 log.info('Found {:.0f} logs to input to db'.format(entries.shape[0]))
-insert_query = """
-    INSERT INTO pihole_queries (`record_date`, `ip`, `domain`, `record_type`, `record_status`, `query_cnt`)
-    VALUES ("{record_date}", "{ip}", "{domain}", "{record_type}", "{record_status}", {query_cnt})
-"""
 
-for idx, row in entries.iterrows():
-    formatted_query = insert_query.format(**row.to_dict())
-    try:
-        t = mysqlconn.execute(formatted_query)
-    except:
-        raise
-        break
+query = db.write_df_to_sql('pihole_queries', entries, debug=True)
+mysqlconn.execute(query)
 
 conn.close()
 mysqlconn.close()
