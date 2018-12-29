@@ -6,8 +6,8 @@ from kavalkilu.tools.databases import MySQLLocal
 import pandas as pd
 
 
-local_latlong = '30.3428,-97.7582'
-LOC_ID = 8
+local_latlong = '59.4040,24.6540'
+LOC_ID = 9
 dsky = DarkSkyWeather(local_latlong)
 
 # Get a dataframe of the current weather
@@ -27,13 +27,18 @@ ha_db = MySQLLocal('homeautodb')
 # Build out a list of dataframes for each measurement to record
 current_df['loc_id'] = LOC_ID
 current_df = current_df.rename(columns={'time': 'record_date'})
+current_df['humidity'] = current_df['humidity'] * 100
 
+conn = ha_db.engine.connect()
 for tbl, val in zip(VAL_TBLS, vals):
     # Prep the dataframe for writing the query
     df = current_df[['loc_id', 'record_date'] + [val]]
     df = df.rename(columns={val: 'record_value'})
     # Build query and execute
-    ha_db.write_df_to_sql(tbl, df)
+    query = ha_db.write_df_to_sql(tbl, df, debug=True)
+    conn.execute(query)
+
+conn.close()
 
 log.debug('Temp logging successfully completed.')
 
