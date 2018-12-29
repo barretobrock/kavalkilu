@@ -51,7 +51,7 @@ class MySQLLocal:
             self.cursor.rollback()
             raise
 
-    def write_df_to_sql(self, tbl_name, df):
+    def write_df_to_sql(self, tbl_name, df, debug=False):
         """
         Generates an INSERT statement from a pandas DataFrame
         Args:
@@ -70,8 +70,10 @@ class MySQLLocal:
                 ['({})'.format(', '.join('"{}"'.format(val) for val in row.tolist())) for idx, row in df.iterrows()])
         }
         formatted_query = query_base.format(**query_dict)
-
-        query_log = self.connection.execute(formatted_query)
+        if debug:
+            return formatted_query
+        else:
+            query_log = self.write_sql(formatted_query)
 
     def write_dataframe(self, table_name, df):
         """
