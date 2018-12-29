@@ -65,7 +65,7 @@ sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     # Install support components
     sudo apt-get install git git-core python3-pip python3-dev python3-pandas python3-mysqldb python3-rpi.gpio
     # Install packages
-    sudo pip3 install Adafruit_DHT sqlalchemy 
+    sudo pip3 install Adafruit_DHT sqlalchemy selenium
     # Make directories for storing things
     mkdir data keys logs extras
     # Add in kavalkilu repo

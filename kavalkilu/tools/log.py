@@ -52,10 +52,10 @@ class Log:
         # TimedRotating will delete logs older than 30 days
         fh = TimedRotatingFileHandler(self.log_path, when='d', interval=1, backupCount=30)
         # fh = logging.FileHandler(self.log_path)
-        fh.setLevel(logging.DEBUG)
+        fh.setLevel(self.logger_lvl)
         # create streamhandler for log
         sh = logging.StreamHandler()
-        sh.setLevel(logging.WARNING)
+        sh.setLevel(self.logger_lvl)
         # set format of logs
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s %(message)s')
         fh.setFormatter(formatter)

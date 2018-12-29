@@ -120,8 +120,9 @@ entries['record_date'] = entries['record_date'].dt.strftime('%F %T')
 # Write to MySQL db
 log.info('Found {:.0f} logs to input to db'.format(entries.shape[0]))
 
-query = db.write_df_to_sql('pihole_queries', entries, debug=True)
-mysqlconn.execute(query)
+if entries.shape[0] > 0:
+    query = db.write_df_to_sql('pihole_queries', entries, debug=True)
+    mysqlconn.execute(query)
 
 conn.close()
 mysqlconn.close()
