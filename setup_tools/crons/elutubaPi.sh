@@ -6,7 +6,11 @@
 
 # crontab -e
 # -----------------------------
-*/10 * * * * /usr/bin/python3 /home/pi/kavalkilu/sensors/temps/elutuba_temps.py
-*/10 * * * * /usr/bin/python3 /home/pi/kavalkilu/sensors/temps/darksky_local_weather.py
-*/10 * * * * /usr/bin/python3 /home/pi/kavalkilu/sensors/temps/darksky_tallinn_weather.py
-*/10 * * * * /usr/bin/python3 /home/pi/kavalkilu/sensors/temps/darksky_rakvere_weather.py
+# VARIABLES
+SENSORS=kavalkilu/sensors
+PY3=/usr/bin/python3
+# WEATHER DATA
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/elutuba_temps.py
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_local_weather.py
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_tallinn_weather.py
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_rakvere_weather.py

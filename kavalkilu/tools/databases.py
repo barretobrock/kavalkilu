@@ -102,6 +102,66 @@ class MySQLLocal:
         self.connection.close()
 
 
+class PiHoleDB:
+    """Some static variables for pihole-level data"""
+    # How query was handled
+    #   Taken from https://docs.pi-hole.net/ftldns/database/#supported-status-types
+    status_types = [
+        {
+            'status_id': 0,
+            'desc': 'Unknown status (not answered by forward destination)',
+            'status': 'unknown'
+        }, {
+            'status_id': 1,
+            'desc': 'Blocked by gravity.list',
+            'status': 'blocked'
+        }, {
+            'status_id': 2,
+            'desc': 'Permitted + forwarded',
+            'status': 'permitted'
+        }, {
+            'status_id': 3,
+            'desc': 'Permitted + replied to from cache',
+            'status': 'permitted'
+        }, {
+            'status_id': 4,
+            'desc': 'Blocked by wildcard',
+            'status': 'blocked'
+        }, {
+            'status_id': 5,
+            'desc': 'Blocked by black.list',
+            'status': 'blocked'
+        }
+    ]
+
+    # Type of query made
+    #   Taken from https://docs.pi-hole.net/ftldns/database/#supported-query-types
+    query_types = [
+        {
+            'type_id': 1,
+            'type': 'A'
+        }, {
+            'type_id': 2,
+            'type': 'AAAA'
+        }, {
+            'type_id': 3,
+            'type': 'ANY'
+        }, {
+            'type_id': 4,
+            'type': 'SRV'
+        }, {
+            'type_id': 5,
+            'type': 'SOA'
+        }, {
+            'type_id': 6,
+            'type': 'PTR'
+        }, {
+            'type_id': 7,
+            'type': 'TXT'
+        }
+    ]
+
+
 class HomeAutoDB:
     def __init__(self, engine):
         self.engine = engine

@@ -7,5 +7,9 @@
 
 # crontab -e
 # -----------------------------
-*/5 * * * *     python3         /home/pi/kavalkilu/sensors/garage_motion.py
-*/10 * * * *    python3         /home/pi/kavalkilu/sensors/temps/garage_temps.py
+# VARIABLES
+SENSORS=kavalkilu/sensors
+PY3=/usr/bin/python3
+# AUTOMATION STUFF
+*/5 * * * *     $PY3    $HOME/$SENSORS/garage_motion.py
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/garage_temps.py

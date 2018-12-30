@@ -6,4 +6,8 @@
 
 # crontab -e
 # -----------------------------
-*/10 * * * * /usr/bin/python3 /home/pi/kavalkilu/sensors/temps/porch_temps.py
+# VARIABLES
+SENSORS=kavalkilu/sensors
+PY3=/usr/bin/python3
+# TEMPERATURE STUFF
+*/10 * * * * $PY3 $HOME/$SENSORS/temps/porch_temps.py

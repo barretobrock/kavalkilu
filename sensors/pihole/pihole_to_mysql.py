@@ -4,69 +4,55 @@ import os
 import sqlite3
 import pandas as pd
 from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu.tools.databases import MySQLLocal, PiHoleDB
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log_suffix = pd.datetime.now().strftime('%H%M')
-log = Log('pihole_db_{}'.format(log_suffix), 'pihole_db', log_lvl='INFO')
+log = Log('pihole_db', 'pihole_db', log_lvl='DEBUG')
 log.debug('Logging initiated')
+
+
+def convert_unix_to_dtt(obj, unit='s', tz='US/Central'):
+    """Converts a UNIX timestamp object to datetime"""
+    try:
+        obj = pd.to_datetime(obj, unit=unit).dt.tz_localize('utc').dt.tz_convert(tz).dt.tz_localize(None)
+    except AttributeError:
+        # Not a dataframe
+        obj = pd.to_datetime(obj, unit=unit)
+        obj = obj.tz_localize('utc').tz_convert(tz).tz_localize(None)
+    return obj
+
+
+def prep_entries(df, status_df, type_df):
+    """Prepares Pihole entry dataframe for insertion into MySQLDB"""
+
+    # Include query status
+    df = df.merge(status_df[['status_id', 'status']], left_on='status_int', right_on='status_id')
+    # Include type of query
+    df = df.merge(type_df[['type_id', 'type']], left_on='type_int', right_on='type_id')
+    # Keep only columns that we need
+    df = df[['timestamp', 'client', 'domain', 'type', 'status', 'cnt']]
+    # Change column names
+    df = df.rename(columns={
+        'timestamp': 'record_date',
+        'client': 'ip',
+        'type': 'record_type',
+        'status': 'record_status',
+        'cnt': 'query_cnt'
+    })
+    # Convert timestamps to ISO format
+    df['record_date'] = convert_unix_to_dtt(df['record_date'])
+    df['record_date'] = df['record_date'].dt.strftime('%F %T')
+
+    return df
+
 
 # Set pihole backup location
 backup_path = os.path.join(os.path.expanduser('~'), *['data', 'pihole-FTL.db.backup'])
 
 # Enumerate pihole's status types, as per https://docs.pi-hole.net/ftldns/database/
-status_types = pd.DataFrame([
-    {
-        'status_id': 0,
-        'desc': 'Unknown status (not answered by forward destination)',
-        'status': 'unknown'
-    }, {
-        'status_id': 1,
-        'desc': 'Blocked by gravity.list',
-        'status': 'blocked'
-    }, {
-        'status_id': 2,
-        'desc': 'Permitted + forwarded',
-        'status': 'permitted'
-    }, {
-        'status_id': 3,
-        'desc': 'Permitted + replied to from cache',
-        'status': 'permitted'
-    }, {
-        'status_id': 4,
-        'desc': 'Blocked by wildcard',
-        'status': 'blocked'
-    }, {
-        'status_id': 5,
-        'desc': 'Blocked by black.list',
-        'status': 'blocked'
-    }
-])
-query_types = pd.DataFrame([
-    {
-        'type_id': 1,
-        'type': 'A'
-    }, {
-        'type_id': 2,
-        'type': 'AAAA'
-    }, {
-        'type_id': 3,
-        'type': 'ANY'
-    }, {
-        'type_id': 4,
-        'type': 'SRV'
-    }, {
-        'type_id': 5,
-        'type': 'SOA'
-    }, {
-        'type_id': 6,
-        'type': 'PTR'
-    }, {
-        'type_id': 7,
-        'type': 'TXT'
-    }
-])
+status_types = pd.DataFrame(PiHoleDB.status_types)
+query_types = pd.DataFrame(PiHoleDB.query_types)
 
 # Establish connection to PiholeDB
 conn = sqlite3.connect(backup_path)
@@ -81,7 +67,6 @@ latest_entry_query = """
     LIMIT 1
 """
 latest_entry = pd.read_sql_query(latest_entry_query, mysqlconn)['record_date'].iloc[0]
-#latest_entry = pd.datetime(2018, 12, 27)
 
 # Extract the pihole info
 pihole_query = """
@@ -99,31 +84,19 @@ pihole_query = """
         , domain
 """.format(ts=latest_entry.timestamp())
 entries = pd.read_sql_query(pihole_query, conn)
-# Include query status
-entries = entries.merge(status_types[['status_id', 'status']], left_on='status_int', right_on='status_id')
-# Include type of query
-entries = entries.merge(query_types[['type_id', 'type']], left_on='type_int', right_on='type_id')
-# Keep only columns that we need
-entries = entries[['timestamp', 'client', 'domain', 'type', 'status', 'cnt']]
-# Change column names
-entries = entries.rename(columns={
-    'timestamp': 'record_date',
-    'client': 'ip',
-    'type': 'record_type',
-    'status': 'record_status',
-    'cnt': 'query_cnt'
-})
-# Convert timestamps to ISO format
-entries['record_date'] = pd.to_datetime(
-    entries['record_date'], unit='s').dt.tz_localize('utc').dt.tz_convert('US/Central').dt.tz_localize(None)
-entries['record_date'] = entries['record_date'].dt.strftime('%F %T')
+entries = prep_entries(entries, status_types, query_types)
+
 # Write to MySQL db
 log.info('Found {:.0f} logs to input to db'.format(entries.shape[0]))
 
 if entries.shape[0] > 0:
     query = db.write_df_to_sql('pihole_queries', entries, debug=True)
-    mysqlconn.execute(query)
+    res = mysqlconn.execute(query)
+    log.debug('Query sent to database. Result shows {} rows affected.'.format(res.rowcount))
+else:
+    log.info('No new entries to be found. No querying to be done.')
 
+log.debug('Closing connections.')
 conn.close()
 mysqlconn.close()
 
