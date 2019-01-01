@@ -13,8 +13,7 @@ LOC_ID = 3
 VAL_TBLS = ['temps', 'humidity']
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log_suffix = datetime.now().strftime('%H%M')
-log = Log('ecobee_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
+log = Log('ecobee_temp', 'temp', log_lvl='INFO')
 log.debug('Logging initiated')
 
 temp_dict = oh.read_value('Temp_Upstairs')

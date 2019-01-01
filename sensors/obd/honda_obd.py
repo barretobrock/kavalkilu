@@ -37,7 +37,7 @@ measurement_interval = 1  # time to wait between measurements
 sleep_interval = 10  # time to wait in seconds between "engine pings"
 
 p = Paths()
-logg = Log('honda.obd', 'obd_logger', log_lvl="DEBUG")
+logg = Log('honda_obd', 'obd_logger', log_lvl="DEBUG")
 logg.debug('Logging initiated')
 
 chelp = CSVHelper()

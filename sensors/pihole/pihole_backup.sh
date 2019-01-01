@@ -13,7 +13,7 @@ adddate() {
 now=$(date +"%Y_%m_%d")
 db_path="/etc/pihole/pihole-FTL.db"
 backup_path="$HOME/data/pihole-FTL.db.backup"
-log_path="$HOME/logs/pihole_backup_$now.log"
+log_path="$HOME/logs/pihole_db/pihole_backup_$now.log"
 
 
 # Save standard output and standard error

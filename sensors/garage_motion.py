@@ -6,7 +6,6 @@ from kavalkilu.tools.openhab import OpenHab
 from kavalkilu.tools.log import Log
 from kavalkilu.tools.databases import MySQLLocal
 from datetime import datetime
-import os
 
 
 MOTION_PIN = 18
@@ -15,8 +14,7 @@ lights = [x for x in hue_lights if 'Garage' in x['hue_name']]
 # Set up OpenHab connection
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log_suffix = datetime.now().strftime('%H%M')
-log = Log('garage_motion_{}'.format(log_suffix), 'motion', log_lvl='INFO')
+log = Log('garage_motion', 'motion', log_lvl='INFO')
 log.debug('Logging initiated')
 
 # Set up motion detector

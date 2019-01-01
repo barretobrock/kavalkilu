@@ -5,7 +5,7 @@ from kavalkilu.tools import Paths, Log
 from kavalkilu.tools.databases import CSVHelper
 
 p = Paths()
-logg = Log('obd.compacter', 'obd_compacter', log_lvl="DEBUG")
+logg = Log('obd_compacter', 'obd_compacter', log_lvl="DEBUG")
 logg.debug('Log initiated')
 
 csvhelp = CSVHelper()

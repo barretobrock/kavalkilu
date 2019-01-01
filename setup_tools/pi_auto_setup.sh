@@ -3,6 +3,15 @@
 # Raspberry pi setup script
 ### Very much WIP right now
 
+# TODO: Add locale setup below:
+1. insert the following into /etc/default/locale
+    LANG=en_US.UTF-8
+    LC_ALL=en_US.UTF-8
+    LANGUAGE=en_US.UTF-8
+2. Find way to uncomment the en_US section of /etc/locale.gen
+3. Run `sudo locale-gen en_US.UTF-8`
+4. Run `sudo update-locale en_US.UTF-8`
+
 """
  TODO!!!
     -change user password

@@ -17,8 +17,7 @@ VAL_TBLS = ['temps', 'humidity']
 oh = OpenHab()
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 now = pd.datetime.now()
-log_suffix = now.strftime('%H%M')
-log = Log('elutuba_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
+log = Log('elutuba_temp', 'temp', log_lvl='INFO')
 log.debug('Logging initiated')
 # Instantiate the temp sensor
 tsensor = DHT(TEMP_PIN, decimals=3)

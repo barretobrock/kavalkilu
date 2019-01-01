@@ -55,20 +55,28 @@ class DHTTempSensor(TempSensor):
     def measure(self, n_times=1, sleep_between_secs=1):
         """Take a measurement"""
 
-        total_readings = []
+        measurement = {
+            'humidity': [],
+            'temp': []
+        }
         for i in range(0, n_times):
             humidity, temp = self.dht.read_retry(self.sensor, self.pin)
-            # Loop through readings, remove any float issues by rounding off to 2 decimals
-            reading = self.round_reads({
-                'humidity': humidity,
-                'temp': temp
-            })
-            total_readings.append(reading)
+            if all([x is not None for x in [temp, humidity]]):
+                if humidity < 110:
+                    # Make sure the humidity measurement is within bounds
+                    measurement['humidity'].append(humidity)
+                measurement['temp'].append(temp)
             time.sleep(sleep_between_secs)
-        # Get average of all readings
-        readings = {k: sum(x[k] for x in total_readings) / len(total_readings) for k in ['temp', 'humidity']}
 
-        return self.round_reads(readings)
+        # Take average of the measurements
+        for key, val in measurement.items():
+            if len(val) > 0:
+                # Calculate the average
+                measurement[key] = sum(val) / len(val)
+            else:
+                measurement[key] = None
+
+        return self.round_reads(measurement)
 
 
 class DallasTempSensor(TempSensor):

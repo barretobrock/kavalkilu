@@ -18,8 +18,7 @@ vals = ['temperature', 'humidity', 'ozone', 'windSpeed', 'pressure']
 now = pd.datetime.now()
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log_suffix = now.strftime('%H%M')
-log = Log('ecobee_temp_{}'.format(log_suffix), 'temp', log_lvl='INFO')
+log = Log('darksky_local', 'temp', log_lvl='INFO')
 log.debug('Logging initiated')
 
 ha_db = MySQLLocal('homeautodb')
