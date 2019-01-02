@@ -1,6 +1,10 @@
 # OpenHAB Tips
 
-## Debugging
+## Table of Contents
+1. [Debugging](#debugging)
+2. [Reference](#reference)
+
+## Debugging <a name="debugging"></a>
 
 ### Debug Setup
 1. SSH into the machine
@@ -20,7 +24,7 @@
 
 `log:tail` - continuous display of the log entries
 
-## Reference
+## Reference <a name="reference"></a>
 
 ### Labels
 1. https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html#syntax

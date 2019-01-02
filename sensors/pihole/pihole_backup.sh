@@ -6,11 +6,11 @@
 # Function to add timestamp before entry
 adddate() {
     while IFS= read -r line; do
-        echo "$(date +"%Y-%m-%d_%H:%M:%S") :: $line" 1>&2
+        echo "$(date +"%Y-%m-%d %H:%M:%S") :: $line" 1>&2
     done
 }
 
-now=$(date +"%Y_%m_%d")
+now=$(date +"%Y%m%d")
 db_path="/etc/pihole/pihole-FTL.db"
 backup_path="$HOME/data/pihole-FTL.db.backup"
 log_path="$HOME/logs/pihole_db/pihole_backup_$now.log"

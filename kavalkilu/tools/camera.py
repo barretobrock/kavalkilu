@@ -1,7 +1,6 @@
 """Camera-related procedures"""
 import datetime
 import os
-from .selenium import ChromeDriver, Action
 
 
 class Amcrest:
@@ -13,6 +12,11 @@ class Amcrest:
 class AmcrestWeb:
     """Selenium-based controls for automating boring camera tasks"""
     def __init__(self, ip, creds, driver_path='/usr/bin/chromedriver'):
+        # Import selenium dependencies
+        selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['ChromeDriver', 'Action'])
+        ChromeDriver = getattr(selenium_mod, 'ChromeDriver')
+        Action = getattr(selenium_mod, 'Action')
+
         self.ip = ip
         self.driver = ChromeDriver(driver_path)
         self.act = Action(self.driver)

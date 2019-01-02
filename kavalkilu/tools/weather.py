@@ -6,7 +6,6 @@ from datetime import datetime as dtt
 from datetime import timedelta
 import pandas as pd
 from urllib.request import urlopen
-from .selenium import ChromeDriver, Action
 from .path import Paths
 
 
@@ -77,6 +76,11 @@ class YrNoWeather:
     Collect data from YRNO
     """
     def __init__(self):
+        # Import selenium dependencies
+        selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['ChromeDriver', 'Action'])
+        ChromeDriver = getattr(selenium_mod, 'ChromeDriver')
+        Action = getattr(selenium_mod, 'Action')
+
         self.tomorrow = dtt.today() + timedelta(days=1)
         self.p = Paths()
         self.chrome_driver = self.p.chrome_driver

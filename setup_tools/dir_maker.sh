@@ -4,7 +4,7 @@
 # Array of directories to make
 dirs=( "logs" "data" "keys" )
 
-cd
+cd ~
 
 # Loop through array
 for d in "${dirs[@]}"

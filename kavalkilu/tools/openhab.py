@@ -54,3 +54,4 @@ class OpenHab:
             return openhab_response[param_name]
         else:
             return openhab_response
+
