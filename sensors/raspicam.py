@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from kavalkilu.tools.path import Paths
-from kavalkilu.tools.message import PBullet
-from kavalkilu.tools.camera import Camera
+from kavalkilu import Paths, PBullet, Camera
+
 
 p = Paths()
 c = Camera()

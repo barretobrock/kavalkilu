@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Method to collect temperature and other useful data from ecobee"""
-from kavalkilu.tools.openhab import OpenHab
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import OpenHab, Log, MySQLLocal
 from datetime import datetime
 
 

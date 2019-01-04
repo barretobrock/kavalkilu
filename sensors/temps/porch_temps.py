@@ -1,10 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Read temperatures from several locations outside using Dallas sensors"""
-
 from time import sleep
-from kavalkilu.tools.sensors import DallasTempSensor as daltemp
-from kavalkilu.tools.openhab import OpenHab
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import DallasTempSensor as daltemp, OpenHab, Log, MySQLLocal
 from datetime import datetime
 import os
 

@@ -1,12 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Goes through log files for the given period and prepares them for import into a monitoring database"""
-
 import os
 import re
 import socket
 import pandas as pd
-from kavalkilu.tools.path import Paths
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import Paths, Log, MySQLLocal
 
 
 # Initiate logging (META!)

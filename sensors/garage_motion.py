@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from kavalkilu.tools.sensors import PIRSensor
-from kavalkilu.tools.light import HueBulb, hue_lights
-from kavalkilu.tools.openhab import OpenHab
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+"""Detects motion in garage and turns on lights"""
+from kavalkilu import PIRSensor, HueBulb, hue_lights, OpenHab, Log, MySQLLocal
 from datetime import datetime
 
 

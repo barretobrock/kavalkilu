@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from kavalkilu.tools import Paths, Log
-from kavalkilu.tools.message import PBullet
+from kavalkilu import Paths, Log, PBullet
 import gspread
 from collections import OrderedDict
 from oauth2client.service_account import ServiceAccountCredentials
