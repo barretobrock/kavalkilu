@@ -9,6 +9,8 @@
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
+# LOG SCANNING STUFF
+39 5 * * *       $PY3    $HOME/$SENSORS/log_reader.py
 # WEATHER DATA
 */10 * * * *    $PY3    $HOME/$SENSORS/temps/elutuba_temps.py
 */10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_local_weather.py

@@ -11,6 +11,8 @@
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
+# LOG SCANNING STUFF
+0 6 * * *           $PY3    $HOME/$SENSORS/log_reader.py
 # PIHOLE STUFF
 5 6 * * *           sh      $HOME/$SENSORS/pihole/pihole_backup.sh
 # MYSQL STUFF
