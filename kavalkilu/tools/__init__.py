@@ -7,4 +7,8 @@ from .gpio import GPIO
 from .light import HueBulb, LED
 from .log import Log
 from .message import PBullet, Email, INET
+from .openhab import OpenHab
 from .path import Paths
+from .relay import Relay
+from .sensors import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor
+from .weather import DarkSkyWeather

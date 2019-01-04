@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Read temperature and humidity from garage"""
-
-from kavalkilu.tools.sensors import DHTTempSensor as DHT
-from kavalkilu.tools.openhab import OpenHab
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import DHTTempSensor as DHT, OpenHab, Log, MySQLLocal
+# from kavalkilu.tools.sensors import DHTTempSensor as DHT
+# from kavalkilu.tools.openhab import OpenHab
+# from kavalkilu.tools.log import Log
+# from kavalkilu.tools.databases import MySQLLocal
 import pandas as pd
 
 
