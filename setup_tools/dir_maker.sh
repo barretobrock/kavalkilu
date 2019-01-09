@@ -2,7 +2,7 @@
 # Creates necessary directories if they don't already exist
 
 # Array of directories to make
-dirs=( "logs" "data" "keys" )
+dirs=( "logs" "data" "keys" "extra" )
 
 cd ~
 

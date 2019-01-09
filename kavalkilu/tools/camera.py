@@ -3,6 +3,13 @@ import datetime
 import os
 
 
+camera_ips = {
+    'elutuba': '192.168.0.7',
+    'kamin': '192.168.0.20',
+    'garage': '192.168.0.24'
+}
+
+
 class Amcrest:
     def __init__(self, ip, creds, port=80):
         self.amc = __import__('amcrest')
@@ -163,6 +170,10 @@ class AmcrestWeb:
                 }}
             }}
         """.format(sched_list)
+
+    def close(self):
+        """Closes the program"""
+        self.driver.quit()
 
 
 class Camera:
