@@ -27,7 +27,7 @@ for k, v in camera_ips.items():
 # This is for the evening, so let's enable motion detection for all devices
 for cam in cameras:
     if not cam['obj'].camera.is_motion_detector_on():
-        log.debug('Camera "{name}" currently does not have motion detection enabled. Enabling.'.format(**cam))
+        log.debug('Camera "{name}" currently does not have motion detection enabled. Enabling for the evening.'.format(**cam))
         # Send command to turn off motion detection
         r = requests.get(url_base.format(ip=cam['ip'], tf='true'),
                          auth=HTTPDigestAuth(cred['user'], cred['password']))
