@@ -47,8 +47,8 @@ if any(res_list):
 else:
     # Otherwise, enable motion detection
     for cam in cameras:
-        if cam['obj'].camera.is_motion_detector_on():
-            log.debug('Camera "{name}" currently has motion detection enabled. Enabling.'.format(**cam))
+        if not cam['obj'].camera.is_motion_detector_on():
+            log.debug('Camera "{name}" currently does not have motion detection enabled. Enabling.'.format(**cam))
             # Send command to turn off motion detection
             r = requests.get(url_base.format(ip=cam['ip'], tf='true'),
                              auth=HTTPDigestAuth(cred['user'], cred['password']))
