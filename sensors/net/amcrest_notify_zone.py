@@ -50,7 +50,7 @@ else:
         if cam['obj'].camera.is_motion_detector_on():
             log.debug('Camera "{name}" currently has motion detection enabled. Enabling.'.format(**cam))
             # Send command to turn off motion detection
-            r = requests.get(url_base.format(ip=cam['ip'], tf='false'),
+            r = requests.get(url_base.format(ip=cam['ip'], tf='true'),
                              auth=HTTPDigestAuth(cred['user'], cred['password']))
             # Check HTTP response
             if r.status_code != 200:
