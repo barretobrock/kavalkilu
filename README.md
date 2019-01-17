@@ -28,6 +28,8 @@ sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
         To bypass this, I copy the contents of the package directory to the 
         package location in `site-packages`:
         `sudo cp -r ~/kavalkilu ~/.local/lib/python3.6/site-packages`
+ - Debugging from crontab
+   `nano /var/log/syslog`
 
 ## Tips
 

@@ -18,7 +18,7 @@ class ChromeDriver(Chrome):
         driver_path: path to Chromedriver
         timeout: int, seconds to wait until connection unsuccessful
     """
-    def __init__(self, driver_path, timeout=60):
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60):
         self.driver_path = driver_path
         # Add options to Chrome
         chrome_options = Options()
@@ -44,7 +44,7 @@ class PhantomDriver(PhantomJS):
         driver_path: path to Chromedriver
         timeout: int, seconds to wait until connection unsuccessful
     """
-    def __init__(self, driver_path, timeout=60):
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60):
         self.driver_path = driver_path
         # Add options
         # For PhantomJS, SSL should be disabled as it is not compliant
