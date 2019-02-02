@@ -9,6 +9,7 @@ from random import randint
 from selenium.webdriver import Chrome
 from selenium.webdriver import PhantomJS
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 class ChromeDriver(Chrome):
@@ -17,13 +18,22 @@ class ChromeDriver(Chrome):
     Args for __init__:
         driver_path: path to Chromedriver
         timeout: int, seconds to wait until connection unsuccessful
+        options: list, any extra options to add to chrome_options.add_argument()
     """
-    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60):
+    default_options = [
+        '--disable-extensions',
+        '--mute-audio',
+        '--disable-infobars',   # Get rid of "Chrome is being controlled by automated software" notification
+        '--start-maximized'
+    ]
+
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, options=default_options):
         self.driver_path = driver_path
         # Add options to Chrome
         chrome_options = Options()
-        # Disable extensions
-        chrome_options.add_argument('--disable-extensions')
+        if options is not None:
+            for option in options:
+                chrome_options.add_argument(option)
         # Disable notifications
         prefs = {
             'profile.default_content_setting_values.notifications': 2,
@@ -44,14 +54,16 @@ class PhantomDriver(PhantomJS):
         driver_path: path to Chromedriver
         timeout: int, seconds to wait until connection unsuccessful
     """
-    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60):
+    default_service_args = [
+        # For PhantomJS, SSL should be disabled as it is not compliant with the most recent version
+        '--ignore-ssl-errors=true',
+        '--ssl-protocol=any'
+    ]
+
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, service_args=default_service_args):
         self.driver_path = driver_path
-        # Add options
-        # For PhantomJS, SSL should be disabled as it is not compliant
-        #   with the most recent version
-        self.service_args = ['--ignore-ssl-errors=true', '--ssl-protocol=any']
         # Apply options
-        super(PhantomDriver, self).__init__(self.driver_path, service_args=self.service_args)
+        super(PhantomDriver, self).__init__(self.driver_path, service_args=service_args)
         # Set timeout for 1 minute to avoid multiple instances opening over time
         super(PhantomDriver, self).set_page_load_timeout(timeout)
 
@@ -62,6 +74,11 @@ class Action:
     Args for __init__:
         driver: Selenium-type driver class
     """
+    # Predefined wait ranges, in seconds
+    slow_wait = [15, 30]
+    medium_wait = [5, 15]
+    fast_wait = [0.5, 5]
+
     def __init__(self, driver):
         self.driver = driver
 
@@ -208,32 +225,20 @@ class Action:
                 except:
                     self.announce_exception(i + 1)
 
-    def rand_wait(self, speed_txt):
+    def rand_wait(self, sleep_range_secs):
         """
         Determines sleep time as random number between upper and lower limit,
             then sleeps for that given time. After sleep, moves randomly vertically and horizontally on page
             for up to four times
         Args:
-            speed_txt: str, indicates level of wait (slow, medium, fast)
+            sleep_range_secs: list, min and max number of seconds to sleep
         """
-        speed_dict = {
-            'slow': 1,
-            'medium': 10,
-            'fast': 100
-        }
-        speed = speed_dict.get(speed_txt)
-        if speed is None:
-            speed = speed_dict.get('medium')
-        h = datetime.datetime.today().hour
-        if 7 <= h < 19:
-            # if after work, wait longer
-            sleep_lower = 60
-            sleep_upper = 150
-        else:
-            sleep_lower = 20  # lower limit of sleep time(div by 10 for uneven seconds)
-            sleep_upper = 70  # upper limit of sleep time
 
-        sleeptime = randint(sleep_lower, sleep_upper) / speed
+        if len(sleep_range_secs) == 2:
+            sleep_secs_lower, sleep_secs_higher = tuple(sleep_range_secs)
+        else:
+            raise ValueError('Input for sleep range must be exactly two items')
+        sleeptime = randint(sleep_secs_lower, sleep_secs_higher)
         time.sleep(sleeptime)
         # after wait period, scroll through window randomly
         for i in range(4):
@@ -241,6 +246,20 @@ class Action:
             r_y = randint(150, 300)
             s = "window.scrollBy({},{})".format(r_x, r_y)
             self.driver.execute_script(s)
+
+    def scroll_to_element(self, elem, use_selenium_method=True):
+        """
+        Scrolls to get element in view
+        Args:
+            elem: Selenium-class element
+            use_selenium_method: bool, if True, uses built-in Selenium method of scrolling an element to view
+                otherwise, uses Javascript (scrollIntoView)
+        """
+        if use_selenium_method:
+            actions = ActionChains(self.driver)
+            actions.move_to_element(elem).perform()
+        else:
+            self.driver.execute_script('arguments[0].scrollIntoView();', elem)
 
     def announce_exception(self, num_attempt):
         """
