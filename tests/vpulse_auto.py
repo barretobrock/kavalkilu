@@ -28,7 +28,7 @@ logg.debug('Chrome instantiated.')
 
 vpulse_home_url = 'https://member.virginpulse.com/'
 c.get(vpulse_home_url)
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 
 a.enter('//input[@id="username"]', creds['user'])
 a.enter('//input[@id="password"]', creds['password'])
@@ -41,15 +41,15 @@ except:
     pu_close_btn = None
 if pu_close_btn is not None:
     pu_close_btn.click()
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 
 # Do the financial wellness thing
 fw_url = 'https://www.moneyhabits.co/virginpulse'
 c.get(fw_url)
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 budget_url = 'https://www.moneyhabits.co/web-fe/budgeting'
 c.get(budget_url)
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 
 if today.strftime('%d') == 1:
     # First of month, adjust budget
@@ -59,11 +59,11 @@ if today.strftime('%d') == 1:
 # Do the Fitness tracker thing
 fitness_url = 'https://www.myfitnesspal.com/account/login'
 c.get(fitness_url)
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 a.enter('//input[@id="username"]', creds['user'])
 a.enter('//input[@id="password"]', creds['password'])
 a.click('//input[@type="submit"]')
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 
 food_diary_url = 'https://www.myfitnesspal.com/food/diary'
 c.get(food_diary_url)
@@ -71,7 +71,7 @@ c.get(food_diary_url)
 # Quick add calories
 quick_add_url = 'https://www.myfitnesspal.com/food/copy_meal?date={:%F}&from_date=2019-01-24&from_meal=0&username=obrock2'.format(today)
 c.get(quick_add_url)
-a.rand_wait('medium')
+a.rand_wait(a.medium_wait)
 
 
 # Do the recipes thing
@@ -119,7 +119,7 @@ for yes_btn in yes_btns:
         c.execute_script("arguments[0].scrollIntoView();", yes_btn)
         c.execute_script("document.getElementById('{}').click()".format(yes_btn.get_attribute('id')))
         clicks += 1
-    a.rand_wait('fast')
+    a.rand_wait(a.fast_wait)
 
 
 # Complete a WHIL session
