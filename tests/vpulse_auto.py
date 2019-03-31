@@ -13,9 +13,7 @@ p = Paths()
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
-# Reformat chromedriver so I can add in options as arguments (e.g., mute)
 # Handle weekly tasks either based on DOW or recorded table with date_last_done and freq columns
-# Also figure out how to do cards, daily habits
 
 # Get credentials
 with open(os.path.join(p.key_dir, 'vpulse_creds.txt')) as f:
@@ -25,6 +23,25 @@ today = dtt.today()
 c = ChromeDriver('/usr/bin/chromedriver')
 a = Action(c)
 logg.debug('Chrome instantiated.')
+
+
+def daily_cards():
+    """Handles the daily cards section"""
+    c.execute_script('window.scrollTo(0, 0);')
+    card_btn = a.get_elem('//div[@class="home-cards-wrapper"]/div[div/div[@translate="Core.CoreHome.Cards"]]')
+    card_btn.click()
+
+    # Iterate through cards
+    for i in range(0, 2):
+        # Get the 'done' button
+        done_btn = a.get_elem('//div[@class="card-options-wrapper"]/*/button[@id="triggerCloseCurtain"]')
+        done_btn.click()
+        a.rand_wait(a.fast_wait)
+        if i == 0:
+            # Get the 'next' button
+            next_btn = a.get_elem('//div[contains(@class, "next-card-btn")]')
+            next_btn.click()
+            a.rand_wait(a.fast_wait)
 
 
 def financial_wellness():
@@ -150,15 +167,25 @@ a.rand_wait(a.medium_wait)
 a.enter('//input[@id="username"]', creds['user'])
 a.enter('//input[@id="password"]', creds['password'])
 a.click('//input[@id="kc-login"]')
+logg.debug('Logged in.')
+a.rand_wait(a.slow_wait)
 
 # Try to find the popup close button
 try:
-    pu_close_btn = c.find_element_by_xpath('//div[@id="rophy-modal-close-btn"]')
-except:
-    pu_close_btn = None
-if pu_close_btn is not None:
+    pu_close_btn = c.find_element_by_xpath('//div[@id="trophy-modal-close-btn"]')
+    # This gets tricky, because the box takes several seconds to pop up sometimes
+    a.rand_wait(a.slow_wait)
+    # Scroll back up to the top
+    c.execute_script('window.scrollTo(0, 0);')
     pu_close_btn.click()
+    logg.debug('Popup close button likely successfully clicked.')
+except:
+    logg.debug('Popup close button non-existent, or unable to be clicked.')
+
 a.rand_wait(a.medium_wait)
+
+logg.debug('Beginning daily cards section')
+daily_cards()
 
 # Financial wellness
 logg.debug('Beginning financial wellness section')

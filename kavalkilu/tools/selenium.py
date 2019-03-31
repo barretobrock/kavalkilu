@@ -261,6 +261,17 @@ class Action:
         else:
             self.driver.execute_script('arguments[0].scrollIntoView();', elem)
 
+    def scroll_absolute(self, dir='up'):
+        """Scrolls all the way up/down"""
+        if dir == 'up':
+            coords = '0, 0'
+        elif dir == 'down':
+            coords = '0, document.body.scrollHeight'
+        else:
+            coords = '0, 0'
+
+        self.driver.execute_script('window.scrollTo({});'.format(coords))
+
     def announce_exception(self, num_attempt):
         """
         Prints when exception encountered
