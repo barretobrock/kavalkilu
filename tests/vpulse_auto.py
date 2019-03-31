@@ -4,6 +4,7 @@ import time
 import os
 import json
 from datetime import datetime as dtt
+from collections import OrderedDict
 from kavalkilu import Log, Paths
 from kavalkilu.tools.selenium import ChromeDriver, Action
 
@@ -23,6 +24,21 @@ today = dtt.today()
 c = ChromeDriver('/usr/bin/chromedriver')
 a = Action(c)
 logg.debug('Chrome instantiated.')
+
+
+def popup_closer():
+    # Try to find the popup close button
+    try:
+        pu_close_btn = c.find_element_by_xpath('//div[@id="trophy-modal-close-btn"]')
+        # This gets tricky, because the box takes several seconds to pop up sometimes
+        a.rand_wait(a.slow_wait)
+        # Scroll back up to the top
+        c.execute_script('window.scrollTo(0, 0);')
+        pu_close_btn.click()
+        logg.debug('Popup close button likely successfully clicked.')
+    except:
+        logg.debug('Popup close button non-existent, or unable to be clicked.')
+        a.rand_wait(a.medium_wait)
 
 
 def daily_cards():
@@ -172,41 +188,24 @@ a.click('//input[@id="kc-login"]')
 logg.debug('Logged in.')
 a.rand_wait(a.slow_wait)
 
-# Try to find the popup close button
-try:
-    pu_close_btn = c.find_element_by_xpath('//div[@id="trophy-modal-close-btn"]')
-    # This gets tricky, because the box takes several seconds to pop up sometimes
-    a.rand_wait(a.slow_wait)
-    # Scroll back up to the top
-    c.execute_script('window.scrollTo(0, 0);')
-    pu_close_btn.click()
-    logg.debug('Popup close button likely successfully clicked.')
-except:
-    logg.debug('Popup close button non-existent, or unable to be clicked.')
+# Establish an order to go through the different tasks
+tasks_dict = OrderedDict((
+    ('popup closer', popup_closer),
+    ('daily cards', daily_cards),
+    ('financial wellness', financial_wellness),
+    ('fitness tracker', fitness_tracker),
+    ('healthy recipes', recipes_section),
+    ('healthy habits', healthy_habits),
+    ('WHIL session', whil_session)
+))
 
-a.rand_wait(a.medium_wait)
+for task_name, task in tasks_dict.items():
+    logg.debug('Beginning {} section.'.format(task_name))
+    try:
+        task()
+    except Exception as e:
+        logg.error('An error occurred: {}'.format(e))
 
-logg.debug('Beginning daily cards section')
-daily_cards()
 
-# Financial wellness
-logg.debug('Beginning financial wellness section')
-financial_wellness()
-
-# Fitness tracker
-logg.debug('Beginning fitness tracker section')
-fitness_tracker()
-
-# Healthy recipes
-logg.debug('Beginning healthy recipes section')
-recipes_section()
-
-# Healthy habits
-logg.debug('Beginning healthy habits section')
-healthy_habits()
-
-# Complete a WHIL session
-logg.debug('Beginning WHIL section')
-whil_session()
-
+logg.debug('Script complete. Quitting instance.')
 c.quit()

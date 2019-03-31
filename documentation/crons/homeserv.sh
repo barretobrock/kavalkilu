@@ -25,3 +25,6 @@ PY3=/usr/bin/python3
 */10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
 */10 04-22 * * *    $PY3    $HOME/$SENSORS/net/amcrest_notify_zone.py
 5 23 * * *          $PY3    $HOME/$SENSORS/net/amcrest_nighttime.py
+
+# Vpulse Automation
+40 03 * * * export DISPLAY=:0; python3 ~/kavalkilu/tests/vpulse_auto.py
