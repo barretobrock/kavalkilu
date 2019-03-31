@@ -77,7 +77,7 @@ class Action:
     # Predefined wait ranges, in seconds
     slow_wait = [15, 30]
     medium_wait = [5, 15]
-    fast_wait = [0.5, 5]
+    fast_wait = [1, 8]
 
     def __init__(self, driver):
         self.driver = driver
