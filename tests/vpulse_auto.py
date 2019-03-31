@@ -39,6 +39,7 @@ def daily_cards():
         a.rand_wait(a.fast_wait)
         if i == 0:
             # Get the 'next' button
+            a.scroll_absolute('up')
             next_btn = a.get_elem('//div[contains(@class, "next-card-btn")]')
             next_btn.click()
             a.rand_wait(a.fast_wait)
