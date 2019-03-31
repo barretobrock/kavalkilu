@@ -34,6 +34,7 @@ def daily_cards():
     # Iterate through cards
     for i in range(0, 2):
         # Get the 'done' button
+        a.scroll_absolute('up')
         done_btn = a.get_elem('//div[@class="card-options-wrapper"]/*/button[@id="triggerCloseCurtain"]')
         done_btn.click()
         a.rand_wait(a.fast_wait)
