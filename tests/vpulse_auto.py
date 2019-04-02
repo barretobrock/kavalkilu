@@ -29,11 +29,11 @@ logg.debug('Chrome instantiated.')
 def popup_closer():
     # Try to find the popup close button
     try:
-        pu_close_btn = c.find_element_by_xpath('//div[@id="trophy-modal-close-btn"]')
         # This gets tricky, because the box takes several seconds to pop up sometimes
-        a.rand_wait(a.slow_wait)
+        #a.rand_wait(a.slow_wait)
         # Scroll back up to the top
         c.execute_script('window.scrollTo(0, 0);')
+        pu_close_btn = c.find_element_by_xpath('//div[@id="trophy-modal-close-btn"]')
         pu_close_btn.click()
         logg.debug('Popup close button likely successfully clicked.')
     except:
@@ -45,7 +45,14 @@ def daily_cards():
     """Handles the daily cards section"""
     c.execute_script('window.scrollTo(0, 0);')
     card_btn = a.get_elem('//div[@class="home-cards-wrapper"]/div[div/div[@translate="Core.CoreHome.Cards"]]')
-    card_btn.click()
+    # Get the class of the child div
+    child_div = card_btn.find_element_by_xpath('.//div')
+    if 'active-view' not in child_div.get_attribute('class'):
+        # Card view not already active, click to activate
+        logg.debug("Card view wasn't active, clicking to activate.")
+        card_btn.click()
+    else:
+        logg.debug("Card view already active.")
 
     # Iterate through cards
     for i in range(0, 2):
@@ -58,7 +65,11 @@ def daily_cards():
             # Get the 'next' button
             a.scroll_absolute('up')
             next_btn = a.get_elem('//div[contains(@class, "next-card-btn")]')
-            next_btn.click()
+            if next_btn is not None:
+                logg.debug('Clicking next button')
+                next_btn.click()
+            else:
+                logg.debug('No next button found.')
             a.rand_wait(a.fast_wait)
 
 
@@ -101,12 +112,12 @@ def recipes_section():
     a.rand_wait(a.slow_wait)
     # If popup, disable
     try:
+        a.scroll_absolute('up')
         pu_get_app = c.find_element_by_xpath('//div[@id="interstitial-content-close"]/span')
-    except:
-        pu_get_app = None
-
-    if pu_get_app is not None:
         pu_get_app.click()
+        logg.debug('Closed popup')
+    except:
+        logg.debug('No popup to close')
 
     # Meal buttons to click
     meal_btns = c.find_elements_by_xpath('//button[@class="button-green dash-meal-button"]')
@@ -121,7 +132,7 @@ def recipes_section():
         for attempt in range(0, 5):
             try:
                 heart = c.find_element_by_xpath('//div[@class="heart"]')
-                fav = c.find_element_by_xpath('//div[div[@class="heart"]]')
+                fav = c.find_element_by_xpath('//div[@class="favorite" and div[@class="heart"]]')
                 break
             except:
                 logg.info('No heart found. Refreshing.')
@@ -129,21 +140,22 @@ def recipes_section():
                 a.rand_wait(a.medium_wait)
                 pass
         if heart is None:
-            logg.info('Could not find the heart element')
+            logg.info('Could not find the heart element.')
         else:
             heart.click()
-            time.sleep(10)
-            if 'is-favorite' not in fav.get_attribute('class'):
-                # Click the heart's parent
-                fav.click()
+            a.rand_wait(a.medium_wait)
+        if 'is-favorite' not in fav.get_attribute('class'):
+            # Click the heart's parent
+            fav.click()
 
         logg.info('Adding recipe to grocery list')
         # Add to grocery list (once weekly)
         a.click('//div[@class="action-text"]/span[text()="Add to Grocery List"]')
-        time.sleep(2)
+        a.rand_wait(a.medium_wait)
         # Confirm add
+        a.scroll_absolute('down')
         a.click('//div[@class="grocery-list-add-modal-confirm-container"]')
-        time.sleep(2)
+        a.rand_wait(a.medium_wait)
 
 
 def healthy_habits():
@@ -153,14 +165,20 @@ def healthy_habits():
     yes_btns = c.find_elements_by_xpath('//div/button[contains(@class, "btn-choice-yes")]')
 
     clicks = 0
-    for yes_btn in yes_btns:
-        if clicks > 3:
+    click_limit = 10 # overkill, but we'll keep it
+    for i in range(0, len(yes_btns)):
+        # In case we get a stale element exception, keep refreshing our yes button inventory
+        yes_btns = c.find_elements_by_xpath('//div/button[contains(@class, "btn-choice-yes")]')
+        yes_btn = yes_btns[i]
+        if clicks > click_limit:
             break
         if 'green-button' not in yes_btn.get_attribute('class'):
             # Button not clicked
+            yes_id = yes_btn.get_attribute('id')
             # Scroll to button
             c.execute_script("arguments[0].scrollIntoView();", yes_btn)
-            c.execute_script("document.getElementById('{}').click()".format(yes_btn.get_attribute('id')))
+            c.execute_script("document.getElementById('{}').click()".format(yes_id))
+            logg.debug('Clicked button: {}'.format(yes_id))
             clicks += 1
         a.rand_wait(a.fast_wait)
 
