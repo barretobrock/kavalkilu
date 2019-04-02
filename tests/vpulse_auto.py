@@ -134,8 +134,8 @@ def recipes_section():
                 heart = c.find_element_by_xpath('//div[@class="heart"]')
                 fav = c.find_element_by_xpath('//div[@class="favorite" and div[@class="heart"]]')
                 break
-            except:
-                logg.info('No heart found. Refreshing.')
+            except Exception as e:
+                logg.error('No heart found. Refreshing. Error: {}'.format(e))
                 c.refresh()
                 a.rand_wait(a.medium_wait)
                 pass
@@ -162,24 +162,34 @@ def healthy_habits():
     """Scroll through and complete the healthy habits items"""
     hh_url = "https://app.member.virginpulse.com/#/healthyhabits"
     c.get(hh_url)
+    a.rand_wait(a.medium_wait)
     yes_btns = c.find_elements_by_xpath('//div/button[contains(@class, "btn-choice-yes")]')
+    logg.debug('{} yes buttons found.'.format(len(yes_btns)))
 
     clicks = 0
-    click_limit = 10 # overkill, but we'll keep it
+    click_limit = 10  # overkill, but we'll keep it
     for i in range(0, len(yes_btns)):
         # In case we get a stale element exception, keep refreshing our yes button inventory
         yes_btns = c.find_elements_by_xpath('//div/button[contains(@class, "btn-choice-yes")]')
         yes_btn = yes_btns[i]
+        yes_id = yes_btn.get_attribute('id')
         if clicks > click_limit:
+            logg.debug('Click limit reached. Breaking loop.')
             break
         if 'green-button' not in yes_btn.get_attribute('class'):
             # Button not clicked
-            yes_id = yes_btn.get_attribute('id')
-            # Scroll to button
-            c.execute_script("arguments[0].scrollIntoView();", yes_btn)
-            c.execute_script("document.getElementById('{}').click()".format(yes_id))
-            logg.debug('Clicked button: {}'.format(yes_id))
-            clicks += 1
+            try:
+                # Scroll to button
+                c.execute_script("arguments[0].scrollIntoView();", yes_btn)
+                c.execute_script("document.getElementById('{}').click()".format(yes_id))
+                logg.debug('Clicked button: {}'.format(yes_id))
+                clicks += 1
+            except Exception as e:
+                logg.error('Tried to click yes_btn. Error: {}'.format(e))
+
+        else:
+            logg.debug('Button {} seems to have already been clicked.'.format(yes_id))
+
         a.rand_wait(a.fast_wait)
 
 
