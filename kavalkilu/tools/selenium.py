@@ -259,18 +259,27 @@ class Action:
             actions = ActionChains(self.driver)
             actions.move_to_element(elem).perform()
         else:
-            self.driver.execute_script('arguments[0].scrollIntoView();', elem)
+            scroll_center_script = """
+                var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+                var elementTop = arguments[0].getBoundingClientRect().top;
+                window.scrollBy(0, elementTop-(viewPortHeight/2));
+            """
+            self.driver.execute_script(scroll_center_script, elem)
 
     def scroll_absolute(self, dir='up'):
-        """Scrolls all the way up/down"""
+        """Scrolls all the way up/down or to specific x,y coordinates"""
         if dir == 'up':
             coords = '0, 0'
         elif dir == 'down':
             coords = '0, document.body.scrollHeight'
         else:
-            coords = '0, 0'
+            if ',' in dir:
+                coords = dir
+            else:
+                raise ValueError('Invalid parameters entered. Must be an x,y coordinate, or up/down command.')
 
         self.driver.execute_script('window.scrollTo({});'.format(coords))
+
 
     def announce_exception(self, num_attempt):
         """

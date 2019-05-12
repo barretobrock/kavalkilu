@@ -44,7 +44,7 @@ def popup_closer():
 def daily_cards():
     """Handles the daily cards section"""
     c.execute_script('window.scrollTo(0, 0);')
-    card_btn = a.get_elem('//div[@class="home-cards-wrapper"]/div[div/div[@translate="Core.CoreHome.Cards"]]')
+    card_btn = a.get_elem('//div[@class="home-cards-wrapper"]/div/div[@ng-click="toggleDailyTips()"]')
     # Get the class of the child div
     child_div = card_btn.find_element_by_xpath('.//div')
     if 'active-view' not in child_div.get_attribute('class'):
@@ -59,18 +59,9 @@ def daily_cards():
         # Get the 'done' button
         a.scroll_absolute('up')
         done_btn = a.get_elem('//div[@class="card-options-wrapper"]/*/button[@id="triggerCloseCurtain"]')
+        c.execute_script('window.scrollTo(0,20);')
         done_btn.click()
         a.rand_wait(a.fast_wait)
-        if i == 0:
-            # Get the 'next' button
-            a.scroll_absolute('up')
-            next_btn = a.get_elem('//div[contains(@class, "next-card-btn")]')
-            if next_btn is not None:
-                logg.debug('Clicking next button')
-                next_btn.click()
-            else:
-                logg.debug('No next button found.')
-            a.rand_wait(a.fast_wait)
 
 
 def financial_wellness():
@@ -88,19 +79,31 @@ def financial_wellness():
 
 
 def fitness_tracker():
-    fitness_url = 'https://www.myfitnesspal.com/account/login'
+    url_dict = {
+        'base': 'https://www.myfitnesspal.com',
+        'tgt': '2019-01-24',
+        'today': today.strftime('%F'),
+        'user': 'obrock2'
+    }
+    # Add in extra url bits
+    url_dict['extras'] = 'from_meal=0&username={user}'.format(**url_dict)
+
+    fitness_url = '{base}/account/login'.format(**url_dict)
     c.get(fitness_url)
     a.rand_wait(a.medium_wait)
+
     a.enter('//input[@id="username"]', creds['user'])
     a.enter('//input[@id="password"]', creds['password'])
     a.click('//input[@type="submit"]')
     a.rand_wait(a.medium_wait)
 
-    food_diary_url = 'https://www.myfitnesspal.com/food/diary'
+    logg.debug('Going to food diary')
+    food_diary_url = '{base}/food/diary'.format(**url_dict)
     c.get(food_diary_url)
 
     # Quick add calories
-    quick_add_url = 'https://www.myfitnesspal.com/food/copy_meal?date={:%F}&from_date=2019-01-24&from_meal=0&username=obrock2'.format(today)
+    logg.debug('Copying meal from {tgt} to {today}'.format(**url_dict))
+    quick_add_url = '{base}/food/copy_meal?date={today}&from_date={tgt}&{extras}'.format(**url_dict)
     c.get(quick_add_url)
     a.rand_wait(a.medium_wait)
 
@@ -122,6 +125,8 @@ def recipes_section():
     # Meal buttons to click
     meal_btns = c.find_elements_by_xpath('//button[@class="button-green dash-meal-button"]')
     meal_btns[1].click()
+    logg.debug('Clicked meal button')
+    a.rand_wait(a.slow_wait)
 
     if today.strftime('%a') == 'Mon':
         logg.info('Performing weekly activities')
@@ -138,18 +143,21 @@ def recipes_section():
                 logg.error('No heart found. Refreshing. Error: {}'.format(e))
                 c.refresh()
                 a.rand_wait(a.medium_wait)
-                pass
         if heart is None:
             logg.info('Could not find the heart element.')
         else:
             heart.click()
             a.rand_wait(a.medium_wait)
+
         if 'is-favorite' not in fav.get_attribute('class'):
             # Click the heart's parent
+            logg.debug("Heart click didn't work. Trying to click the favourite button instead.")
             fav.click()
+            a.rand_wait(a.medium_wait)
 
         logg.info('Adding recipe to grocery list')
         # Add to grocery list (once weekly)
+        a.scroll_absolute('up')
         a.click('//div[@class="action-text"]/span[text()="Add to Grocery List"]')
         a.rand_wait(a.medium_wait)
         # Confirm add
@@ -197,10 +205,11 @@ def whil_session():
     """Go to the WHIL page and play a video"""
     whil_url = "https://connect.whil.com/virginpulsesso/redirect?destination=home"
     c.get(whil_url)
-
+    a.rand_wait(a.medium_wait)
     # Play a specific session
     body_sense_url = "https://connect.whil.com/goaltags/freemium-mindfulness-101/sessions/sense-the-body"
     c.get(body_sense_url)
+    a.rand_wait(a.medium_wait)
     a.click('//*/img[@alt="play"]')
     # Wait five-ish mins
     time.sleep(310)
@@ -220,7 +229,7 @@ a.rand_wait(a.slow_wait)
 tasks_dict = OrderedDict((
     ('popup closer', popup_closer),
     ('daily cards', daily_cards),
-    ('financial wellness', financial_wellness),
+    # ('financial wellness', financial_wellness),
     ('fitness tracker', fitness_tracker),
     ('healthy recipes', recipes_section),
     ('healthy habits', healthy_habits),
