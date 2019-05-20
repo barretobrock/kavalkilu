@@ -7,8 +7,8 @@ sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 
 echo "Beginning update of git repo"
 # Update the repo
-cd ~/kavalkilu/
+cd $HOME/kavalkilu/
 git pull origin master
-cd ~
+cd $HOME
 
 echo "Process completed"

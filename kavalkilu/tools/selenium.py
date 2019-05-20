@@ -24,7 +24,10 @@ class ChromeDriver(Chrome):
         '--disable-extensions',
         '--mute-audio',
         '--disable-infobars',   # Get rid of "Chrome is being controlled by automated software" notification
-        '--start-maximized'
+        '--start-maximized',
+        '--headless',
+        '--no-sandbox',
+        '--disable-dev-shm-usage'
     ]
 
     def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, options=default_options):
