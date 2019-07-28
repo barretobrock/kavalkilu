@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from flask import Flask, request
+from flask import Flask
 from flask_jsonpify import jsonify
 
 app = Flask(__name__)
@@ -16,3 +16,6 @@ def hosts():
     result = {'data': hosts}
     return jsonify(result)
 
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port='5002')

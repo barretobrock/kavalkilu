@@ -1,16 +1,19 @@
 
 # Put this in /etc/systemd/system
+# chmod +x the file
 # Refresh with sudo systemctl daemon-reload
 # Call with sudo systemctl start <service-name>
 
 [Unit]
-Description=Hosts API
+Description=hostsapi
 After=network.target
 
 [Service]
 User=bobrock
+Restart=on-failure
+WorkingDirectory=/home/bobrock/kavalkilu/api/hosts
 ExecStart=/bin/bash -c "source ~/venv/netapi/bin/activate ; flask run --host=0.0.0.0 --port=5002"
-Restart=always
+
 
 [Install]
 WantedBy=multi-user.target
