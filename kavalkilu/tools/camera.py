@@ -47,7 +47,7 @@ class AmcrestGroup:
         Args:
             motion_on: bool, if True, will turn motion detection to ON
         """
-        for name, ip in self.camera_dict:
+        for name, ip in self.camera_dict.items():
             cam = Amcrest(ip, self.creds, name=name)
             if cam.camera.is_motion_detector_on() != motion_on:
                 if motion_on:
