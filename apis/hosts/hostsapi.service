@@ -11,8 +11,8 @@ After=network.target
 [Service]
 User=bobrock
 Restart=on-failure
-WorkingDirectory=/home/bobrock/kavalkilu/api/hosts
-ExecStart=/bin/bash -c "source ~/venv/netapi/bin/activate ; flask run --host=0.0.0.0 --port=5002"
+WorkingDirectory=/home/bobrock/
+ExecStart=/bin/bash -c "source ~/venv/netapi/bin/activate ; ~/kavalkilu/api/hosts/hosts_api.py"
 
 
 [Install]
