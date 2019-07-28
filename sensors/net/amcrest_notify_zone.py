@@ -3,7 +3,6 @@
 """Determines if mobile is connected to local network. If not, will arm the cameras"""
 import os
 from kavalkilu import AmcrestGroup, Paths, Log, Hosts
-from kavalkilu import Amcrest
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -22,13 +21,6 @@ for ip in [i['ip'] for i in h.get_hosts('an_[bm]a.*')]:
 
 # Instantiate all cameras
 agroup = AmcrestGroup(cred, log)
-
-# Messing around
-ptzcam = Amcrest('192.168.0.30', cred, name='upstairs').camera
-notptzcam = Amcrest('192.168.0.24', cred, name='garage').camera
-
-if ptzcam.ptz_presets_count > 1:
-    # Normal, 'armed' operation
 
 
 if any(res_list):
