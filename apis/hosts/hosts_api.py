@@ -6,9 +6,9 @@ from json import dumps
 from flask_jsonpify import jsonify
 
 app = Flask(__name__)
-api = Api(app)
 
 
+@app.route('/hosts')
 class Hosts(Resource):
     """Hosts"""
     def get(self):
@@ -20,8 +20,6 @@ class Hosts(Resource):
         result = {'data': hosts}
         return jsonify(result)
 
-
-api.add_resource(Hosts, '/hosts')
 
 if __name__ == '__main__':
     app.run(port='5002')
