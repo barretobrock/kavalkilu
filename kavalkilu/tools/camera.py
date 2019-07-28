@@ -1,19 +1,35 @@
 """Camera-related procedures"""
 import datetime
 import os
-
+import requests
+from requests.auth import HTTPDigestAuth
 
 camera_ips = {
     'elutuba': '192.168.0.7',
     'kamin': '192.168.0.20',
-    'garage': '192.168.0.24'
+    'garage': '192.168.0.24',
+    'upstairs': '192.168.0.30'
 }
 
 
 class Amcrest:
-    def __init__(self, ip, creds, port=80):
+    def __init__(self, ip, creds, port=80, name='camera'):
+        self.ip = ip
+        self.name = name
+        self.creds = creds
+        self.config_url = 'http://{ip}/cgi-bin/configManager.cgi?action=setConfig'
         self.amc = __import__('amcrest')
         self.camera = self.amc.AmcrestCamera(ip, port, creds['user'], creds['password']).camera
+
+    def toggle_motion(self, set_motion=True):
+        """Sets motion detection"""
+        motion_val = 'true' if set_motion else 'false'
+
+        motion_url = '{}&MotionDetect[0].Enable={{tf}}'.format(self.config_url)
+        motion_url = motion_url.format(ip=self.ip, tf=motion_val)
+        result = requests.get(motion_url, auth=HTTPDigestAuth(self.creds['user'], self.creds['password']))
+
+        return result
 
 
 class AmcrestWeb:
