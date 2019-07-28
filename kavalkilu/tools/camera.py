@@ -27,6 +27,18 @@ class Amcrest:
 
         return result
 
+    def set_ptz_flag(self, armed):
+        """Orients PTZ-enabled cameras either to armed position (1) or disarmed (2)"""
+
+        if self.camera.ptz_presets_count > 0:
+            # This is likely PTZ-enabled
+            # Set to target flag
+            preset_pt = 1 if armed else 2
+            resp = self.camera.go_to_preset(action='start', preset_point_number=preset_pt)
+            if resp[:2] != 'OK':
+                # Something went wrong. Raise exception so it gets logged
+                raise Exception('Camera "{}" PTZ call saw unexpected response: "{}"'.format(self.name, resp))
+
 
 class AmcrestGroup:
     """Methods to control a group of amcrest cameras"""
@@ -50,11 +62,14 @@ class AmcrestGroup:
         for name, ip in self.camera_dict.items():
             cam = Amcrest(ip, self.creds, name=name)
             if cam.camera.is_motion_detector_on() != motion_on:
+                # Mismatch indicates settings should be changed
                 if motion_on:
                     log_txt = 'Camera "{}" currently does not have motion detection enabled. Enabling.'
                 else:
                     log_txt = 'Camera "{}" is currently set to motion detection. Disabling'
                 self.log.debug(log_txt.format(cam.name))
+                # Set PTZ-oriented cameras to armed/disarmed positions
+                cam.set_ptz_flag(armed=motion_on)
                 # Send command to turn on motion detection
                 resp = cam.toggle_motion(set_motion=motion_on)
 
