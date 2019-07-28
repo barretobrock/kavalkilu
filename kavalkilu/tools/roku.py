@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from roku import Roku
-from .path import Paths
+from .net import Hosts
 
 
 class RokuTV(Roku):
@@ -10,8 +10,8 @@ class RokuTV(Roku):
     Customized functions for use with Roku TV
     """
     # Set path to roku TV ip
-    p = Paths()
-    tv_ip = p.roku_ip
+    h = Hosts()
+    tv_ip = h.get_host('ot_roku')['ip']
 
     # Popular app ids
     NETFLIX = 12

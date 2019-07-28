@@ -17,17 +17,6 @@ class Paths:
         self.server_ip = '192.168.0.5'
         self.pihole_ip = self.server_ip
         self.openhab_ip = self.server_ip
-        # IP Cameras
-        self.elutuba_ipc = '192.168.0.7'
-        self.kamin_ipc = '192.168.0.20'
-        self.garage_ipc = '192.168.0.24'
-        self.raspicam = '192.168.0.21'
-        # Others
-        self.roku_ip = '192.168.0.9'
-        self.chromecast_ip = '192.168.0.10'
-        self.ecobee_ip = '192.168.0.10'
-        self.huebridge_ip = '192.168.0.19'
-        self.garagepi_ip = '192.168.0.18'
 
         # directories
         self.home_dir = os.path.expanduser("~")

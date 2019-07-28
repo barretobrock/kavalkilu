@@ -1,18 +1,14 @@
 """Camera-related procedures"""
 import datetime
 import os
+import re
 import requests
 from requests.auth import HTTPDigestAuth
-
-camera_ips = {
-    'elutuba': '192.168.0.7',
-    'kamin': '192.168.0.20',
-    'garage': '192.168.0.24',
-    'upstairs': '192.168.0.30'
-}
+from .net import Hosts
 
 
 class Amcrest:
+    """Amcrest camera-related methods"""
     def __init__(self, ip, creds, port=80, name='camera'):
         self.ip = ip
         self.name = name
@@ -30,6 +26,43 @@ class Amcrest:
         result = requests.get(motion_url, auth=HTTPDigestAuth(self.creds['user'], self.creds['password']))
 
         return result
+
+
+class AmcrestGroup:
+    """Methods to control a group of amcrest cameras"""
+
+    def __init__(self, creds, log, camera_filter='.*'):
+        self.creds = creds
+        self.log = log
+        camera_dict = {i['name'].replace('ac_', ''): i['ip'] for i in Hosts().get_hosts('ac_.*')}
+        if camera_filter != '.*':
+            # Filter cameras further
+            cam_filter = re.compile(camera_filter)
+            camera_dict = {k: v for k, v in camera_dict.items() if cam_filter.match(k)}
+        self.camera_dict = camera_dict
+
+    def motion_toggler(self, motion_on):
+        """Handles the processes of toggling the camera's motion detection
+
+        Args:
+            motion_on: bool, if True, will turn motion detection to ON
+        """
+        for name, ip in self.camera_dict:
+            cam = Amcrest(ip, self.creds, name=name)
+            if cam.camera.is_motion_detector_on() != motion_on:
+                if motion_on:
+                    log_txt = 'Camera "{}" currently does not have motion detection enabled. Enabling.'
+                else:
+                    log_txt = 'Camera "{}" is currently set to motion detection. Disabling'
+                self.log.debug(log_txt.format(cam.name))
+                # Send command to turn on motion detection
+                resp = cam.toggle_motion(set_motion=motion_on)
+
+                # Check HTTP response
+                if resp.status_code != 200:
+                    self.log.error('Error in HTTP GET response. Status code {}'.format(resp.status_code))
+                else:
+                    self.log.debug('HTTP GET successful.')
 
 
 class AmcrestWeb:
@@ -197,7 +230,8 @@ class Camera:
         picamera = __import__('picamera')
         self.PiCamera = picamera.PiCamera
 
-    def capture_image(self, save_dir, res=(1280, 720), framerate=24, extra_text='', timestamp=True, vflip=False, hflip=False):
+    def capture_image(self, save_dir, res=(1280, 720), framerate=24, extra_text='', timestamp=True,
+                      vflip=False, hflip=False):
         # Captue image and return path of where it is saved
         filename = '{}.png'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
         save_path = os.path.join(save_dir, filename)

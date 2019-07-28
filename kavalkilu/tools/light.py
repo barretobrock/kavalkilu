@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .gpio import GPIO
-from .path import Paths
+from .net import Hosts
 import time
 from random import random, randint, uniform
 from phue import Bridge
@@ -51,8 +51,8 @@ class LED:
 class HueBulb:
     """Commands for Philips Hue bulbs"""
     # Set path to bridge ip
-    p = Paths()
-    b_ip = p.huebridge_ip
+    h = Hosts()
+    b_ip = h.get_host('ot_huehub')['ip']
 
     # Some interesting color coordinates
     DEFAULT = [0.4596, 0.4105]
