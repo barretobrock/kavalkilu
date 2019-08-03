@@ -2,24 +2,9 @@
 Resources to build this:
     https://packaging.python.org/en/latest/distributing.html
     https://github.com/pypa/sampleproject
-
-Notes:
-    - Package requirements are stored in a list of dicts. Each item in the dict determines
-        1) How the package will be installed (e.g., with pip or apt)
-        2) Where the package is required (e.g., only on raspberry pi devices)
-
-    - Where Types are determined on 1) hostname or 2) os.uname() info:
-        - everywhere: all devices
-        - raspberry_pi: only Raspberry Pi devices (os.uname()[4][:3] == 'arm')
-        - non_raspi: only non-Raspberry Pi devices (os.uname()[4][:3] != 'arm')
-        - server: only for device serving as home server (socket.gethostname() == 'homeserv')
-
-
 """
 import os
 import re
-import sys
-from datetime import datetime
 from setuptools import setup, find_packages
 
 

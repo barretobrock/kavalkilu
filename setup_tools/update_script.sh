@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 # Updates both the python package and the local git repo
 
-echo "Beginning update of python package"
-# Update the python package
-sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
+# CD to the location of the package
+# Could be ~/kavalkilu or ~/projects/kavalkilu
+cd ${HOME}
+if [[ -d "projects" ]]
+then
+    KAVDIR=${HOME}/projects/kavalkilu
+else
+    KAVDIR=${HOME}/kavalkilu
+fi
 
-echo "Beginning update of git repo"
-# Update the repo
-cd $HOME/kavalkilu/
+cd ${KAVDIR}
+
+echo "Pulling update from git repo"
 git pull origin master
-cd $HOME
+
+# Then update the python package locally
+echo "Beginning update of python package"
+pip3 install -e git+https://github.com/barretobrock/kavalkilu.git --upgrade
 
 echo "Process completed"
