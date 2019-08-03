@@ -96,6 +96,6 @@ class Keys:
 
         for item in self.keys:
             if item['name'] == name:
-                return item
+                return item['keys']
         # If we arrived here, the key wasn't found
         raise KeyRetrievalException('The key ({}) was not found in the database.'.format(name))
