@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. If not, will arm the cameras"""
-from kavalkilu import AmcrestGroup, Paths, Log
+from kavalkilu import AmcrestGroup, Keys, Log
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('motion_toggle', log_lvl='DEBUG')
 log.debug('Logging initiated')
 
-p = Paths()
-cred = p.key_dict['webcam_api']
+k = Keys()
+cred = k.get_key('webcam_api')
 
 # Instantiate all cameras
 agroup = AmcrestGroup(cred, log)

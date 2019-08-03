@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import time
-import os
-import json
 from datetime import datetime as dtt
 from collections import OrderedDict
-from kavalkilu import Log, Paths
-from kavalkilu.tools.selenium import ChromeDriver, Action
+from kavalkilu import Log, Paths, Keys, ChromeDriver, Action
 
 
 logg = Log('vpulse_auto', log_lvl='DEBUG')
-p = Paths()
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
 # Handle weekly tasks either based on DOW or recorded table with date_last_done and freq columns
 
 # Get credentials
-with open(os.path.join(p.key_dir, 'vpulse_creds.txt')) as f:
-    creds = json.loads(f.read())
+k = Keys()
+creds = k.get_key('vpulse_creds')
 
 today = dtt.today()
 c = ChromeDriver('/usr/bin/chromedriver')

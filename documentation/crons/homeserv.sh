@@ -21,10 +21,13 @@ PY3=/usr/bin/python3
 0 2 * * *           $PY3    $HOME/$SENSORS/speedtest/speedtest_to_mysql.py
 # AUTOMATION STUFF
 0 */6 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
-*/10 07-20 * * 1-5  $PY3    $HOME/$SENSORS/commute/commute_calc.py
+#*/10 07-20 * * 1-5  $PY3    $HOME/$SENSORS/commute/commute_calc.py
 */10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
 */10 04-22 * * *    $PY3    $HOME/$SENSORS/net/amcrest_notify_zone.py
 5 23 * * *          $PY3    $HOME/$SENSORS/net/amcrest_nighttime.py
 
 # Vpulse Automation
 40 03 * * * export DISPLAY=:0; python3 ~/kavalkilu/tests/vpulse_auto.py
+
+# HOSTS API
+@reboot bash $HOME/kavalkilu/apis/hosts/start_service.sh

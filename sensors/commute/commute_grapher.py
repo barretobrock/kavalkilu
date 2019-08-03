@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from kavalkilu import Paths, Log
 import pandas as pd
 import numpy as np
 import plotly.plotly as py
 import plotly.offline as pyoff
 import plotly.graph_objs as go
 import json
+from kavalkilu import Paths, Log, Keys
 
 
 def dow_boxplot(df, data_col, dow_col, save_dir, incl_weekend=False, plot_online=False):
@@ -149,11 +149,12 @@ def mon_boxplot(df, data_col, mon_col, save_dir, plot_online=False):
 
 
 p = Paths()
+k = Keys()
 
 logg = Log('commute_grapher', 'commute', log_lvl="DEBUG")
 logg.debug('Log initiated')
 
-api = json.loads(p.key_dict['plotly_api'])
+api = json.loads(k.get_key('plotly_api'))
 
 csv_path = os.path.join(p.data_dir, 'commute_calculations.csv')
 # Import csv data

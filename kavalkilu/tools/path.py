@@ -27,31 +27,5 @@ class Paths:
         self.key_dir = os.path.join(self.home_dir, 'keys')
         # filepaths
         self.privatekey_path = os.path.join(os.path.expanduser('~'), *['.ssh', 'id_rsa'])
-        self.google_client_secret = os.path.join(self.key_dir, 'client_secret.json')
         self.ip_path = os.path.join(self.key_dir, 'myip.txt')
 
-        # key filepaths
-        file_list = [
-            'darksky_api.txt',
-            'pushbullet_api.txt',
-            'plotly_api.txt',
-            'tweepy_api.txt',
-            'personal_tweepy_api.txt',
-            'webcam_api.txt',
-            'mysqldb.txt',
-            'amcrest.txt'
-        ]
-
-        self.key_dict = {}
-
-        for tfile in file_list:
-            fpath = os.path.join(self.key_dir, tfile)
-            if os.path.isfile(fpath):
-                with open(fpath, 'r') as f:
-                    value = f.read()
-                    try:
-                        creds = json.loads(value)
-                    except json.JSONDecodeError:
-                        # File was not in JSON format (possibly no brackets or double quotes)
-                        creds = value.replace('\n', '')
-                self.key_dict[tfile.replace('.txt', '')] = creds

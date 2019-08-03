@@ -1,8 +1,6 @@
 """Collect local temperature data"""
 
-from kavalkilu.tools.weather import DarkSkyWeather
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import DarkSkyWeather, Log, MySQLLocal
 import pandas as pd
 
 

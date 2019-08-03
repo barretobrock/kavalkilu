@@ -8,7 +8,7 @@ from .gpio import GPIO
 from .light import HueBulb, LED, hue_lights
 from .log import Log
 from .message import PBullet, Email, INET
-from .net import Hosts, HostsRetrievalException
+from .net import Hosts, HostsRetrievalException, Keys, KeyRetrievalException
 from .openhab import OpenHab
 from .path import Paths
 from .relay import Relay

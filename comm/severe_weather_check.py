@@ -6,16 +6,18 @@ import sys
 import json
 from collections import OrderedDict
 from urllib.request import urlopen
-from kavalkilu import Paths, DateTools, Log, CSVHelper, PBullet
+from kavalkilu import Paths, DateTools, Log, CSVHelper, PBullet, Keys
 
 
-p = Paths()
 # initiate logging
 logg = Log('severe_weather', 'sevweather', log_lvl='DEBUG')
 logg.debug('Logger initiated.')
 
-ds_api = p.key_dict['darksky_api']
-pb_api = p.key_dict['pushbullet_api']
+
+p = Paths()
+k = Keys()
+ds_api = k.get_key('darksky_api')
+pb_api = k.get_key('pushbullet_api')
 
 dtools = DateTools()
 csvhelp = CSVHelper()

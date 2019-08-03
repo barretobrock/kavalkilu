@@ -18,7 +18,7 @@ from .tools import Log
 # message.py
 from .tools import PBullet, Email, INET
 # net.py
-from .tools import Hosts, HostsRetrievalException
+from .tools import Hosts, HostsRetrievalException, Keys, KeyRetrievalException
 # openhab.py
 from .tools import OpenHab
 # path.py

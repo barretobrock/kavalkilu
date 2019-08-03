@@ -7,6 +7,10 @@ class HostsRetrievalException(Exception):
     pass
 
 
+class KeyRetrievalException(Exception):
+    pass
+
+
 class Hosts:
     """Captures host info from API call"""
     def __init__(self):
@@ -63,3 +67,35 @@ class Hosts:
                 matches.append(item)
 
         return matches
+
+
+class Keys:
+    """Captures credential info from API call
+    These will eventually be put into a database complete with token-based
+        authentication to avoid having these credentials accessible to all
+        users on my WiFi. For now, this will be the case.
+    """
+    def __init__(self):
+        self.server = '192.168.0.5'
+        self.port = 5002
+        self.api_url = 'http://{}:{}/keys'.format(self.server, self.port)
+        response = requests.get(self.api_url)
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data.keys():
+                self.keys = data['data']
+        else:
+            raise KeyRetrievalException('Error requesting data. ErrCode: {}'.format(response.status_code))
+
+    def get_key(self, name):
+        """Returns key by name"""
+
+        if name is None:
+            # Throw exception if nothing is set
+            raise KeyRetrievalException('You must enter a valid key name.')
+
+        for item in self.keys:
+            if item['name'] == name:
+                return item
+        # If we arrived here, the key wasn't found
+        raise KeyRetrievalException('The key ({}) was not found in the database.'.format(name))

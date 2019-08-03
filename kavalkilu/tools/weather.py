@@ -7,6 +7,7 @@ from datetime import timedelta
 import pandas as pd
 from urllib.request import urlopen
 from .path import Paths
+from .net import Keys
 
 
 class DarkSkyWeather:
@@ -19,8 +20,8 @@ class DarkSkyWeather:
         self.latlong = latlong
         self.tz = tz
         self.url_prefix = 'https://api.darksky.net/forecast'
-        p = Paths()
-        self.DARK_SKY_API = p.key_dict['darksky_api']
+        k = Keys()
+        self.DARK_SKY_API = k.get_key('darksky_api')
         self.DARK_SKY_URL = "{}/{}/{}?units=si&exclude=flags".format(self.url_prefix, self.DARK_SKY_API, self.latlong)
         self.data = self._get_data()
 

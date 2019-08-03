@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from kavalkilu import Paths, Log, PBullet
 import gspread
 from collections import OrderedDict
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
+from kavalkilu import Paths, Log, PBullet, Keys
 
 
 def grab_timestamp(daily_df, activity, location, avg_time):
@@ -192,12 +192,13 @@ def message_generator(activity_type, **kwargs):
 
 ymdfmt = '%Y-%m-%d %H:%M:%S'
 p = Paths()
+k = Keys()
 
 logg = Log('commute_calculator', 'commute', log_lvl="DEBUG")
 logg.debug('Log initiated')
 
-client_secret_path = p.google_client_secret
-pb = PBullet(p.key_dict['pushbullet_api'])
+client_secret_path = k.get_key('client_secret')
+pb = PBullet(k.get_key('pushbullet_api'))
 
 csv_save_path = os.path.join(p.data_dir, 'commute_calculations.csv')
 

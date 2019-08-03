@@ -10,6 +10,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from collections import OrderedDict
 from .path import Paths
+from .net import Keys
 
 
 class MySQLLocal:
@@ -24,11 +25,12 @@ class MySQLLocal:
                 expects (un, pw, database, [port], [host])
         """
         p = Paths()
+        k = Keys()
 
         if connection_dict is None:
             # Ignore connection dict, connecting to local/usual db
             # Read in username and password dict from path
-            connection_dict = p.key_dict['mysqldb']
+            connection_dict = k.get_key('mysqldb')
             connection_dict['database'] = database_name
         # Determine if host and port is in dictionary, if not, use defaults
         if 'port' not in connection_dict.keys():
