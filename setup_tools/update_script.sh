@@ -18,6 +18,6 @@ git pull origin master
 
 # Then update the python package locally
 echo "Beginning update of python package"
-pip3 install -e git+https://github.com/barretobrock/kavalkilu.git --upgrade
+sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade
 
 echo "Process completed"
