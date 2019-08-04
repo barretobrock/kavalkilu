@@ -27,7 +27,7 @@ PY3=/usr/bin/python3
 5 23 * * *          $PY3    $HOME/$SENSORS/net/amcrest_nighttime.py
 # SLACK STUFF
 @reboot             $PY3    $HOME/$SENSORS/slackbot/kodubot_rtm.py
-0 7 * * *           $PY3    $HOME/$SENSORS/slack_logger.py
+15 6 * * *          $PY3    $HOME/$SENSORS/slack_logger.py
 
 # Vpulse Automation
 40 03 * * * export DISPLAY=:0; python3 ~/kavalkilu/tests/vpulse_auto.py
