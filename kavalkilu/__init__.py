@@ -16,7 +16,7 @@ from .tools import HueBulb, LED, hue_lights
 # log.py
 from .tools import Log
 # message.py
-from .tools import PBullet, Email, INET
+from .tools import PBullet, Email, INET, SlackBot
 # net.py
 from .tools import Hosts, HostsRetrievalException, Keys, KeyRetrievalException
 # openhab.py

@@ -9,8 +9,192 @@ import imaplib
 import mimetypes
 from smtplib import SMTP
 import datetime
+from datetime import datetime as dt
 import os
+import re
+import time
 import socket
+from .camera import Amcrest
+from .light import HueBulb, hue_lights
+from .net import Hosts, Keys
+
+
+class SlackBot:
+    """Handles messaging to and from Slack API"""
+    commands = {
+        'speak': 'woof',
+        'good boy': 'thanks!',
+        'hello': 'Hi <@{user}>!'
+    }
+
+    def __init__(self):
+        slack = __import__('slackclient')
+        token = Keys().get_key('kodubot-useraccess')
+        self.client = slack.SlackClient(token)
+        self.kodubot_id = None
+        self.RTM_READ_DELAY = 1
+        self.MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
+
+    def run_rtm(self):
+        """Initiate real-time messaging"""
+        if self.client.rtm_connect(with_team_state=False):
+            print('Kodubot running!')
+            self.kodubot_id = self.client.api_call('auth.test')['user_id']
+            while True:
+                try:
+                    msg_packet = self.parse_bot_commands(self.client.rtm_read())
+                    if msg_packet is not None:
+                        # print('I got a message "{message}" from user: {user} '.format(**msg_packet))
+                        self.handle_command(**msg_packet)
+                    time.sleep(self.RTM_READ_DELAY)
+                except Exception as e:
+                    print('Reconnecting... {}'.format(e))
+                    self.client.rtm_connect(with_team_state=False)
+        else:
+            print('Connection failed.')
+
+    def parse_direct_mention(self, message):
+        """Parses user and other text from direct mention"""
+        matches = re.search(self.MENTION_REGEX, message)
+        if matches is not None:
+            # First group contains the user id mentioned, second
+            user_id = matches.group(1)
+            message_txt = matches.group(2).lower().strip()
+            return user_id, message_txt
+        return None, None
+
+    def parse_bot_commands(self, slack_events):
+        """Parses a list of events coming from the Slack RTM API to find bot commands.
+            If a bot command is found, this function returns a tuple of command and channel.
+            If its not found, then this function returns None, None.
+        """
+        for event in slack_events:
+            if event['type'] == 'message' and "subtype" not in event:
+                user_id, message = self.parse_direct_mention(event['text'])
+                # message = event['text'].lower()
+                if user_id == self.kodubot_id:
+                    return {
+                        'user': event['user'],
+                        'channel': event['channel'],
+                        'message': message.strip()
+                    }
+        return None
+
+    def handle_command(self, channel, message, user):
+        """Handles a bot command if it's known"""
+
+        response = None
+        if message in self.commands.keys():
+            response = self.commands[message]
+        elif message == 'garage':
+            self.take_garage_pic(channel)
+            response = 'There ya go!'
+        elif message == 'help':
+            response = 'Help is on the way, but until then, take a coffee!'
+        elif message.startswith('lights'):
+            # lights (status|turn (on|off) <light_name>)
+            response = self.light_actions(message)
+        elif message != '':
+            response = "I didn't understand this: `{}`".format(message)
+
+        if response is not None:
+            resp_dict = {
+                'user': user
+            }
+            self.send_message(channel, response.format(**resp_dict))
+
+    def send_message(self, channel, message):
+        """Sends a message to the specific channel"""
+        self.client.api_call(
+            'chat.postMessage',
+            channel=channel,
+            text=message
+        )
+
+    def upload_file(self, channel, filepath, filename):
+        """Uploads the selected file to the given channel"""
+        self.client.api_call(
+            'files.upload',
+            channels=channel,
+            filename=filename,
+            file=open(filepath, 'rb')
+        )
+
+    def take_garage_pic(self, channel):
+        """Takes snapshot of garage, sends to Slack channel"""
+        # Take a snapshot of the garage
+        garage_cam_ip = Hosts().get_host('ac_garage')['ip']
+        creds = Keys().get_key('webcam_api')
+        cam = Amcrest(garage_cam_ip, creds)
+        tempfile = '/tmp/garagesnap.jpg'
+        cam.camera.snapshot(channel=0, path_file=tempfile)
+        self.upload_file(channel, tempfile, 'garage_snapshot_{:%F %T}.jpg'.format(dt.today()))
+
+    def light_actions(self, packet):
+        """Performs various light-related actions
+
+        Args:
+            packet: str, what action to perform
+                syntax: "lights (status|turn (on|off) <light_name>)"
+
+        """
+        light_names = [x['hue_name'].lower() for x in hue_lights]
+        packet_split = packet.strip().split()
+        action = packet_split[1]
+        if len(packet_split) > 3:
+            device = ' '.join(packet_split[3:])
+        else:
+            device = None
+
+        if action == 'status':
+            # Get the status of all the lights
+            light_statuses = []
+            for light in hue_lights:
+                obj = None
+                for attempt in range(3):
+                    try:
+                        obj = HueBulb(light['hue_name'])
+                        print('Got {hue_name}'.format(**light))
+                        break
+                    except Exception as e:
+                        print('Waiting... {}'.format(e))
+                        time.sleep(1)
+                if obj is not None:
+                    light_statuses.append({
+                        'name': light['hue_name'],
+                        'status': 'ON' if obj.get_status() else 'OFF'
+                    })
+            if len(light_statuses) > 0:
+                response = ':bulb:*Here are the current statuses for the lights:*\n'
+                response += '\n'.join(['{name:<15}: {status}'.format(**x) for x in light_statuses])
+                return response
+        elif action.startswith('turn'):
+            # Make sure the input name matches the names allowed.
+            if device in light_names:
+                action_split = action.split()
+                # Get the "proper" casing of the light name, as we've forced lower case here
+                proper_light_name = hue_lights[light_names.index(device)]['hue_name']
+                target_light = None
+                for attempt in range(3):
+                    try:
+                        target_light = HueBulb(proper_light_name)
+                    except Exception as e:
+                        time.sleep(1)
+                if target_light is None:
+                    response = "Sorry, I tried three times to turn on the light and I couldn't do it!"
+                elif action_split[1] == 'on':
+                    # Proceed with turning on
+                    target_light.turn_on()
+                    response = 'Turned {} ON'.format(device)
+                elif action_split[1] == 'off':
+                    target_light.turn_off()
+                    response = 'Turned {} OFF'.format(device)
+                else:
+                    response = 'Did not recognize command {}'.format(action_split[1].upper())
+            else:
+                # Respond with error and list of all possible lights
+                response = '{} is an unrecognized light. Known light: {}'.format(device, ', '.join(light_names))
+            return response
 
 
 class Email:
