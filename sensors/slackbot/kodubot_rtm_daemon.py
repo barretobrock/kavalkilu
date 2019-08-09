@@ -3,14 +3,17 @@
 
 import sys
 import daemonize
-from kavalkilu import SlackBot
+from kavalkilu import SlackBot, Log
 
+# Initiate logging
+log = Log('kodubot', log_lvl='DEBUG')
+log.debug('Logging initiated.')
 
 pid = '/tmp/kodubot.pid'
 
 if __name__ == "__main__":
     s = SlackBot()
-    daemon = daemonize.Daemonize(app='kodubot', pid=pid, action=s.run_rtm)
+    daemon = daemonize.Daemonize(app='kodubot', pid=pid, action=s.run_rtm, logger=log)
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()
