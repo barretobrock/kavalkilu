@@ -3,7 +3,6 @@
 from kavalkilu import SlackBot
 
 
-s = SlackBot()
-
 if __name__ == '__main__':
+    s = SlackBot()
     s.run_rtm()

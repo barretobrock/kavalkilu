@@ -60,7 +60,13 @@ class AmcrestGroup:
             motion_on: bool, if True, will turn motion detection to ON
         """
         for name, ip in self.camera_dict.items():
-            cam = Amcrest(ip, self.creds, name=name)
+            try:
+                cam = Amcrest(ip, self.creds, name=name)
+            except Exception as e:
+                self.log.error('Exception occurred with connection to camera named "{}". '
+                               'Skipping. More info: {}'.format(name, e))
+                continue
+
             if cam.camera.is_motion_detector_on() != motion_on:
                 # Mismatch indicates settings should be changed
                 if motion_on:

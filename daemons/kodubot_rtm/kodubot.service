@@ -1,0 +1,10 @@
+# Put this in /etc/systemd/system
+[Unit]
+Description=Kodubot Slack Bot Real Time Messager
+
+[Service]
+ExecStart=/home/bobrock/kavalkilu/daemons/kodubot_rtm/kodubot_rtm.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

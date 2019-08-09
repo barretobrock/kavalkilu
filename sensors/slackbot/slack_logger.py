@@ -45,7 +45,6 @@ log_splitter = {
     }
 }
 
-
 if not result_df.empty:
     for log_type, log_dict in log_splitter.items():
         df = result_df[result_df.lvl.isin(log_dict['levels'])].copy()
@@ -58,7 +57,7 @@ if not result_df.empty:
         channel = log_dict['channel']
         if not df.empty:
             # Send the info to Slack
-            msg = """*Today's log output*:\n\n```{}````""".format(df.to_string(index=False))
+            msg = """*Last 24 hours in {}*:\n\n```{}````""".format(channel, df.to_string(index=False))
         else:
             msg = 'No {} logs for this round.'.format(log_type)
         sb.send_message(channel, msg)

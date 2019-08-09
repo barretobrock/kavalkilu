@@ -23,8 +23,9 @@ class SlackBot:
     """Handles messaging to and from Slack API"""
     commands = {
         'speak': 'woof',
-        'good boy': 'thanks!',
-        'hello': 'Hi <@{user}>!'
+        'good bot': 'thanks!',
+        'hello': 'Hi <@{user}>!',
+        'fuck': 'Watch yo profanity! https://www.youtube.com/watch?v=hpigjnKl7nI'
     }
 
     def __init__(self):
@@ -82,13 +83,17 @@ class SlackBot:
 
     def handle_command(self, channel, message, user):
         """Handles a bot command if it's known"""
-
+        # Users that get to use higher-level actions
+        approved_users = ['UM35HE6R5', 'UM3E3G72S']
         response = None
         if message in self.commands.keys():
             response = self.commands[message]
         elif message == 'garage':
-            self.take_garage_pic(channel)
-            response = 'There ya go!'
+            if user not in approved_users:
+                response = 'Lol <@{user}>... here ya go bruv :garage_pic:'
+            else:
+                self.take_garage_pic(channel, user)
+                response = 'There ya go!'
         elif message == 'help':
             response = 'Help is on the way, but until then, take a coffee!'
         elif message.startswith('lights'):
@@ -120,7 +125,7 @@ class SlackBot:
             file=open(filepath, 'rb')
         )
 
-    def take_garage_pic(self, channel):
+    def take_garage_pic(self, channel, user):
         """Takes snapshot of garage, sends to Slack channel"""
         # Take a snapshot of the garage
         garage_cam_ip = Hosts().get_host('ac_garage')['ip']
@@ -184,16 +189,22 @@ class SlackBot:
                     response = "Sorry, I tried three times to turn on the light and I couldn't do it!"
                 elif action_split[1] == 'on':
                     # Proceed with turning on
-                    target_light.turn_on()
-                    response = 'Turned {} ON'.format(device)
+                    try:
+                        target_light.turn_on()
+                        response = 'Turned {} ON'.format(device)
+                    except Exception as e:
+                        response = 'Failed to turn {} ON. Error: {}'.format(device, e)
                 elif action_split[1] == 'off':
-                    target_light.turn_off()
-                    response = 'Turned {} OFF'.format(device)
+                    try:
+                        target_light.turn_off()
+                        response = 'Turned {} OFF'.format(device)
+                    except Exception as e:
+                        response = 'Failed to turn {} OFF. Error: {}'.format(device, e)
                 else:
                     response = 'Did not recognize command {}'.format(action_split[1].upper())
             else:
                 # Respond with error and list of all possible lights
-                response = '{} is an unrecognized light. Known light: {}'.format(device, ', '.join(light_names))
+                response = '{} is an unrecognized light. Known lights: {}'.format(device, ', '.join(light_names))
             return response
 
 
