@@ -10,6 +10,7 @@ import mimetypes
 from smtplib import SMTP
 import datetime
 from datetime import datetime as dt
+from datetime import timedelta as tdelta
 import os
 import re
 import time
@@ -30,8 +31,10 @@ class SlackBot:
 
     def __init__(self):
         slack = __import__('slackclient')
-        token = Keys().get_key('kodubot-useraccess')
-        self.client = slack.SlackClient(token)
+        bot_token = Keys().get_key('kodubot-useraccess')
+        user_token = Keys().get_key('kodubot-usertoken')
+        self.client = slack.SlackClient(bot_token)
+        self.user = slack.SlackClient(user_token)
         self.kodubot_id = None
         self.RTM_READ_DELAY = 1
         self.MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
@@ -115,6 +118,55 @@ class SlackBot:
             channel=channel,
             text=message
         )
+
+    def delete_message(self, message_dict):
+        """Deletes a given message"""
+        self.user.api_call(
+            'chat.delete',
+            channel=message_dict['channel']['id'],
+            ts=message_dict['ts']
+        )
+
+    def search_messages_by_date(self, channel, from_date, date_format='%Y-%m-%d %H:%M', max_results=100):
+        """Search for messages in a channel after a certain date
+
+        Args:
+            channel: str, the channel (e.g., "#channel")
+            from_date: str, the date from which to begin collecting channels
+            date_format: str, the format of the date entered
+            max_results: int, the maximum number of results per page to return
+
+        Returns: list of dict, channels matching the query
+        """
+        from_date = dt.strptime(from_date, date_format)
+        # using the 'after' filter here, so take it back one day
+        slack_date = from_date - tdelta(days=1)
+
+        for attempt in range(3):
+            resp = self.user.api_call(
+                'search.messages',
+                query='in:{} after:{:%F}'.format(channel, slack_date),
+                count=max_results
+            )
+            if resp['ok']:
+                # Search was successful
+                break
+            else:
+                # Wait before retrying
+                print('Call failed. Waiting two seconds')
+                time.sleep(2)
+
+        if 'messages' in resp.keys():
+            msgs = resp['messages']['matches']
+            filtered_msgs = []
+            for msg in msgs:
+                # Append the message as long as it's timestamp is later or equal to the time entered
+                ts = dt.fromtimestamp(int(round(float(msg['ts']), 0)))
+                if ts >= from_date:
+                    filtered_msgs.append(msg)
+            return filtered_msgs
+
+        return None
 
     def upload_file(self, channel, filepath, filename):
         """Uploads the selected file to the given channel"""
