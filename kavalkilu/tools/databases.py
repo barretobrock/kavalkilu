@@ -42,15 +42,17 @@ class MySQLLocal:
         connection_url = connection_url.format(**connection_dict)
         self.engine = create_engine(connection_url)
         self.connection = self.engine.connect()
-        self.cursor = self.connection.begin()
 
     def write_sql(self, query):
         """Writes a sql query to the database"""
+
+        cursor = self.connection.begin()
+
         try:
             self.connection.execute(query)
-            self.cursor.commit()
+            cursor.commit()
         except:
-            self.cursor.rollback()
+            cursor.rollback()
             raise
 
     def write_df_to_sql(self, tbl_name, df, debug=False):
@@ -59,6 +61,7 @@ class MySQLLocal:
         Args:
             tbl_name: str, name of the table to write to
             df: pandas.DataFrame
+            debug: bool, if True, will only return the formatted query
         """
         # Develop a way to mass-insert a dataframe to a table, matching its format
         query_base = """
@@ -84,8 +87,6 @@ class MySQLLocal:
             table_name: str, name of the table in the database
             df: pandas.DataFrame
         """
-        conn = self.engine.connect()
-        Base = declarative_base()
         list_to_write = df.to_dict(orient='records')
 
         metadata = sqlalchemy.schema.MetaData(bind=self.engine, reflect=True)
@@ -94,7 +95,7 @@ class MySQLLocal:
         Session = sessionmaker(bind=self.engine)
         session = Session()
 
-        conn.execute(table.insert(), list_to_write)
+        self.connection.execute(table.insert(), list_to_write)
 
         session.commit()
         session.close()

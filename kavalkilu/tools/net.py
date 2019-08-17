@@ -1,5 +1,6 @@
 """Net-related tools"""
 import requests
+import subprocess
 import re
 
 
@@ -99,3 +100,33 @@ class Keys:
                 return item['keys']
         # If we arrived here, the key wasn't found
         raise KeyRetrievalException('The key ({}) was not found in the database.'.format(name))
+
+
+class NetTools:
+    """For pinging an ip address"""
+
+    def __init__(self, host=None, ip=None):
+        if host is not None:
+            # First, look up the hostname
+            self.ip = Hosts().get_host(name=host)['ip']
+        elif ip is not None:
+            self.ip = ip
+        else:
+            # One of these have to be used
+            raise ValueError('You must enter a hostname or ip address.')
+
+    def ping(self, n_times=2):
+        """Pings an IP up to n times"""
+
+        proc = subprocess.Popen(
+            ['ping', '-c', '{}'.format(n_times), self.ip],
+            stdout=subprocess.PIPE
+        )
+        stdout, stderr = proc.communicate()
+
+        if proc.returncode == 0:
+            # Successfully pinged
+            return 'CONNECTED'
+        else:
+            # Unsuccessfully pinged
+            return 'DISCONNECTED'

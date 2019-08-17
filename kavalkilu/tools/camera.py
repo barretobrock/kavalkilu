@@ -88,45 +88,43 @@ class AmcrestGroup:
 
 class AmcrestWeb:
     """Selenium-based controls for automating boring camera tasks"""
-    def __init__(self, ip, creds, driver_path='/usr/bin/chromedriver'):
+    def __init__(self, ip, creds):
         # Import selenium dependencies
-        selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['ChromeDriver', 'Action'])
-        ChromeDriver = getattr(selenium_mod, 'ChromeDriver')
-        Action = getattr(selenium_mod, 'Action')
+        selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['BrowserAction'])
+        BrowserAction = getattr(selenium_mod, 'BrowserAction')
 
         self.ip = ip
-        self.driver = ChromeDriver(driver_path)
-        self.act = Action(self.driver)
+        self.ba = BrowserAction()
         self.url = 'http://{}'.format(ip)
         self.creds = creds
 
     def login(self):
         # Load the website
-        self.driver.get(self.url)
+        self.ba.get(self.url)
         # Login
-        self.act.clear('//div/input[@id="login_user"]')
-        self.act.enter('//div/input[@id="login_user"]', self.creds['user'])
-        self.act.enter('//div/input[@id="login_psw"]', self.creds['password'])
+        self.ba.clear('//div/input[@id="login_user"]')
+        self.ba.enter('//div/input[@id="login_user"]', self.creds['user'])
+        self.ba.enter('//div/input[@id="login_psw"]', self.creds['password'])
         # Click login button
-        self.act.click('//div/a[@id="b_login"]')
+        self.ba.click('//div/a[@id="b_login"]')
 
     def goto_motion(self):
         self.login()
         # Click the Setup tab
-        self.act.click('//li[@id="tab_set"]/a')
+        self.ba.click('//li[@id="tab_set"]/a')
         # Click the Event section
-        self.act.click('//ul[@id="set-menu"]/li[@category="event"]/a')
+        self.ba.click('//ul[@id="set-menu"]/li[@category="event"]/a')
         # Click the Video Detection section
-        self.act.click('//li[@category="event"]/ul/li[@filename="videoDetectConfig"]/span')
+        self.ba.click('//li[@category="event"]/ul/li[@filename="videoDetectConfig"]/span')
 
     def goto_storage(self):
         self.login()
         # Click the Setup tab
-        self.act.click('//li[@id="tab_set"]/a')
+        self.ba.click('//li[@id="tab_set"]/a')
         # Click the Storage section
-        self.act.click('//ul[@id="set-menu"]/li[@category="storage"]/a')
+        self.ba.click('//ul[@id="set-menu"]/li[@category="storage"]/a')
         # Click the Schedule section
-        self.act.click('//li[@category="storage"]/ul/li[@filename="recordPlanConfig"]/span')
+        self.ba.click('//li[@category="storage"]/ul/li[@filename="recordPlanConfig"]/span')
 
     def toggle_motion_detect(self, set_motion=None):
         self.goto_motion()
@@ -134,12 +132,12 @@ class AmcrestWeb:
         if set_motion is not None:
             # We'll send some JavaScript to the browser to set the checkbox value
             checkbox_val = 'true' if set_motion else 'false'
-            self.driver.execute_script("document.getElementById('v_m_enable').checked = {};".format(checkbox_val))
+            self.ba.driver.execute_script("document.getElementById('v_m_enable').checked = {};".format(checkbox_val))
         else:
             # Toggle the "Motion Detect" Box
-            self.act.click('//label[@class="ui-checkbox"]/input[@id="v_m_enable"]')
+            self.ba.click('//label[@class="ui-checkbox"]/input[@id="v_m_enable"]')
         # Click the Save button
-        self.act.click('//div[@id="page_videoDetectConfig"]/div/div/div/a[text()="Save"]')
+        self.ba.click('//div[@id="page_videoDetectConfig"]/div/div/div/a[text()="Save"]')
 
     def set_alert_schedule(self, sched_list):
         """
@@ -162,8 +160,8 @@ class AmcrestWeb:
         """
 
         self.goto_motion()
-        self.act.click('//div[@id="page_videoDetectConfig"]/div/div/div[label[text() = "Schedule"]]/a[text() = "Setup"]')
-        day_btns = self.act.get_elem('//div[@class="ui-timeplan-button"]/a[text() = "Setup"]', single=False)
+        self.ba.click('//div[@id="page_videoDetectConfig"]/div/div/div[label[text() = "Schedule"]]/a[text() = "Setup"]')
+        day_btns = self.ba.get_elem('//div[@class="ui-timeplan-button"]/a[text() = "Setup"]', single=False)
         for sched in sched_list:
             days = sched['days']
             times = sched['times']
@@ -243,7 +241,7 @@ class AmcrestWeb:
 
     def close(self):
         """Closes the program"""
-        self.driver.quit()
+        self.ba.driver.quit()
 
 
 class Camera:

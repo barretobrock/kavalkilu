@@ -6,10 +6,26 @@ Handles exceptions while interacting with Selenium objects
 import time
 import datetime
 from random import randint
-from selenium.webdriver import Chrome
-from selenium.webdriver import PhantomJS
+from selenium.webdriver import Chrome, PhantomJS
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+
+
+chrome_default_options = [
+    '--disable-extensions',
+    '--mute-audio',
+    '--disable-infobars',   # Get rid of "Chrome is being controlled by automated software" notification
+    '--start-maximized',
+    '--headless',
+    '--no-sandbox',
+    '--disable-dev-shm-usage'
+]
+
+phantom_default_options = [
+    # For PhantomJS, SSL should be disabled as it is not compliant with the most recent version
+    '--ignore-ssl-errors=true',
+    '--ssl-protocol=any'
+]
 
 
 class ChromeDriver(Chrome):
@@ -20,23 +36,20 @@ class ChromeDriver(Chrome):
         timeout: int, seconds to wait until connection unsuccessful
         options: list, any extra options to add to chrome_options.add_argument()
     """
-    default_options = [
-        '--disable-extensions',
-        '--mute-audio',
-        '--disable-infobars',   # Get rid of "Chrome is being controlled by automated software" notification
-        '--start-maximized',
-        '--headless',
-        '--no-sandbox',
-        '--disable-dev-shm-usage'
-    ]
 
-    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, options=default_options):
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60,
+                 options=chrome_default_options, headless=True):
         self.driver_path = driver_path
         # Add options to Chrome
         chrome_options = Options()
         if options is not None:
             for option in options:
-                chrome_options.add_argument(option)
+                if 'headless' in option:
+                    if headless:
+                        # Apply the headless arg only if desired
+                        chrome_options.add_argument(option)
+                else:
+                    chrome_options.add_argument(option)
         # Disable notifications
         prefs = {
             'profile.default_content_setting_values.notifications': 2,
@@ -57,13 +70,8 @@ class PhantomDriver(PhantomJS):
         driver_path: path to Chromedriver
         timeout: int, seconds to wait until connection unsuccessful
     """
-    default_service_args = [
-        # For PhantomJS, SSL should be disabled as it is not compliant with the most recent version
-        '--ignore-ssl-errors=true',
-        '--ssl-protocol=any'
-    ]
 
-    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, service_args=default_service_args):
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, service_args=phantom_default_options):
         self.driver_path = driver_path
         # Apply options
         super(PhantomDriver, self).__init__(self.driver_path, service_args=service_args)
@@ -71,19 +79,31 @@ class PhantomDriver(PhantomJS):
         super(PhantomDriver, self).set_page_load_timeout(timeout)
 
 
-class Action:
+class BrowserAction:
     """
     Performs action to Selenium-class webdriver
     Args for __init__:
         driver: Selenium-type driver class
     """
     # Predefined wait ranges, in seconds
-    slow_wait = [15, 30]
-    medium_wait = [5, 15]
-    fast_wait = [1, 8]
+    _slow_wait = [15, 30]
+    _medium_wait = [5, 15]
+    _fast_wait = [1, 8]
 
-    def __init__(self, driver):
-        self.driver = driver
+    def __init__(self, browser='chrome', driver_path='/usr/bin/chromedriver',
+                 timeout=60, options=chrome_default_options, headless=True):
+        if browser == 'chrome':
+            if options is None:
+                options = chrome_default_options
+            self.driver = ChromeDriver(driver_path, timeout, options, headless)
+        elif browser == 'phantomjs':
+            if options is None:
+                options = PhantomDriver.default_service_args
+            self.driver = PhantomDriver(driver_path, timeout, service_args=options)
+
+    def __del__(self):
+        """Make sure the browser is closed on cleanup"""
+        self.driver.close()
 
     def get(self, url):
         """
@@ -247,8 +267,16 @@ class Action:
         for i in range(4):
             r_x = randint(-20, 20)
             r_y = randint(150, 300)
-            s = "window.scrollBy({},{})".format(r_x, r_y)
-            self.driver.execute_script(s)
+            self.scroll_absolute(dir='{},{}'.format(r_x, r_y))
+
+    def fast_wait(self):
+        self.rand_wait(self._fast_wait)
+
+    def medium_wait(self):
+        self.rand_wait(self._medium_wait)
+
+    def slow_wait(self):
+        self.rand_wait(self._slow_wait)
 
     def scroll_to_element(self, elem, use_selenium_method=True):
         """
@@ -282,7 +310,6 @@ class Action:
                 raise ValueError('Invalid parameters entered. Must be an x,y coordinate, or up/down command.')
 
         self.driver.execute_script('window.scrollTo({});'.format(coords))
-
 
     def announce_exception(self, num_attempt):
         """

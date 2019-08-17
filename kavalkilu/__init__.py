@@ -18,7 +18,7 @@ from .tools import Log
 # message.py
 from .tools import PBullet, Email, INET, SlackBot
 # net.py
-from .tools import Hosts, HostsRetrievalException, Keys, KeyRetrievalException
+from .tools import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
 # openhab.py
 from .tools import OpenHab
 # path.py
@@ -28,7 +28,7 @@ from .tools import Relay
 # secure_copy.py
 # from .tools import
 # selenium.py
-from .tools import ChromeDriver, PhantomDriver, Action
+from .tools import ChromeDriver, PhantomDriver, BrowserAction
 # sensors.py
 from .tools import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor
 # serial.py

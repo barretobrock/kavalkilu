@@ -6,7 +6,6 @@ from datetime import datetime as dtt
 from datetime import timedelta
 import pandas as pd
 from urllib.request import urlopen
-from .path import Paths
 from .net import Keys
 
 
@@ -78,15 +77,11 @@ class YrNoWeather:
     """
     def __init__(self):
         # Import selenium dependencies
-        selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['ChromeDriver', 'Action'])
-        ChromeDriver = getattr(selenium_mod, 'ChromeDriver')
-        Action = getattr(selenium_mod, 'Action')
+        selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['ChromeDriver', 'BrowserAction'])
+        BrowserAction = getattr(selenium_mod, 'BrowserAction')
 
         self.tomorrow = dtt.today() + timedelta(days=1)
-        self.p = Paths()
-        self.chrome_driver = self.p.chrome_driver
-        self.b = ChromeDriver(self.chrome_driver).initiate()
-        self.act = Action(self.b)
+        self.ba = BrowserAction()
         self.cities = OrderedDict((
             ('Tallinn', 'Estonia/Harjumaa/Tallinn'),
             ('Kärdla', 'Estonia/Hiiumaa/Kärdla'),
@@ -110,20 +105,20 @@ class YrNoWeather:
         if city_path is None:
             return None
         city_url = "http://www.yr.no/place/{}/hour_by_hour_detailed.html".format(city_path)
-        self.b.get(city_url)
-        self.act.rand_wait('fast')
+        self.ba.get(city_url)
+        self.ba.fast_wait()
         # go through maximum four tables (there are usually just three)
         tbl_xpath = ''
         for x in range(1, 5):
             # xpath uses base 1 indexing!
             tbl_xpath = '//table[@id="detaljert-tabell"][{}]'.format(x)
-            date_text = self.act.get(tbl_xpath + '/caption[strong]')
+            date_text = self.ba.get_elem(tbl_xpath + '/caption[strong]')
             date = dtt.strptime(date_text.text.replace('Detailed forecast ', ''), '%B %d, %Y').date()
             if date.day == self.tomorrow.day:
                 # found tomorrow's weather data
                 break
         if date.day > 0:
-            rows = self.act.get(tbl_xpath + '/tbody/tr', single=False)
+            rows = self.ba.get_elem(tbl_xpath + '/tbody/tr', single=False)
             for row in rows:
                 hour = (dtt.strptime(row.find_element_by_xpath('th').text, '%H:%M') - timedelta(hours=1)).time()
                 cols = row.find_elements_by_xpath('td')
@@ -160,7 +155,9 @@ class YrNoWeather:
                         weather_list_fix.append(weather_list[p])
                         p += 1
                     else:
-                        timestamp_fix = [(dtt.strptime(weather_list[p - 1].get('TIMESTAMP'), '%Y-%m-%d %H:%M:%S') + timedelta(hours=hrs_all[k] - hrs[p - 1])).strftime('%Y-%m-%d %H:%M:%S')]
+                        timestamp_fix = [
+                            (dtt.strptime(weather_list[p - 1].get('TIMESTAMP'), '%Y-%m-%d %H:%M:%S')
+                             + timedelta(hours=hrs_all[k] - hrs[p - 1])).strftime('%Y-%m-%d %H:%M:%S')]
                         fix_dict = weather_list[p - 1]
                         fix_dict['TIMESTAMP'] = timestamp_fix
                         weather_list_fix.append(fix_dict)
