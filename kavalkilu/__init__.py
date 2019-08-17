@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Kavalkilu: A Library for Integrating Home Automation Components
+"""
+__version__ = '0.4.0'
+__update_date__ = '2019-08-17'
 
 # camera.py
 from .tools import Amcrest, AmcrestGroup, AmcrestWeb, Camera
