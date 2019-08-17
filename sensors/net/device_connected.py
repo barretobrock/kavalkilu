@@ -19,7 +19,7 @@ resp = subprocess.call(['ping', '-c', '1', phone])
 
 if resp == 0:
     # Successfully pinged phone, check against db
-
+    pass
 
 
 

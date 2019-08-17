@@ -7,11 +7,11 @@ import pandas as pd
 
 
 # These are extracted from browser session info
-workspace = 'indeed'
-x_id = 'a4da27be-1565992906.265'
-version_ts = '1565986461'
-token = 'xoxs-2317524819-237672502194-724253147574-c316126966c6ce7a8afc9807e47d2b5d3c3824f3fd421da826a6a7dbf86c8402'
-cookie = 'b=.bcmeboaigwpkv8kp5fk31kvux; no_growl_banner=1; x=bcmeboaigwpkv8kp5fk31kvux.1565992855; d=4VLK58h8N47i20k%2FDKhhTODL0rQnA2GwRjFqK01zWExYdllQcWJqdEtUQ01GNlhEcVRqQUxHL1paaDBobkJmRU83WjNYdkJWSk51YU53ZGxKYW95NXFvSU41WVordlhxUWVLWUloMG00WElrNzZuMFBsOXRHblppSnpUNEE1OGEvWEVwelNLYlpjM05CUjVnK2NlUGQ1ODJ1TXVPbGxBNmRjYU5kSXc9SVupa8dduRX7A986og9UyA%3D%3D; d-s=1565992888; lc=1565992888'
+workspace = ''
+x_id = ''
+version_ts = ''
+token = ''
+cookie = ''
 
 base_url = 'https://{}.slack.com/api/emoji.adminList'.format(workspace)
 origin = base_url.split('/api')[0]
