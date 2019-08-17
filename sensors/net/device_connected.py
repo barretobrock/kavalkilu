@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
-import subprocess
 import pandas as pd
-from kavalkilu import Log, Hosts, MySQLLocal, SlackBot
+from kavalkilu import Log, MySQLLocal, SlackBot, NetTools
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('device_connected', log_lvl='DEBUG')
 log.debug('Logging initiated')
 
-conn = MySQLLocal('logdb').engine.connect()
-# Establish transaction
-trans = conn.begin()
+# conn = MySQLLocal('logdb').engine.connect()
+eng = MySQLLocal('logdb')
 
 device = 'an_barret'
-phone = Hosts().get_host(device)['ip']
+log.debug('Pinging device...')
 # Ping phone's ip and check response
-proc = subprocess.Popen(
-    ['ping', '-c', '2', phone],
-    stdout=subprocess.PIPE
-)
-stdout, stderr = proc.communicate()
+status = NetTools(host=device).ping()
 
 # pull last_ping for device from db here
 last_ping_query = """
@@ -34,14 +28,8 @@ FROM
 WHERE
     d.name = '{}'
 """.format(device)
-last_ping = pd.read_sql_query(last_ping_query, con=conn)
-# if last ping was greater than 5 mins, change status
-
-if proc.returncode == 0:
-    # Successfully pinged phone
-    status = 'CONNECTED'
-else:
-    status = 'DISCONNECTED'
+log.debug('Querying for last ping...')
+last_ping = pd.read_sql_query(last_ping_query, con=eng.connection)
 
 last_ping_status = last_ping['status'].values[0]
 if last_ping_status != status:
@@ -62,12 +50,7 @@ query = """
     WHERE
         name = '{}'
 """.format(status, device)
-try:
-    r = conn.execute(query)
-    trans.commit()
-except:
-    trans.rollback()
-
-conn.close()
+# Update values in table
+eng.write_sql(query)
 
 log.close()

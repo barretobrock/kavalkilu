@@ -9,13 +9,11 @@ from kavalkilu import AmcrestGroup, Keys, Log, Hosts
 log = Log('motion_toggle', log_lvl='DEBUG')
 log.debug('Logging initiated')
 
-h = Hosts()
-k = Keys()
-cred = k.get_key('webcam_api')
+cred = Keys().get_key('webcam_api')
 
 res_list = []
 # Check if mobile(s) are connected to LAN
-for ip in [i['ip'] for i in h.get_hosts('an_[bm]a.*')]:
+for ip in [i['ip'] for i in Hosts().get_hosts('an_[bm]a.*')]:
     resp = os.system('ping -c 1 {}'.format(ip))
     res_list.append(True if resp == 0 else False)
 

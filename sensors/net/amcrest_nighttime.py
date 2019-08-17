@@ -8,8 +8,7 @@ from kavalkilu import AmcrestGroup, Keys, Log
 log = Log('motion_toggle', log_lvl='DEBUG')
 log.debug('Logging initiated')
 
-k = Keys()
-cred = k.get_key('webcam_api')
+cred = Keys().get_key('webcam_api')
 
 # Instantiate all cameras
 agroup = AmcrestGroup(cred, log)

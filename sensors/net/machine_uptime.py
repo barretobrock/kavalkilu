@@ -87,7 +87,7 @@ for k, v in handler_dict.items():
 
 # Establish connection with database
 db = MySQLLocal('logdb')
-mysqlconn = db.engine.connect()
+mysqlconn = db.connection
 
 # Query the logdb and find the most recent log entry for this machine
 most_recent_query = """

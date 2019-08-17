@@ -3,17 +3,17 @@ import datetime
 from datetime import datetime as dtt
 import pandas as pd
 import numpy as np
-from kavalkilu.tools import Paths
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import Paths, MySQLLocal, Log
 
 
+# Initiate logging
+log = Log('speedtest_mysql', log_lvl='DEBUG')
+log.debug('Logging initiated')
 p = Paths()
 filepath = os.path.join(os.path.abspath(p.data_dir), 'speedtest_data.csv')
 
 # Connect to db
-conn = MySQLLocal('speedtestdb').engine.connect()
-# Establish transaction
-trans = conn.begin()
+eng = MySQLLocal('speedtestdb')
 
 # Read in our speedtest data
 speedtest_df = pd.read_csv(filepath)
@@ -40,20 +40,10 @@ for i in range(sliced.shape[0]):
         INSERT INTO speedtestdb.speedtest (`test_date`, `download`, `upload`)
         VALUES ('{timestamp}', {download}, {upload})
     """.format(**d)
-    try:
-        conn.execute(query)
-        trans.commit()
-    except:
-        trans.rollback()
-
-conn.close()
+    log.debug('Writing query to db.')
+    eng.write_sql(query)
 
 # Rewrite CSV file as being the last 10 entries
 speedtest_df = speedtest_df[['TIMESTAMP', 'DOWNLOAD', 'UPLOAD']].tail(10)
 speedtest_df.to_csv(filepath, index=False)
-
-
-
-
-
 
