@@ -24,10 +24,10 @@ PY3=/usr/bin/python3
 #*/10 07-20 * * 1-5  $PY3    $HOME/$SENSORS/commute/commute_calc.py
 */10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
 */10 04-22 * * *    $PY3    $HOME/$SENSORS/net/device_connected.py
-*/10 04-22 * * *    $PY3    $HOME/$SENSORS/net/amcrest_notify_zone.py
-5 23 * * *          $PY3    $HOME/$SENSORS/net/amcrest_nighttime.py
+*/10 04-22 * * *    $PY3    $HOME/$SENSORS/camera/amcrest_notify_zone.py
+5 23 * * *          $PY3    $HOME/$SENSORS/camera/amcrest_nighttime.py
 # SLACK STUFF
-#@reboot             $PY3    $HOME/$SENSORS/slackbot/kodubot_rtm.py # This has been daemonized
+@reboot             $PY3    $HOME/$SENSORS/slackbot/kodubot_rtm_daemon.py start
 15 6 * * *          $PY3    $HOME/$SENSORS/slackbot/slack_logger.py
 
 # Vpulse Automation

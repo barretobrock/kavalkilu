@@ -16,6 +16,7 @@ device = 'an_barret'
 log.debug('Pinging device...')
 # Ping phone's ip and check response
 status = NetTools(host=device).ping()
+log.debug('Ping result: {}'.format(status))
 
 # pull last_ping for device from db here
 last_ping_query = """
@@ -39,6 +40,7 @@ if last_ping_status != status:
         msg = 'Mehe ühik on koduvõrgust läinud :sadcowblob:'
     else:
         msg = '<@UM3E3G72S> Mehe ühik on taas koduvõrgus! :meow_party:'
+    log.debug("Sending message to Slack channel")
     sb = SlackBot().send_message('wifi-pinger-dinger', msg)
 
 query = """
@@ -51,6 +53,7 @@ query = """
         name = '{}'
 """.format(status, device)
 # Update values in table
+log.debug('Updating table.')
 eng.write_sql(query)
 
 log.close()
