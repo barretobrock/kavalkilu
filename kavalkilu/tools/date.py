@@ -30,3 +30,22 @@ class DateTools:
         """Calculates the number of seconds since midnight"""
         seconds = (timestamp - timestamp.replace(hour=0, minute=0, second=0)).total_seconds()
         return seconds
+
+    def human_readable(self, reldelta):
+        """Takes in a relative delta and makes it human readable"""
+        attrs = {
+            'years': 'y',
+            'months': 'm',
+            'days': 'd',
+            'hours': 'h',
+            'minutes': 'mins',
+            'seconds': 's'
+        }
+
+        result_list = []
+        for attr in attrs.keys():
+            attr_val = getattr(reldelta, attr)
+            if attr_val is not None:
+                if attr_val > 1:
+                    result_list.append('{:d}{}'.format(attr_val, attrs[attr]))
+        return ' '.join(result_list)

@@ -15,19 +15,52 @@ import os
 import re
 import time
 import socket
+import pandas as pd
+from dateutil.relativedelta import relativedelta as reldelta
+from random import randint
 from .camera import Amcrest
 from .light import HueBulb, hue_lights
 from .net import Hosts, Keys
+from .databases import MySQLLocal
+from .date import DateTools
 
 
 class SlackBot:
     """Handles messaging to and from Slack API"""
+
+    help_txt = """
+    I'm Viktor. Here's what I can do:
+    *Basic Commands:*
+        - `hello`
+        - `speak`
+        - `good bot`
+        - `fuck`
+        - `time`
+        - `access main ...`
+    *Useful commands:*
+        - `garage`: current snapshot of garage
+        - `garage door status`: whether or not the door is open
+        - `lights status`: status of all connected lights
+        - `lights turn on|off <light>`: turn on/off selected light
+        - `temps`: temperatures of all sensor stations
+        - `uptime`: printout of devices' current uptime
+    """
+
     commands = {
         'speak': 'woof',
         'good bot': 'thanks!',
         'hello': 'Hi <@{user}>!',
-        'fuck': 'Watch yo profanity! https://www.youtube.com/watch?v=hpigjnKl7nI'
+        'fuck': 'Watch yo profanity! https://www.youtube.com/watch?v=hpigjnKl7nI',
+        'time': 'The time is {:%F %T}'.format(dt.today())
     }
+
+    sarcastic_reponses = [
+        ''.join([':ah-ah-ah:'] * 50),
+        'Lol <@{user}>... here ya go bruv :pick:',
+        'Nah boo, we good.',
+        'Yeah, how about you go on ahead and, you know, do that yourself.'
+        ':bye_felicia:'
+    ]
 
     def __init__(self):
         slack = __import__('slackclient')
@@ -37,12 +70,12 @@ class SlackBot:
         self.user = slack.SlackClient(user_token)
         self.kodubot_id = None
         self.RTM_READ_DELAY = 1
-        self.MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
+        self.MENTION_REGEX = "^(<@(|[WU].+?)>|v!)(.*)"
 
     def run_rtm(self):
         """Initiate real-time messaging"""
         if self.client.rtm_connect(with_team_state=False):
-            print('Kodubot running!')
+            print('Viktor is running!')
             self.kodubot_id = self.client.api_call('auth.test')['user_id']
             while True:
                 try:
@@ -61,9 +94,13 @@ class SlackBot:
         """Parses user and other text from direct mention"""
         matches = re.search(self.MENTION_REGEX, message)
         if matches is not None:
-            # First group contains the user id mentioned, second
-            user_id = matches.group(1)
-            message_txt = matches.group(2).lower().strip()
+            if matches.group(1).lower() == 'v!':
+                # Addressed Viktor using shortened syntax
+                user_id = matches.group(1).lower()
+            else:
+                # Getting viktor's real user id
+                user_id = matches.group(2)
+            message_txt = matches.group(3).lower().strip()
             return user_id, message_txt
         return None, None
 
@@ -76,7 +113,7 @@ class SlackBot:
             if event['type'] == 'message' and "subtype" not in event:
                 user_id, message = self.parse_direct_mention(event['text'])
                 # message = event['text'].lower()
-                if user_id == self.kodubot_id:
+                if user_id in [self.kodubot_id, 'v!']:
                     return {
                         'user': event['user'],
                         'channel': event['channel'],
@@ -93,17 +130,32 @@ class SlackBot:
             response = self.commands[message]
         elif message == 'garage':
             if user not in approved_users:
-                response = 'Lol <@{user}>... here ya go bruv :garage_pic:'
+                response = self.sarcastic_reponses[randint(0, len(self.sarcastic_reponses) - 1)]
             else:
                 self.take_garage_pic(channel, user)
                 response = 'There ya go!'
         elif message == 'help':
-            response = 'Help is on the way, but until then, take a coffee!'
+            response = self.help_txt
+        elif message == 'uptime':
+            try:
+                response = self.get_uptime()
+            except Exception as e:
+                response = 'I tried, but I could not retrieve that info! \nError: {}'.format(e)
+        elif message == 'garage door status':
+            response = 'Coming soon!'
+        elif message == 'temps':
+            response = 'Coming soon!'
         elif message.startswith('lights'):
             # lights (status|turn (on|off) <light_name>)
-            response = self.light_actions(message)
+            if user not in approved_users:
+                response = self.sarcastic_reponses[randint(0, len(self.sarcastic_reponses) - 1)]
+            else:
+                response = self.light_actions(message)
+        elif 'access main' in message:
+            response = ''.join([':ah-ah-ah:'] * randint(5, 50))
         elif message != '':
-            response = "I didn't understand this: `{}`".format(message)
+            response = "I didn't understand this: `{}`\n " \
+                       "Use `v!help` to get a list of my commands.".format(message)
 
         if response is not None:
             resp_dict = {
@@ -235,6 +287,7 @@ class SlackBot:
                 for attempt in range(3):
                     try:
                         target_light = HueBulb(proper_light_name)
+                        break
                     except Exception as e:
                         time.sleep(1)
                 if target_light is None:
@@ -258,6 +311,35 @@ class SlackBot:
                 # Respond with error and list of all possible lights
                 response = '{} is an unrecognized light. Known lights: {}'.format(device, ', '.join(light_names))
             return response
+
+    def get_uptime(self):
+        """Gets device uptime for specific devices"""
+        eng = MySQLLocal('logdb')
+
+        uptime_query = """
+        SELECT
+            d.name
+            , d.status
+            , d.uptime_since
+        FROM
+            devices AS d
+        """
+        uptime = pd.read_sql_query(uptime_query, con=eng.connection)
+
+        today = pd.datetime.today()
+
+        for i, row in uptime.iterrows():
+            if not pd.isnull(row['uptime_since']):
+                datediff = reldelta(today, pd.to_datetime(row['uptime_since']))
+                datediff = DateTools().human_readable(datediff)
+            else:
+                datediff = 'unknown'
+            uptime.loc[i, 'uptime'] = datediff
+        uptime = uptime[['name', 'uptime']]
+        uptime['name'] = uptime['name'].apply(lambda x: '{:>10}'.format(x))
+        uptime['uptime'] = uptime['uptime'].apply(lambda x: '{:>20}'.format(x))
+        response = '*Device Uptime:*\n```{}```'.format(uptime.to_string(index=False))
+        return response
 
 
 class Email:

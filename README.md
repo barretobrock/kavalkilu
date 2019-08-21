@@ -44,11 +44,41 @@ sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
  - Wipe SD card
     `sudo dd if=/dev/zero of=/dev/mmcblk0 bs=8192 status=progress`
  - Load Raspberry Pi image
-    `sudo dd if=~/Documents/distros/2018-11-13-raspbian-stretch-lite.img of=/dev/mmcblk0 conv=fsync status=progress bs=4M`
+    `sudo dd if=~/Documents/distros/2019-07-10-raspbian-buster-lite.img of=/dev/mmcblk0 conv=fsync status=progress bs=4M`
+
+#### Configurations from SD card
+ - card in `/media/${USER}`
+ - add `/boot/wpa_supplicant.conf`:
+    - setup:
+    ```
+    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    update_config=1
+    country=US
+    
+    network={
+        ssid=""
+        psk=""
+        key_mgmt=WPA-PSK
+    }
+    ```
+ - add `/boot/ssh`
+     - empty file
+     
+#### Saving configs
+ - Save a compressed img from the SD card for easier distribution among all RasPis
+    `sudo dd if=/dev/mmcblk0 bs=32M status=progress | gzip -c > ~/Documents/distros/2019-08-18-raspi-with-config.img.gz`
+ - When duplicating to another card, use this:
+    `gzip -cd < ~/Documents/distros/2019-08-18-raspi-with-config.img.gz | sudo dd of=/dev/mmcblk0 bs=32M status=progress`
+ 
+
 
 ### Initial run
  - Make configurations (change pw, hostname, locale, enable SSH, etc)
     `sudo raspi-config`
+    - change pw
+    - set hostname
+    - set network
+    - enable ssh
  - Edit .bashrc to enforce locale changes
     ```bash
     sudo nano .bashrc
@@ -57,7 +87,45 @@ sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     export LANGUAGE=en_US.UTF-8
     ```
 
-### Environment Setup
+### Environment Setup Option 1: Docker
+
+#### Docker Install
+ - install some dependencies
+    ```bash
+    sudo apt get update
+    sudo apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    ```
+ - get Docker signing key for packages
+    `curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | sudo apt-key add -`
+ - add official Docker repo
+    ```bash
+    echo "deb [arch=armhf] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+     $(lsb_release -cs) stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list
+    ```
+ - install docker
+    ```bash
+    sudo apt update
+    sudo apt install -y --no-install-recommends docker-ce cgroupfs-mount
+    ```
+ - enable docker on boot
+    ```bash
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    ```
+ - pull and run docker test image
+    ```bash
+    sudo docker run --rm arm32v7/hello-world
+    ```
+ - log in to account
+    ```bash
+    # Add current user to docker perms group to be able to login successfully
+    sudo usermod -a -G docker ${USER}
+    # Now we can login
+    docker login
+    ```
+
+### Environment Setup Option 2: The Old & Busted Option
     __Note: 
         This is to prepare a Raspberry Pi device for installation of this package. 
         This is mildly different from a requirements.txt file.__ 
