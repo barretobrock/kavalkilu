@@ -6,8 +6,7 @@
 LEVEL=${1:-"patch"}  # Can be major, minor, patch
 
 KAVDIR=${HOME}/projects/kavalkilu
-INIT_FPATH=${KAVDIR}/kavalkilu/__init__.py
-INC_VERS_FPATH=${KAVDIR}/incremenet_version.py
+INC_VERS_FPATH=${KAVDIR}/increment_version.py
 
 # Kick off setup.py
 VERSION=$(python3 ${INC_VERS_FPATH} "--${LEVEL}")
