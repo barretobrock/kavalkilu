@@ -67,3 +67,5 @@ if ver_chg is not None:
     write_x('version', ver_chg)
     print('Updating update_date: {:%F}'.format(datetime.today()))
     write_x('update_date', datetime.today().strftime('%F'))
+
+print(ver_chg)

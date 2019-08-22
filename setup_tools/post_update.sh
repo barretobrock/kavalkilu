@@ -5,24 +5,12 @@
 
 LEVEL=${1:-"patch"}  # Can be major, minor, patch
 
-CURDIR="$(pwd)"
-cd ${HOME}
-if [[ -d "projects" ]]
-then
-    KAVDIR=${HOME}/projects/kavalkilu
-else
-    KAVDIR=${HOME}/kavalkilu
-fi
-cd ${KAVDIR}
+KAVDIR=${HOME}/projects/kavalkilu
 
 # Kick off setup.py
-python3 increment_version.py "--$LEVEL"
-
-# Next, find the current branch name
-BRANCH="$(git symbolic-ref HEAD 2>/dev/null)" || BRANCH="(unnamed branch)"     # detached HEAD
-BRANCH=${BRANCH##refs/heads/}
+VERSION=$(python3 ${KAVDIR}/increment_version.py "--${LEVEL}")
 
 # commit and ready for push
 git add ${KAVDIR}/__init__.py
-git commit -m "Auto increment version"
-git push origin ${BRANCH}
+git tag -a v${VERSION} -m "Auto increment to v${VERSION}"
+git push origin : v${VERSION}
