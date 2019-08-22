@@ -12,6 +12,6 @@ INC_VERS_FPATH=${KAVDIR}/increment_version.py
 VERSION=$(python3 ${INC_VERS_FPATH} "--${LEVEL}")
 
 # commit and ready for push
-git add ${KAVDIR}/__init__.py
-git tag -a v${VERSION} -m "Auto increment to v${VERSION}"
+git add "${KAVDIR}/kavalkilu/__init__.py"
+git tag -a "v${VERSION}" -m "Auto increment to v${VERSION}"
 git push origin : v${VERSION}

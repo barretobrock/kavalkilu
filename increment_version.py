@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 
 here_dir = os.path.abspath(os.path.dirname(__file__))
-init_fp = os.path.join(here_dir, *['kavalkilu', 'kavalkilu', '__init__.py'])
+init_fp = os.path.join(here_dir, *['kavalkilu', '__init__.py'])
 
 
 def find_x(x='version', init_filepath=init_fp, return_str=True):
