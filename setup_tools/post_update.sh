@@ -6,9 +6,11 @@
 LEVEL=${1:-"patch"}  # Can be major, minor, patch
 
 KAVDIR=${HOME}/projects/kavalkilu
+INIT_FPATH=${KAVDIR}/kavalkilu/__init__.py
+INC_VERS_FPATH=${KAVDIR}/incremenet_version.py
 
 # Kick off setup.py
-VERSION=$(python3 ${KAVDIR}/increment_version.py "--${LEVEL}")
+VERSION=$(python3 ${INC_VERS_FPATH} "--${LEVEL}")
 
 # commit and ready for push
 git add ${KAVDIR}/__init__.py
