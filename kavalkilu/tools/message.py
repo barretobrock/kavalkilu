@@ -51,7 +51,6 @@ class SlackBot:
         'good bot': 'thanks!',
         'hello': 'Hi <@{user}>!',
         'fuck': 'Watch yo profanity! https://www.youtube.com/watch?v=hpigjnKl7nI',
-        'time': 'The time is {:%F %T}'.format(dt.today())
     }
 
     sarcastic_reponses = [
@@ -136,6 +135,8 @@ class SlackBot:
                 response = 'There ya go!'
         elif message == 'help':
             response = self.help_txt
+        elif message == 'time':
+            response = 'The time is {:%F %T}'.format(dt.today())
         elif message == 'uptime':
             try:
                 response = self.get_uptime()
@@ -341,6 +342,27 @@ class SlackBot:
         response = '*Device Uptime:*\n```{}```'.format(uptime.to_string(index=False))
         return response
 
+    def get_temps(self):
+        """Gets device temperatures"""
+        eng = MySQLLocal('homeautodb')
+
+        temp_query = """
+        WITH ranked_temps AS (
+            SELECT
+                l.location AS loc
+                , t.record_date AS ts
+                , t.record_value AS temp_c
+            FROM
+                temps AS t
+            JOIN
+                locations AS l ON l.id = t.loc_id
+            WHERE
+                l.location != 'test'
+        )
+        SELECT * FROM ranked_temps WHERE rn = 1
+        """
+
+        temps = pd.read_sql_query(temp_query, eng.connection)
 
 class Email:
     """

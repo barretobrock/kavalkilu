@@ -35,7 +35,7 @@ from .tools import Relay
 # selenium.py
 from .tools import ChromeDriver, PhantomDriver, BrowserAction
 # sensors.py
-from .tools import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor
+from .tools import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, SensorLogger, DarkSkyWeatherSensor
 # serial.py
 # from .tools import
 # system.py

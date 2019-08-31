@@ -11,18 +11,20 @@ from datetime import datetime as dt
 
 
 class Log:
-    """
-    Initiates an object to log processes from error-level to debug-level
-    Args from __init__:
-        log_name: str, display name of the log. Will have the time (H:M) added to the end to denote instances)
-        log_filename_prefix: str, filename prefix (ex. 'npslog')
-            default: log_name
-        log_dir: str, directory to save the log
-            default: "~/logs"
-        log_lvl: str, minimum logging level to write to log (Hierarchy: DEBUG -> INFO -> WARN -> ERROR)
-            default: 'INFO'
-    """
+    """Initiates a logging object to record processes and errors"""
+
     def __init__(self, log_name, log_filename_prefix=None, log_dir=None, log_lvl='INFO'):
+        """
+        Args:
+            log_name: str, display name of the log. Will have the time (H:M) added to the end
+                to denote separate instances)
+            log_filename_prefix: str, filename prefix (ex. 'npslog')
+                default: log_name
+            log_dir: str, directory to save the log
+                default: "~/logs"
+            log_lvl: str, minimum logging level to write to log (Hierarchy: DEBUG -> INFO -> WARN -> ERROR)
+                default: 'INFO'
+        """
         # Name of log in logfile
         self.log_name = '{}_{:%H%M}'.format(log_name, dt.now())
         if log_filename_prefix is None:
@@ -34,11 +36,8 @@ class Log:
             log_dir = os.path.join(os.path.expanduser('~'), *['logs', log_filename_prefix])
         # Check if logging directory exists
         if not os.path.exists(log_dir):
-            # If doesn't exist, create
-            try:
-                os.makedirs(log_dir)
-            except:
-                pass
+            # If dir doesn't exist, create
+            os.makedirs(log_dir)
 
         # Path of logfile
         self.log_path = os.path.join(log_dir, self.log_filename)
@@ -48,21 +47,21 @@ class Log:
         self.logger_lvl = getattr(logging, log_lvl.upper(), logging.DEBUG)
         # Set minimum logging level
         self.logger.setLevel(self.logger_lvl)
-        # create file handler for log
+        # Create file handler for log
         # TimedRotating will delete logs older than 30 days
         fh = TimedRotatingFileHandler(self.log_path, when='d', interval=1, backupCount=30)
-        # fh = logging.FileHandler(self.log_path)
         fh.setLevel(self.logger_lvl)
-        # create streamhandler for log
+        # Create streamhandler for log (this sends streams to stdout/stderr for debug help)
         sh = logging.StreamHandler()
         sh.setLevel(self.logger_lvl)
-        # set format of logs
+        # Set format of logs
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s %(message)s')
         fh.setFormatter(formatter)
         sh.setFormatter(formatter)
-        # add handlers to log
+        # Add handlers to log
         self.logger.addHandler(sh)
         self.logger.addHandler(fh)
+        # Intercept exceptions
         sys.excepthook = self.handle_exception
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):

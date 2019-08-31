@@ -13,5 +13,5 @@ from .openhab import OpenHab
 from .path import Paths
 from .relay import Relay
 from .selenium import ChromeDriver, PhantomDriver, BrowserAction
-from .sensors import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor
+from .sensors import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, SensorLogger, DarkSkyWeatherSensor
 from .weather import DarkSkyWeather
