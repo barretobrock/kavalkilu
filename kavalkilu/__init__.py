@@ -3,7 +3,7 @@
 """
 Kavalkilu: A Library for Integrating Home Automation Components
 """
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __update_date__ = '2019-08-21'
 
 # camera.py
