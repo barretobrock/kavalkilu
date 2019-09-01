@@ -1,73 +1,45 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import os
 import requests
-import re
 import time
-from slackclient import SlackClient
+from image_slicer import slice
 
 
-# These are extracted from browser session info
-# Must start with 'xoxs..'
-okrtoken = ''
-indeedtoken = ''
+img_dir = os.path.abspath('/home/bobrock/Downloads')
+img_path = os.path.join(img_dir, 'big-ayy-lmao.png')
+
+resp = slice(img_path, 100)
+
+# Make a list of the things
+out_str = ''
+cur_lvl = ''
+prev_lvl = ''
+stage_emojis = {}
+for i in resp:
+    name = i.basename
+    fpath = i.filename
+    stage_emojis[name] = fpath
+    n_split = name.split('_')
+    cur_lvl = n_split[1]
+    if cur_lvl != prev_lvl:
+        out_str += '\n'
+        prev_lvl = n_split[1]
+
+    out_str += ':{}:'.format(name)
+
+print(out_str)
+
+
+okrtoken = 'xoxs-715346323429-717187482855-718146882215-b8f6a4f62840dcc1f613811c38f67900b964c8d56608c28b1a87060bcf924a5e'
 
 # For uploading
-team_name = ''
-cookie = ''
-
-UPLOAD_WAIT_TIME_S = 2
-
-URL_CUSTOMIZE = "https://{team_name}.slack.com/customize/emoji"
-URL_ADD = "https://{team_name}.slack.com/api/emoji.add"
-URL_LIST = "https://{team_name}.slack.com/api/emoji.adminList"
-
-indeedsb = SlackClient(token=indeedtoken)
-okr_sb = SlackClient(token=okrtoken)
-emoji = indeedsb.api_call('emoji.list')['emoji']
-
-# Set download path
-dl_path = os.path.join(os.path.abspath('/home/bobrock/'), *['Downloads', 'mojis'])
-
-
-def match_specific(emoji_dict, match_list):
-    """Matches specific emojis"""
-    matches = {}
-    for k, v in emoji_dict.items():
-        if k in match_list:
-            matches[k] = v
-    return matches
-
-
-def regex_match(emoji_dict, regex_str):
-    """Matches specific emojis"""
-    pattern = re.compile(regex_str, re.IGNORECASE)
-    matches = {}
-    for k, v in emoji_dict.items():
-        if pattern.match(k) is not None:
-            matches[k] = v
-    return matches
-
-
-def download_emojis(dict_of_emojis, dl_dir):
-    """Downloads a list of emojis"""
-    for k, v in dict_of_emojis.items():
-        if v[:4] == 'data':
-            data = v
-        elif v[:4] == 'http':
-            r = requests.get(v)
-            data = r.content
-        else:
-            continue
-        # Write pic to file
-        fname = '{}{}'.format(k, os.path.splitext(v)[1])
-        fpath = os.path.join(dl_dir, fname)
-        write = 'wb' if isinstance(data, bytes) else 'w'
-        with open(fpath, write) as f:
-            f.write(data)
+team_name = 'orbitalkettlerelay'
+cookie = 'b=.2mjtb2a6kx2es3no90xjlutgh; _gcl_au=1.1.435971241.1561731335; _ga=GA1.2.1881585486.1561731335; __qca=P0-1377460889-1562356942679; optimizelyEndUserId=oeu1564422471236r0.8809903213978905; utm=%7B%22utm_source%22%3A%22in-prod%22%2C%22utm_medium%22%3A%22inprod-customize_link-slack_me%22%7D; _gid=GA1.2.1564284536.1566330414; x=2mjtb2a6kx2es3no90xjlutgh.1566476978; d=ic%2BrDosJBhmWTCMgC7VErj1pGdgkMUjFUDlkQlZ0YTh5L1hmVldhV0YvTkI4UHV2QlpVUGw3Ry8wTXptME56SEZoU2dteUh5cEJjN09ac1NRaCtSNmxCMDVaMGhOUUlVMWZnY3Zzd0ZLK0RIMmFNNjU4T1RvUENpU256OUIvQXhhd3RCM3lpTEdmcTBHNnhPVElrVElEbDlIRytqSWRITVZUeUlCLzE5WXc9PdGm62OCrX%2Bxoz%2Bec2gwcO8%3D; d-s=1566477780; lc=1566477780'
 
 
 def _session():
+    URL_CUSTOMIZE = "https://{team_name}.slack.com/customize/emoji"
+    URL_ADD = "https://{team_name}.slack.com/api/emoji.add"
+    URL_LIST = "https://{team_name}.slack.com/api/emoji.adminList"
     assert cookie, "Cookie required"
     assert team_name, "Team name required"
     session = requests.session()
@@ -96,53 +68,18 @@ def upload_emoji(session, emoji_name, filename):
     return response_json['ok']
 
 
-# Make list of exact matches
-exact_emojis = ['trivial', 'minor', 'major', 'blocker']
-# list of fuzzy matches
-fuzzy = '.*(yeet|oink|horror|panic|snap|thumb|uwu|homer|drool|eye|rofl|lmao|intense|guy|man|sad|rage|cry|stonk|hyper|party|emoji|ic[ek]|blank|burn).*'
-
-collected = match_specific(emoji, exact_emojis)
-collected.update(regex_match(emoji, fuzzy))
-
-# Check collected emojis against what we already have in OKR
-okr_emojis = okr_sb.api_call('emoji.list')['emoji']
-missing_emojis = {k: v for k, v in collected.items() if k not in okr_emojis.keys()}
-
-download_emojis(missing_emojis, dl_path)
-
 # Upload process here
 session = _session()
 successfully_uploaded = []
-for k, v in missing_emojis.items():
+for k, v in stage_emojis.items():
     if k in successfully_uploaded or 'alias' in v:
         continue
     fname = '{}{}'.format(k, os.path.splitext(v)[1])
-    fpath = os.path.join(dl_path, fname)
+    fpath = os.path.join(img_dir, fname)
     successful = upload_emoji(session, k, fpath)
     if successful:
         # pop out of dict
         successfully_uploaded.append(k)
     # Wait
-    print(':{}: successful - {:.2%} done'.format(k, len(successfully_uploaded) / len(missing_emojis)))
+    print(':{}: successful - {:.2%} done'.format(k, len(successfully_uploaded) / len(stage_emojis)))
     time.sleep(5)
-
-# Report the emojis captured to the channel
-# 30 emojis per line, 5 lines per post
-out_str = '\n'
-cnt = 0
-for item in successfully_uploaded:
-    out_str += ':{}:'.format(item)
-    cnt += 1
-    if cnt % 30 == 0:
-        out_str += '\n'
-    if cnt == 150:
-        okr_sb.api_call(
-            'chat.postMessage',
-            channel='emoji_suggestions',
-            text=out_str
-        )
-        out_str = '\n'
-        cnt = 0
-
-
-
