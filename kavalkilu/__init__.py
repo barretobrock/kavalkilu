@@ -21,7 +21,7 @@ from .tools import HueBulb, LED, hue_lights
 # log.py
 from .tools import Log
 # message.py
-from .tools import PBullet, Email, INET, SlackBot
+from .tools import PBullet, Email
 # net.py
 from .tools import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
 # openhab.py
@@ -38,8 +38,10 @@ from .tools import ChromeDriver, PhantomDriver, BrowserAction
 from .tools import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, SensorLogger, DarkSkyWeatherSensor
 # serial.py
 # from .tools import
+# slack.py
+from .tools import SlackBot
 # system.py
-# from .tools import
+from .tools import SysTools
 # text.py
 # from .tools import
 # weather.py

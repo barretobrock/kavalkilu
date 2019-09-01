@@ -7,11 +7,13 @@ from .domoticz import Domoticz
 from .gpio import GPIO
 from .light import HueBulb, LED, hue_lights
 from .log import Log
-from .message import PBullet, Email, INET, SlackBot
+from .message import PBullet, Email
 from .net import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
 from .openhab import OpenHab
 from .path import Paths
 from .relay import Relay
 from .selenium import ChromeDriver, PhantomDriver, BrowserAction
 from .sensors import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, SensorLogger, DarkSkyWeatherSensor
+from .slack import SlackBot
+from .system import SysTools
 from .weather import DarkSkyWeather
