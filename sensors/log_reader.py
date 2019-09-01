@@ -5,7 +5,7 @@ import os
 import re
 import socket
 import pandas as pd
-from kavalkilu import Paths, Log, MySQLLocal
+from kavalkilu import Paths, Log, MySQLLocal, NetTools, Hosts
 
 
 # Initiate logging (META!)
@@ -66,16 +66,16 @@ def read_log_file(log_path, log_dict, most_recent_ts):
 
 p = Paths()
 log_dir = p.log_dir
-machine_name = socket.gethostname()
+machine_name = Hosts().get_host(ip=NetTools().ip)['name']
 
 handler_dict = {
     'py_log': {
         'type': 'py',
-        'regex': '^\d+\-\d+\-\d+\s\d+\:\d+\:\d+\,\d+\s\-\s.*'
+        'regex': r'^\d+\-\d+\-\d+\s\d+\:\d+\:\d+\,\d+\s\-\s.*'
     },
     'sh_log': {
         'type': 'sh',
-        'regex': '^\d+\-\d+\-\d+\s\d+\:\d+\:\d+\s\-\s.*'
+        'regex': r'^\d+\-\d+\-\d+\s\d+\:\d+\:\d+\s\-\s.*'
     }
 }
 

@@ -57,7 +57,7 @@ if not result_df.empty:
         channel = log_dict['channel']
         if not df.empty:
             # Send the info to Slack
-            msg = """*Last 24 hours in {}*:\n\n```{}````""".format(channel, df.to_string(index=False))
+            msg = """*Last 24 hours in {}*:\n\n```{}````""".format(channel, sb.df_to_slack_table(df))
         else:
             msg = 'No {} logs for this round.'.format(log_type)
         sb.send_message(channel, msg)
