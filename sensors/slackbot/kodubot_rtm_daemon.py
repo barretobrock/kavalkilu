@@ -17,6 +17,7 @@ if __name__ == "__main__":
         if 'start' == sys.argv[1]:
             daemon.start()
         elif 'stop' == sys.argv[1]:
+            s.send_message('notifications', 'Shutting down for now! :sleepyparrot:')
             daemon.exit()
         else:
             print("Unknown command")
