@@ -171,6 +171,8 @@ class SlackBot:
             response = self.get_garage_status()
         elif message == 'temps':
             response = self.get_temps()
+        elif message == 'channel stats':
+            response = self.get_channel_stats(channel)
         elif message.startswith('lights'):
             # lights (status|turn (on|off) <light_name>)
             if user not in approved_users:
