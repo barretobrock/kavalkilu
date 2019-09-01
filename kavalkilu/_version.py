@@ -40,7 +40,7 @@ def get_config():
     # _version.py
     cfg = VersioneerConfig()
     cfg.VCS = "git"
-    cfg.style = "'pep440'"
+    cfg.style = "pep44"
     cfg.tag_prefix = ""
     cfg.parentdir_prefix = "None"
     cfg.versionfile_source = "kavalkilu/_version.py"
@@ -472,10 +472,6 @@ def render(pieces, style):
     return {"version": rendered, "full-revisionid": pieces["long"],
             "dirty": pieces["dirty"], "error": None,
             "date": pieces.get("date")}
-
-
-def get_update_date():
-    """Custom addition that changes the date the file was updated"""
 
 
 def get_versions():
