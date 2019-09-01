@@ -2,6 +2,7 @@
 import requests
 import subprocess
 import re
+import socket
 
 
 class HostsRetrievalException(Exception):
@@ -130,3 +131,11 @@ class NetTools:
         else:
             # Unsuccessfully pinged
             return 'DISCONNECTED'
+
+    def get_ip(self):
+        # Elaborate machine name from ip
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(('8.8.8.8', 80))
+        ip_addr = sock.getsockname()[0]
+        sock.close()
+        return ip_addr

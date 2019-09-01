@@ -35,10 +35,10 @@ class DateTools:
         """Takes in a relative delta and makes it human readable"""
         attrs = {
             'years': 'y',
-            'months': 'm',
+            'months': 'mo',
             'days': 'd',
             'hours': 'h',
-            'minutes': 'mins',
+            'minutes': 'm',
             'seconds': 's'
         }
 

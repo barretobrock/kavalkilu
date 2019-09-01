@@ -34,9 +34,12 @@ class SlackBot:
         - `hello`
         - `speak`
         - `good bot`
-        - `fuck`
         - `time`
-        - `access main ...`
+        - `look (left|right|up|down)`
+        - `oof`
+        - `wink wink`
+        - `bruh`
+        - `access <literally-anything-else>`
     *Useful commands:*
         - `garage`: current snapshot of garage
         - `garage door status`: whether or not the door is open
@@ -44,17 +47,17 @@ class SlackBot:
         - `lights turn on|off <light>`: turn on/off selected light
         - `temps`: temperatures of all sensor stations
         - `uptime`: printout of devices' current uptime
+        - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
     """
 
     commands = {
         'speak': 'woof',
         'good bot': 'thanks!',
         'hello': 'Hi <@{user}>!',
-        'fuck': 'Watch yo profanity! https://www.youtube.com/watch?v=hpigjnKl7nI',
     }
 
     sarcastic_reponses = [
-        ''.join([':ah-ah-ah:'] * 50),
+        ''.join([':ah-ah-ah:'] * randint(0, 50)),
         'Lol <@{user}>... here ya go bruv :pick:',
         'Nah boo, we good.',
         'Yeah, how about you go on ahead and, you know, do that yourself.'
@@ -135,6 +138,27 @@ class SlackBot:
                 response = 'There ya go!'
         elif message == 'help':
             response = self.help_txt
+        elif message == 'look left':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-left.jpg'])
+            self.upload_file(channel, fpath, 'whatamilookingfor.png')
+        elif message == 'look right':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-right.jpg'])
+            self.upload_file(channel, fpath, 'whatamilookingfor.png')
+        elif message == 'look up':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-up.jpg'])
+            self.upload_file(channel, fpath, 'whatamilookingfor.png')
+        elif message == 'look down':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-down.jpg'])
+            self.upload_file(channel, fpath, 'whatamilookingfor.png')
+        elif message == 'oof':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'oof.jpg'])
+            self.upload_file(channel, fpath, 'oof')
+        elif message == 'wink wink':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'wink.jpg'])
+            self.upload_file(channel, fpath, ':smirk:')
+        elif message == 'bruh':
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'shock.jpg'])
+            self.upload_file(channel, fpath, 'omg')
         elif message == 'time':
             response = 'The time is {:%F %T}'.format(dt.today())
         elif message == 'uptime':
@@ -143,16 +167,16 @@ class SlackBot:
             except Exception as e:
                 response = 'I tried, but I could not retrieve that info! \nError: {}'.format(e)
         elif message == 'garage door status':
-            response = 'Coming soon!'
+            response = self.get_garage_status()
         elif message == 'temps':
-            response = 'Coming soon!'
+            response = self.get_temps()
         elif message.startswith('lights'):
             # lights (status|turn (on|off) <light_name>)
             if user not in approved_users:
                 response = self.sarcastic_reponses[randint(0, len(self.sarcastic_reponses) - 1)]
             else:
                 response = self.light_actions(message)
-        elif 'access main' in message:
+        elif message.startswith('access'):
             response = ''.join([':ah-ah-ah:'] * randint(5, 50))
         elif message != '':
             response = "I didn't understand this: `{}`\n " \
@@ -229,6 +253,49 @@ class SlackBot:
             filename=filename,
             file=open(filepath, 'rb')
         )
+
+    def get_channel_stats(self, channel):
+        """Collects posting stats for a given channel"""
+        resp = self.user.api_call(
+            'channels.history',
+            channel=channel,
+            count=1000
+        )
+
+        if resp['ok']:
+            results = {}
+
+            msgs = resp['messages']
+            for msg in msgs:
+                try:
+                    user = msg['user']
+                except KeyError:
+                    user = msg['bot_id']
+                txt_len = len(msg['text'])
+                if user in results.keys():
+                    results[user]['msgs'].append(txt_len)
+                else:
+                    # Apply new dict for new user
+                    results[user] = {'msgs': [txt_len]}
+        else:
+            return "Oops - there was an error in the API call for this :shrugman:"
+
+        # Process messages
+        for k, v in results.items():
+            results[k] = {
+                'total_messages': len(v['msgs']),
+                'avg_msg_len': sum(v['msgs']) / len(v['msgs'])
+            }
+
+        res_df = pd.DataFrame(results).transpose()
+
+        res_df = res_df.reset_index()
+        res_df = res_df.rename(columns={'index': 'user'})
+        res_df['user'] = res_df['user'].apply(lambda x: '<@{}>'.format(x))
+        res_df['total_messages'] = res_df['total_messages'].astype(int)
+        res_df['avg_msg_len'] = res_df['avg_msg_len'].round(1)
+        response = '*Stats for this channel:*\n```{}```'.format(res_df.to_string(index=False))
+        return response
 
     def take_garage_pic(self, channel, user):
         """Takes snapshot of garage, sends to Slack channel"""
@@ -347,22 +414,64 @@ class SlackBot:
         eng = MySQLLocal('homeautodb')
 
         temp_query = """
-        WITH ranked_temps AS (
             SELECT
-                l.location AS loc
-                , t.record_date AS ts
-                , t.record_value AS temp_c
-            FROM
-                temps AS t
-            JOIN
-                locations AS l ON l.id = t.loc_id
+                l.location
+                , temps.record_value AS value
+                , temps.record_date
+            FROM (
+                SELECT
+                    loc_id
+                    , MAX(record_date) AS most_recent
+                FROM
+                    homeautodb.temps AS t
+                GROUP BY
+                    loc_id
+                ) AS latest_reads
+            INNER JOIN
+              homeautodb.temps
+            ON
+              temps.loc_id = latest_reads.loc_id AND
+              temps.record_date = latest_reads.most_recent
+            LEFT JOIN homeautodb.locations AS l ON temps.loc_id = l.id
             WHERE
                 l.location != 'test'
-        )
-        SELECT * FROM ranked_temps WHERE rn = 1
         """
-
         temps = pd.read_sql_query(temp_query, eng.connection)
+
+        today = pd.datetime.today()
+        for i, row in temps.iterrows():
+            if not pd.isnull(row['record_date']):
+                datediff = reldelta(today, pd.to_datetime(row['record_date']))
+                datediff = DateTools().human_readable(datediff)
+            else:
+                datediff = 'unknown'
+            temps.loc[i, 'ago'] = datediff
+
+        temps = temps[['location', 'value', 'ago']]
+        response = '*Most Recent Temperature Readings:*\n```{}```'.format(temps.to_string(index=False))
+        return response
+
+    def get_garage_status(self):
+        """Gets device uptime for specific devices"""
+        eng = MySQLLocal('homeautodb')
+
+        garage_status_query = """
+            SELECT
+                d.name
+                , d.status
+                , d.status_chg_date
+                , d.update_date
+            FROM
+                doors AS d
+            WHERE
+                name = 'garage'
+        """
+        garage_status = pd.read_sql_query(garage_status_query, con=eng.connection)
+        status_dict = {k: v[0] for k, v in garage_status.to_dict().items()}
+        response = "*Current Status*: `{status}`\n *Changed at*:" \
+                   " `{status_chg_date:%F %T}`\n *Updated*: `{update_date:%F %T}`".format(**status_dict)
+        return response
+
 
 class Email:
     """
