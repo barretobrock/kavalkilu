@@ -260,7 +260,7 @@ class SensorLogger:
 
     def _read_query(self, query):
         """Gathers results for the given query"""
-        res = pd.read_sql_query(query)
+        res = pd.read_sql_query(query, self.db_eng.connection)
         return res
 
 
