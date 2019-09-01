@@ -3,7 +3,6 @@
 """
 Kavalkilu: A Library for Integrating Home Automation Components
 """
-__version__ = '0.6.0'
 __update_date__ = '2019-08-21'
 
 # camera.py
@@ -46,3 +45,7 @@ from .tools import SysTools
 # from .tools import
 # weather.py
 from .tools import DarkSkyWeather
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
