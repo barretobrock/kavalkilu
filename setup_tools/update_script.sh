@@ -11,6 +11,7 @@ then
 fi
 
 echo "Pulling update from git repo"
+# TODO see if I can check if master is up to date before issuing command. If it is, don't pull
 (cd ${KAVDIR} && git pull origin master)
 
 # Then update the python package locally
@@ -19,4 +20,4 @@ echo "Beginning update of python package"
 # TODO check if installed, then upgrade if so
 sudo pip3 install --editable git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade
 
-echo "Process completed"
+printf "===============\nProcess completed\n"
