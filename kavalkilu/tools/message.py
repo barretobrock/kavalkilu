@@ -79,6 +79,7 @@ class SlackBot:
         if self.client.rtm_connect(with_team_state=False):
             print('Viktor is running!')
             self.kodubot_id = self.client.api_call('auth.test')['user_id']
+            self.send_message('test', 'Rebooted and ready to party! :tada:')
             while True:
                 try:
                     msg_packet = self.parse_bot_commands(self.client.rtm_read())
