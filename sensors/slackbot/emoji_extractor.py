@@ -29,11 +29,11 @@ for i in resp:
 print(out_str)
 
 
-okrtoken = 'xoxs-715346323429-717187482855-718146882215-b8f6a4f62840dcc1f613811c38f67900b964c8d56608c28b1a87060bcf924a5e'
+okrtoken = ''
 
 # For uploading
-team_name = 'orbitalkettlerelay'
-cookie = 'b=.2mjtb2a6kx2es3no90xjlutgh; _gcl_au=1.1.435971241.1561731335; _ga=GA1.2.1881585486.1561731335; __qca=P0-1377460889-1562356942679; optimizelyEndUserId=oeu1564422471236r0.8809903213978905; utm=%7B%22utm_source%22%3A%22in-prod%22%2C%22utm_medium%22%3A%22inprod-customize_link-slack_me%22%7D; _gid=GA1.2.1564284536.1566330414; x=2mjtb2a6kx2es3no90xjlutgh.1566476978; d=ic%2BrDosJBhmWTCMgC7VErj1pGdgkMUjFUDlkQlZ0YTh5L1hmVldhV0YvTkI4UHV2QlpVUGw3Ry8wTXptME56SEZoU2dteUh5cEJjN09ac1NRaCtSNmxCMDVaMGhOUUlVMWZnY3Zzd0ZLK0RIMmFNNjU4T1RvUENpU256OUIvQXhhd3RCM3lpTEdmcTBHNnhPVElrVElEbDlIRytqSWRITVZUeUlCLzE5WXc9PdGm62OCrX%2Bxoz%2Bec2gwcO8%3D; d-s=1566477780; lc=1566477780'
+team_name = ''
+cookie = ''
 
 
 def _session():
