@@ -113,8 +113,7 @@ class NetTools:
         elif ip is not None:
             self.ip = ip
         else:
-            # One of these have to be used
-            raise ValueError('You must enter a hostname or ip address.')
+            self.ip = self.get_ip()
 
     def ping(self, n_times=2):
         """Pings an IP up to n times"""

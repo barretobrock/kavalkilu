@@ -12,7 +12,7 @@ from kavalkilu import Log, MySQLLocal, Hosts, DateTools, SlackBot, NetTools
 log = Log('machine_uptime', log_lvl='INFO')
 log.debug('Logging initiated.')
 
-ip_addr = NetTools().get_ip()
+ip_addr = NetTools().ip
 machine_name = Hosts().get_host(ip=ip_addr)['name']
 
 dt = DateTools()
