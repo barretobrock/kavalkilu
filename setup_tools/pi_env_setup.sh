@@ -12,7 +12,7 @@ sudo apt-get install git git-core python3-pip python3-dev python3-pandas python3
     python3-serial wiringpi
 # Install package dependencies
 sudo pip3 install Adafruit_DHT sqlalchemy selenium phue amcrest slackclient==1.3.1 picamera pushbullet.py roku \
-    paramiko beautifulsoup4 psutil
+    paramiko beautifulsoup4 psutil tabulate
 
 # Clone kavalkilu to home dir
 git clone https://github.com/barretobrock/kavalkilu.git
