@@ -182,7 +182,7 @@ class SensorLogger:
                 result_dict.update(self.sensor.measure())
         elif self.sensor.sensor_model == 'DARKSKY':
             # Read in current readings
-            cur_df = self.sensor.current_summary()
+            cur_df = self.sensor.sensor.current_summary()
             # Build out a list of dataframes for each measurement to record
             cur_df['loc_id'] = self.loc_id
             cur_df['humidity'] = cur_df['humidity'] * 100
