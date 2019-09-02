@@ -8,7 +8,7 @@ sudo apt-get install git git-core python3-pip python3-dev python3-pandas python3
     python3-serial
 # Install package dependencies
 sudo pip3 install sqlalchemy selenium phue amcrest slackclient==1.3.1 pushbullet.py roku \
-    paramiko beautifulsoup4 psutil tabulate daemonize
+    paramiko beautifulsoup4 psutil tabulate daemonize markovify
 
 # Clone kavalkilu to home dir
 git clone https://github.com/barretobrock/kavalkilu.git

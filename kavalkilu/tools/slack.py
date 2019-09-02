@@ -14,6 +14,7 @@ from .light import HueBulb, hue_lights
 from .net import Hosts, Keys
 from .databases import MySQLLocal
 from .date import DateTools
+from .text import MarkovText, TextCleaner, WebExtractor
 
 
 class SlackBot:
@@ -39,6 +40,8 @@ class SlackBot:
         - `temps`: temperatures of all sensor stations
         - `uptime`: printout of devices' current uptime
         - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
+        - `emojis like "<pattern-in-quotes>"`: get emojis 
+        - `make sentences <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
     """
 
     commands = {
@@ -164,6 +167,8 @@ class SlackBot:
             response = self.get_temps()
         elif message == 'channel stats':
             response = self.get_channel_stats(channel)
+        elif message.startswith('make sentences'):
+            response = self.generate_sentences(message)
         elif message.startswith('lights'):
             # lights (status|turn (on|off) <light_name>)
             if user not in approved_users:
@@ -471,3 +476,71 @@ class SlackBot:
         response = "*Current Status*: `{status}`\n *Changed at*:" \
                    " `{status_chg_date:%F %T}`\n *Updated*: `{update_date:%F %T}`".format(**status_dict)
         return response
+
+    def get_emojis_like(self, message, max_res=500):
+        """Gets emojis matching in the system that match a given regex pattern"""
+
+        # Parse the regex from the message
+        ptrn = re.search(r'(?<=emojis like ).*', message)
+        if ptrn.group(0) != '':
+            # We've got a pattern to use
+            pattern = re.compile(ptrn.group(0))
+            resp = self.user.api_call('emoji.list')
+            if resp['ok']:
+                emojis = resp['emoji']
+                matches = [k for k, v in emojis.items() if pattern.match(k)]
+                len_match = len(matches)
+                if len_match > 0:
+                    # Slack apparently handles message length limitations on its end, so
+                    #   let's just put all the emojis together into one string
+                    response = ''.join([':{}:'.format(x) for x in matches[:max_res]])
+                else:
+                    response = 'No results for pattern `{}`'.format(ptrn.group(0))
+
+                if len_match >= max_res:
+                    # Append to the emoji_str that it was truncated
+                    response = '`**Truncated Results ({}) -> ({})**'.format(len_match, max_res, response)
+
+            else:
+                response = 'Oopsies, something went wrong.'
+        else:
+            response = "I couldn't find a pattern from your message. Get your shit together <@{user}>"
+        return response
+
+    def generate_sentences(self, message):
+        """Builds a Markov chain from some text sources"""
+        # Parse out urls
+        msg_split = message.split(' ')
+        matches = [x for x in msg_split if re.search(r'http[s]?:\/\/\S+', x) is not None]
+
+        if len(matches) > 0:
+            # We've got some urls. Make sure we limit it to 5 in case someone's greedy
+            urls = matches[:4]
+            we = WebExtractor()
+            cleaner = TextCleaner()
+            clean_list = []
+            for url in urls:
+                # Collect HTML elements
+                elems = we.get_matching_elements(url, ['li', 'p', 'span'])
+                # Extract text from tags
+                txt_list = []
+                for elem in elems:
+                    try:
+                        txt_list.append(elem.get_text())
+                    except AttributeError:
+                        pass
+                cleaned = ''.join([cleaner.process_text(x) for x in txt_list])
+                clean_list.append(cleaned)
+
+            mkov = MarkovText(clean_list)
+            sentences = mkov.generate_n_sentences(5)
+            if len(sentences) > 0:
+                # Join them and send them
+                return '\n---\n'.join(sentences)
+            else:
+                return "Hmmm. I wasn't able to make any sense of these urls." \
+                       " Make sure the text falls in either a 'div', 'p' or 'span' element."
+        else:
+            return "I didn't find a url to use from that text."
+
+

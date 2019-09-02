@@ -59,7 +59,7 @@ class WebExtractor:
         self.bs4 = __import__('bs4')
         self.bs = self.bs4.BeautifulSoup
 
-    def get_text(self, url, element='p'):
+    def get_matching_elements(self, url, element='p'):
         respond = requests.get(url)
         soup = self.bs(respond.text, 'lxml')
         return soup.find_all(element)

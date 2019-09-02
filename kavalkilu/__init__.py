@@ -42,7 +42,7 @@ from .tools import SlackBot
 # system.py
 from .tools import SysTools
 # text.py
-# from .tools import
+from .tools import MarkovText, WebExtractor, TextHelper, TextCleaner
 # weather.py
 from .tools import DarkSkyWeather
 
