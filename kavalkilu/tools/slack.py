@@ -71,7 +71,7 @@ class SlackBot:
     def run_rtm(self):
         """Initiate real-time messaging"""
         if self.client.rtm_connect(with_team_state=False):
-            print('Viktor is running!')
+            print('Viktor is running!!')
             self.kodubot_id = self.client.api_call('auth.test')['user_id']
             self.send_message('notifications', 'Rebooted and ready to party! :tada:')
             while True:
@@ -525,12 +525,18 @@ class SlackBot:
             clean_list = []
             for url in urls:
                 # Collect HTML elements
+                # Slack adds '<' and '>' to the urls. Remove them
+                url = re.sub(r'[<>]', '', url)
                 elems = we.get_matching_elements(url, ['li', 'p', 'span'])
                 # Extract text from tags
                 txt_list = []
                 for elem in elems:
                     try:
-                        txt_list.append(elem.get_text())
+                        elemtxt = elem.get_text()
+                        # Try to take out any CSS / javascript that may have gotten in
+                        # elemtxt = re.sub(r'(function\s+\w+\(.*\};?|\{.*\})', '', elemtxt)
+                        if len(re.sub('[.,\/#!$%\^&\*;:{}=\-`~()]', '', elemtxt).split(' ')) >= 5:
+                            txt_list.append(elemtxt)
                     except AttributeError:
                         pass
                 cleaned = ''.join([cleaner.process_text(x) for x in txt_list])
@@ -541,7 +547,8 @@ class SlackBot:
             for attempt in range(5):
                 try:
                     sentences = mkov.generate_n_sentences(5)
-                    break
+                    if len(sentences) > 0:
+                        break
                 except TypeError:
                     pass
 
@@ -549,8 +556,8 @@ class SlackBot:
                 # Join them and send them
                 return '\n---\n'.join(sentences)
             else:
-                return "Hmmm. I wasn't able to make any sense of these urls." \
-                       " Make sure the text falls in either a 'li', 'p' or 'span' element."
+                return "Hmmm. I wasn't able to make any sense of these urls. I might need a larger text source." \
+                       " Also make sure the text falls in either a 'li', 'p' or 'span' element."
         else:
             return "I didn't find a url to use from that text."
 
