@@ -5,6 +5,8 @@ from datetime import datetime as dt
 from datetime import timedelta as tdelta
 import re
 import time
+import requests
+import string
 import pandas as pd
 from tabulate import tabulate
 from dateutil.relativedelta import relativedelta as reldelta
@@ -41,7 +43,8 @@ class SlackBot:
         - `uptime`: printout of devices' current uptime
         - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
         - `emojis like <regex-pattern>`: get emojis matching the regex pattern
-        - `make sentences <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
+        - `(make sentences|ms) <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
+        - `acro-guess <acronym>`: there are a lot of acronyms at work. this tries to guess what it means.
     """
 
     commands = {
@@ -167,11 +170,13 @@ class SlackBot:
             response = self.get_temps()
         elif message == 'channel stats':
             response = self.get_channel_stats(channel)
-        elif message.startswith('make sentences'):
+        elif message.startswith('make sentences') or message.startswith('ms '):
             try:
                 response = self.generate_sentences(message)
             except Exception as e:
                 response = 'I tried that and got an error: ```{}```'.format(e)
+        elif message.startswith('acro-guess'):
+            response = self.guess_acronym(message)
         elif message.startswith('emojis like'):
             response = self.get_emojis_like(message)
         elif message.startswith('lights'):
@@ -560,5 +565,317 @@ class SlackBot:
                        " Also make sure the text falls in either a 'li', 'p' or 'span' element."
         else:
             return "I didn't find a url to use from that text."
+
+    def guess_acronym(self, message):
+        """Tries to guess an acronym from a mesage"""
+        message_split = message.split()
+        if len(message_split) <= 1:
+            response = "I can't work like this! I need a real acronym!!:ragetype:"
+        # We can work with this
+        acronym = message_split[1]
+        # clean of any punctuation
+        acronym = re.sub(r'\W', '', acronym)
+
+        # Load the massive list of words
+        with open(os.path.join(os.path.expanduser('~'), *['Downloads', 'en.txt'])) as f:
+            words = f.readlines()
+
+        # Put the words into a dictionary, classified by first letter
+        a2z = string.ascii_lowercase
+        word_dict = {k: [] for k in a2z}
+        for word in words:
+            word = word.replace('\n', '')
+            word_dict[word[0].lower()].append(word.lower())
+
+        # Build out the real acryonym meaning
+        guesses = []
+        for guess in range(3):
+            meaning = []
+            for letter in list(acronym):
+                if letter.isalpha():
+                    word_list = word_dict[letter]
+                    meaning.append(word_list[randint(0, len(word_list) - 1)])
+                else:
+                    meaning.append(letter)
+            guesses.append(' '.join(list(map(str.title, meaning))))
+
+        return ':okily-dokily: Here are my guesses!\n {}'.format('\n _OR_ '.join(guesses))
+
+
+class SlackTools:
+    """Tools to make working with Slack better"""
+
+    def __init__(self, team, token, cookie=''):
+        slack = __import__('slackclient')
+        self.team = team
+        self.cookie = cookie
+        self.token = token
+        self.client = slack.SlackClient(self.token)
+        self.session = self._init_session()
+
+    def _init_session(self):
+        """Initialises a session for use with special API calls not allowed through the python package"""
+        base_url = 'https://{}.slack.com'.format(self.team)
+
+        session = requests.session()
+        session.headers = {'Cookie': self.cookie}
+        session.url_customize = '{}/customize/emoji'.format(base_url)
+        session.url_add = '{}/api/emoji.add'.format(base_url)
+        session.url_list = '{}/api/emoji.adminList'.format(base_url)
+        session.api_token = self.token
+        return session
+
+    def _upload_emoji(self, filepath):
+        """Uploads an emoji to the workspace
+        NOTE: The name of the emoji is taken from the filepath
+        """
+        filename = os.path.split(filepath)[1]
+        emoji_name = os.path.splitext(filename)[0]
+        data = {
+            'mode': 'data',
+            'name': emoji_name,
+            'token': self.session.api_token
+        }
+        files = {'image': open(filepath, 'rb')}
+        r = self.session.post(self.session.url_add, data=data, files=files, allow_redirects=False)
+        r.raise_for_status()
+
+        # Slack returns 200 OK even if upload fails, so check for status.
+        response_json = r.json()
+        if not response_json['ok']:
+            print("Error with uploading {}: {}".format(emoji_name, response_json))
+        return response_json['ok']
+
+    def upload_emojis(self, upload_dir, announce=True, wait_s=5):
+        """Uploads any .jpg .png .gif files in a given directory,
+            Announces uploads to channel, if announce=True
+
+        Methods
+             - Scan in files from directory
+             - clean emoji name from file path
+             - build dict: key = emoji name, value = filepath
+        """
+        existing_emojis = [k for k, v in self.get_emojis().items()]
+
+        emoji_dict = {}
+        for file in os.listdir(upload_dir):
+            file_split = os.path.splitext(file)
+            if file_split[1] in ['.png', '.jpg', '.gif']:
+                filepath = os.path.join(upload_dir, file)
+                emoji_name = file_split[0]
+                if emoji_name not in existing_emojis:
+                    emoji_dict[emoji_name] = filepath
+
+        successfully_uploaded = []
+        for k, v in emoji_dict.items():
+            if k in successfully_uploaded:
+                continue
+            successful = self._upload_emoji(v)
+            if successful:
+                successfully_uploaded.append(k)
+            # Wait
+            print(':{}: successful - {:.2%} done'.format(k, len(successfully_uploaded) / len(emoji_dict)))
+            time.sleep(wait_s)
+
+        if announce:
+            # Report the emojis captured to the channel
+            # 30 emojis per line, 5 lines per post
+            out_str = '\n'
+            cnt = 0
+            for item in successfully_uploaded:
+                out_str += ':{}:'.format(item)
+                cnt += 1
+                if cnt % 30 == 0:
+                    out_str += '\n'
+                if cnt == 150:
+                    self.send_message('emoji_suggestions', out_str)
+                    out_str = '\n'
+                    cnt = 0
+            if cnt > 0:
+                self.send_message('emoji_suggestions', out_str)
+            return out_str
+        return None
+
+    def download_emojis(self, emoji_dict, download_dir):
+        """Downloads a dict of emojis
+        NOTE: key = emoji name, value = url or data
+        """
+        for k, v in emoji_dict.items():
+            if v[:4] == 'data':
+                data = v
+            elif v[:4] == 'http':
+                r = requests.get(v)
+                data = r.content
+            else:
+                continue
+            # Write pic to file
+            fname = '{}{}'.format(k, os.path.splitext(v)[1])
+            fpath = os.path.join(download_dir, fname)
+            write = 'wb' if isinstance(data, bytes) else 'w'
+            with open(fpath, write) as f:
+                f.write(data)
+
+    def _exact_match_emojis(self, emoji_dict, exact_match_list):
+        """Matches emojis exactly"""
+        matches = {}
+        for k, v in emoji_dict.items():
+            if k in exact_match_list:
+                matches[k] = v
+        return matches
+
+    def _fuzzy_match_emojis(self, emoji_dict, fuzzy_match):
+        """Fuzzy matches emojis"""
+        matches = {}
+        pattern = re.compile(fuzzy_match, re.IGNORECASE)
+        for k, v in emoji_dict.items():
+            if pattern.match(k) is not None:
+                matches[k] = v
+        return matches
+
+    def match_emojis(self, exact_match_list=None, fuzzy_match=None):
+        """Matches emojis in a workspace either by passing in an exact list or fuzzy-match (regex) list"""
+        emoji_dict = self.get_emojis()
+
+        matches = {}
+        # Exact matches
+        if exact_match_list is not None:
+            exact_matches = self._exact_match_emojis(emoji_dict, exact_match_list)
+            matches.update(exact_matches)
+        # Fuzzy matches
+        if fuzzy_match is not None:
+            fuzzy_matches = self._fuzzy_match_emojis(emoji_dict, fuzzy_match)
+            matches.update(fuzzy_matches)
+        return matches
+
+    def get_emojis(self):
+        """Returns a dict of emojis for a given workspace"""
+        resp = self.client.api_call('emoji.list')
+        if resp['ok']:
+            return resp['emoji']
+        else:
+            print('Emoji query failed.')
+            return {}
+
+    def send_message(self, channel, message):
+        """Sends a message to the specific channel"""
+        self.client.api_call(
+            'chat.postMessage',
+            channel=channel,
+            text=message
+        )
+
+    def delete_message(self, message_dict):
+        """Deletes a given message
+        NOTE: Since messages are deleted by channel id and timestamp, it's recommended to
+            use search_messages_by_date() to determine the messages to delete
+        """
+        self.user.api_call(
+            'chat.delete',
+            channel=message_dict['channel']['id'],
+            ts=message_dict['ts']
+        )
+
+    def search_messages_by_date(self, channel, from_date, date_format='%Y-%m-%d %H:%M', max_results=100):
+        """Search for messages in a channel after a certain date
+
+        Args:
+            channel: str, the channel (e.g., "#channel")
+            from_date: str, the date from which to begin collecting channels
+            date_format: str, the format of the date entered
+            max_results: int, the maximum number of results per page to return
+
+        Returns: list of dict, channels matching the query
+        """
+        from_date = dt.strptime(from_date, date_format)
+        # using the 'after' filter here, so take it back one day
+        slack_date = from_date - tdelta(days=1)
+
+        for attempt in range(3):
+            resp = self.client.api_call(
+                'search.messages',
+                query='in:{} after:{:%F}'.format(channel, slack_date),
+                count=max_results
+            )
+            if resp['ok']:
+                # Search was successful
+                break
+            else:
+                # Wait before retrying
+                print('Call failed. Waiting two seconds')
+                time.sleep(2)
+
+        if 'messages' in resp.keys():
+            msgs = resp['messages']['matches']
+            filtered_msgs = []
+            for msg in msgs:
+                # Append the message as long as it's timestamp is later or equal to the time entered
+                ts = dt.fromtimestamp(int(round(float(msg['ts']), 0)))
+                if ts >= from_date:
+                    filtered_msgs.append(msg)
+            return filtered_msgs
+
+        return None
+
+    def _build_emoji_letter_dict(self):
+        """Sets up use of replacing words with slack emojis"""
+        a2z = string.ascii_lowercase
+        letter_grp = [
+            'regional_indicator_',
+            'letter-',
+            'scrabble-'
+        ]
+
+        grp = [['{}{}'.format(y, x) for x in a2z] for y in letter_grp]
+
+        letter_dict = {}
+
+        for i, ltr in enumerate(list(a2z)):
+            ltr_list = []
+            for g in grp:
+                ltr_list.append(g[i])
+
+            letter_dict[ltr] = ltr_list
+
+        # Additional, irregular entries
+        addl = {
+            'a': ['amazon', 'a'],
+            'b': ['b'],
+            'm': ['m'],
+            'o': ['o'],
+            's': ['s'],
+            'x': ['x'],
+            'z': ['zabbix'],
+            '.': ['dotdotdot-intensifies'],
+            '!': ['exclamation', 'heavy_heart_exclamation_mark_ornament'],
+            '?': ['question'],
+            '"': ['airquotes-start', 'airquotes-end'],
+            "'": ['airquotes-start', 'airquotes-end'],
+        }
+
+        for k, v in addl.items():
+            if k in letter_dict.keys():
+                letter_dict[k] = letter_dict[k] + v
+            else:
+                letter_dict[k] = v
+        return letter_dict
+
+    def build_phrase(self, phrase):
+        """Build your awesome phrase"""
+
+        letter_dict = self._build_emoji_letter_dict()
+        built_phrase = []
+        for l in list(phrase):
+            # Lookup letter
+            if l in letter_dict.keys():
+                vals = letter_dict[l]
+                rand_l = vals[randint(0, len(vals) - 1)]
+                built_phrase.append(':{}:'.format(rand_l))
+            elif l == ' ':
+                built_phrase.append(':blank:')
+            else:
+                built_phrase.append(l)
+
+        done_phrase = ''.join(built_phrase)
+        return done_phrase
 
 

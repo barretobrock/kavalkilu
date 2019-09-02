@@ -38,7 +38,7 @@ from .tools import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, S
 # serial.py
 # from .tools import
 # slack.py
-from .tools import SlackBot
+from .tools import SlackBot, SlackTools
 # system.py
 from .tools import SysTools
 # text.py
