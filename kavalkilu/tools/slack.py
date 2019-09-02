@@ -40,7 +40,7 @@ class SlackBot:
         - `temps`: temperatures of all sensor stations
         - `uptime`: printout of devices' current uptime
         - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
-        - `emojis like "<pattern-in-quotes>"`: get emojis 
+        - `emojis like <regex-pattern>`: get emojis matching the regex pattern
         - `make sentences <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
     """
 
@@ -168,7 +168,10 @@ class SlackBot:
         elif message == 'channel stats':
             response = self.get_channel_stats(channel)
         elif message.startswith('make sentences'):
-            response = self.generate_sentences(message)
+            try:
+                response = self.generate_sentences(message)
+            except Exception as e:
+                response = 'I tried that and got an error: ```{}```'.format(e)
         elif message.startswith('emojis like'):
             response = self.get_emojis_like(message)
         elif message.startswith('lights'):
