@@ -169,6 +169,8 @@ class SlackBot:
             response = self.get_channel_stats(channel)
         elif message.startswith('make sentences'):
             response = self.generate_sentences(message)
+        elif message.startswith('emojis like'):
+            response = self.get_emojis_like(message)
         elif message.startswith('lights'):
             # lights (status|turn (on|off) <light_name>)
             if user not in approved_users:
@@ -500,7 +502,6 @@ class SlackBot:
                 if len_match >= max_res:
                     # Append to the emoji_str that it was truncated
                     response = '`**Truncated Results ({}) -> ({})**'.format(len_match, max_res, response)
-
             else:
                 response = 'Oopsies, something went wrong.'
         else:
@@ -533,13 +534,20 @@ class SlackBot:
                 clean_list.append(cleaned)
 
             mkov = MarkovText(clean_list)
-            sentences = mkov.generate_n_sentences(5)
+            sentences = []
+            for attempt in range(5):
+                try:
+                    sentences = mkov.generate_n_sentences(5)
+                    break
+                except TypeError:
+                    pass
+
             if len(sentences) > 0:
                 # Join them and send them
                 return '\n---\n'.join(sentences)
             else:
                 return "Hmmm. I wasn't able to make any sense of these urls." \
-                       " Make sure the text falls in either a 'div', 'p' or 'span' element."
+                       " Make sure the text falls in either a 'li', 'p' or 'span' element."
         else:
             return "I didn't find a url to use from that text."
 
