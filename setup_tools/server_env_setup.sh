@@ -11,9 +11,17 @@ sudo pip3 install sqlalchemy selenium phue amcrest slackclient==1.3.1 pushbullet
     paramiko beautifulsoup4 psutil tabulate daemonize markovify
 
 # Clone kavalkilu to home dir
-git clone https://github.com/barretobrock/kavalkilu.git
+git clone https://github.com/barretobrock/kavalkilu.git ${HOME}
+
+# To run some of the scripts, bash is recommended over dash.
+#   To reconfigure `sh` to point to bash, run this
+# TODO Check if dash is default first
+sudo dpkg-reconfigure dash
 
 # Store git credentials to avoid prompt
 echo "Beginning git credential storage"
 git config --global credential.helper store
 git pull
+
+# Set environment variables
+#echo -e "\nexport KAVPY=/usr/bin/python3\nexport KAVDIR=${HOME}/kavalkilu" >> ~/.bashrc

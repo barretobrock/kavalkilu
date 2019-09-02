@@ -10,9 +10,11 @@
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
-# LOG SCANNING STUFF
+
+# LOG ANALYSIS
 13 5 * * *      $PY3    $HOME/$SENSORS/log_reader.py
-# AUTOMATION STUFF
-*/5 * * * *     $PY3    $HOME/$SENSORS/garage_motion.py
-*/10 * * * *    $PY3    $HOME/$SENSORS/temps/garage_temps.py
+# SYS DATA COLLECTION
 */10 * * * *    $PY3    $HOME/$SENSORS/net/machine_uptime.py
+# ENV DATA COLLECTION
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/garage_temps.py
+

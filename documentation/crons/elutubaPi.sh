@@ -9,10 +9,11 @@
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
-# LOG SCANNING STUFF
+
+# LOG ANALYSIS
 39 5 * * *       $PY3    $HOME/$SENSORS/log_reader.py
-# WEATHER DATA
+# SYS DATA COLLECTION
+*/10 * * * *    $PY3    $HOME/$SENSORS/net/machine_uptime.py
+# ENV DATA COLLECTION
 */10 * * * *    $PY3    $HOME/$SENSORS/temps/elutuba_temps.py
-*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_local_weather.py
-*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_tallinn_weather.py
-*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_rakvere_weather.py
+*/10 * * * *    $PY3    $HOME/$SENSORS/temps/darksky_weather.py

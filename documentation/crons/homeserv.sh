@@ -11,23 +11,25 @@
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
-# LOG SCANNING STUFF
+
+# LOG ANALYSIS
 0 6 * * *           $PY3    $HOME/$SENSORS/log_reader.py
-# PIHOLE STUFF
+# PIHOLE
 5 6 * * *           bash    $HOME/$SENSORS/pihole/pihole_backup.sh
-# MYSQL STUFF
+# MYSQL
 25 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_to_mysql.py
 35 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_mysql_short_term_etl.py
 0 2 * * *           $PY3    $HOME/$SENSORS/speedtest/speedtest_to_mysql.py
-# AUTOMATION STUFF
-0 */6 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
-#*/10 07-20 * * 1-5  $PY3    $HOME/$SENSORS/commute/commute_calc.py
-*/10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
-*/5 04-22 * * *     $PY3    $HOME/$SENSORS/net/mobile_connected.py
+# SYS DATA COLLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/net/machine_uptime.py
-*/10 04-22 * * *    $PY3    $HOME/$SENSORS/camera/amcrest_notify_zone.py
+*/5 03-22 * * *     $PY3    $HOME/$SENSORS/net/mobile_connected.py
+0 */6 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
+# ENV DATA COLECTION
+*/10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
+# HOME AUTOMATION
+*/10 03-22 * * *    $PY3    $HOME/$SENSORS/camera/amcrest_notify_zone.py
 5 23 * * *          $PY3    $HOME/$SENSORS/camera/amcrest_nighttime.py
-# SLACK STUFF
+# SLACK
 @reboot             $PY3    $HOME/$SENSORS/slackbot/kodubot_rtm_daemon.py start
 15 6 * * *          $PY3    $HOME/$SENSORS/slackbot/slack_logger.py
 
