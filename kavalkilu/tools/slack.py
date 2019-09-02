@@ -599,7 +599,7 @@ class SlackBot:
                     meaning.append(letter)
             guesses.append(' '.join(list(map(str.title, meaning))))
 
-        return ':okily-dokily: Here are my guesses!\n {}'.format('\n _OR_ '.join(guesses))
+        return ':okily-dokily: Here are my guesses!\n {}'.format('\n_OR_\n'.join(guesses))
 
 
 class SlackTools:
