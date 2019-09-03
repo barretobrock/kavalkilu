@@ -7,7 +7,7 @@ from math import ceil, sqrt, floor
 class GIF:
     """GIF tools"""
     def __init__(self):
-        self.pil = __import__('PIL')
+        self.pil = __import__('PIL', fromlist=['Image'])
         self.Image = self.pil.Image
 
     def spin(self, filepath, frame_duration_ms=100):
@@ -43,7 +43,8 @@ class GIF:
 class GIFSlice:
     """Slices a gif into squares of determined size"""
     def __init__(self):
-        self.pil = __import__('PIL')
+        self.pil = __import__('PIL', fromlist=['Image'])
+        self.Image = self.pil.Image
 
     def _validate_image(self, number_tiles):
         """Basic sanity checks prior to performing a split."""
@@ -90,7 +91,7 @@ class GIFSlice:
         return tuple(tiles)
 
     def _extract_frames(self, gif_path):
-        frame = self.pil.Image.open(gif_path)
+        frame = self.Image.open(gif_path)
         n_frames = 0
         frames = []
 
@@ -115,7 +116,7 @@ class GIFSlice:
         Returns:
             Tuple of :class:`GIFTile` instances.
         """
-        im = self.pil.Image.open(filename)
+        im = self.Image.open(filename)
         im_w, im_h = im.size
 
         frames = self._extract_frames(filename)

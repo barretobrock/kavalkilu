@@ -4,7 +4,9 @@ from .camera import Amcrest, AmcrestGroup, AmcrestWeb, Camera
 from .databases import MySQLLocal, PiHoleDB, CSVHelper
 from .date import DateTools
 from .domoticz import Domoticz
+from .gif import GIF, GIFSlice, GIFTile
 from .gpio import GPIO
+from .image import IMG, IMGSlice
 from .light import HueBulb, LED, hue_lights
 from .log import Log
 from .message import PBullet, Email

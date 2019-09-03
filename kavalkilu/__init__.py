@@ -13,8 +13,12 @@ from .tools import MySQLLocal, PiHoleDB, CSVHelper
 from .tools import DateTools
 # domoticz.py
 from .tools import Domoticz
+# gif.py
+from .tools import GIF, GIFSlice, GIFTile
 # gpio.py
 from .tools import GPIO
+# image.py
+from .tools import IMG, IMGSlice
 # light.py
 from .tools import HueBulb, LED, hue_lights
 # log.py

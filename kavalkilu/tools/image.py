@@ -35,7 +35,7 @@ class IMGSlice:
 class IMG:
     """Tools for image manipulation"""
     def __init__(self):
-        self.pil = __import__('PIL')
+        self.pil = __import__('PIL', fromlist=['Image'])
         self.Image = self.pil.Image
 
     def make_transparent(self, path):
