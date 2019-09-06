@@ -28,6 +28,8 @@ class SlackBot:
         - `hello`
         - `speak`
         - `good bot`
+        - `thanks`
+        - `no, thank you`
         - `time`
         - `look (left|right|up|down)`
         - `oof`
@@ -44,13 +46,16 @@ class SlackBot:
         - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
         - `emojis like <regex-pattern>`: get emojis matching the regex pattern
         - `(make sentences|ms) <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
-        - `acro-guess <acronym>`: there are a lot of acronyms at work. this tries to guess what it means.
+        - `acro-guess <acronym> [-f]`: there are a lot of acronyms at work. this tries to guess what it means.
+        - `insult me`: generates an insult just for you
     """
 
     commands = {
         'speak': 'woof',
         'good bot': 'thanks!',
         'hello': 'Hi <@{user}>!',
+        'thanks': 'No, thank you!',
+        'no, thank you': 'No, no, thank you!',
     }
 
     sarcastic_reponses = [
@@ -69,7 +74,7 @@ class SlackBot:
         self.user = slack.SlackClient(user_token)
         self.kodubot_id = None
         self.RTM_READ_DELAY = 1
-        self.MENTION_REGEX = "^(<@(|[WU].+?)>|v!)(.*)"
+        self.MENTION_REGEX = "^(<@(|[WU].+?)>|[vV]!)(.*)"
 
     def run_rtm(self):
         """Initiate real-time messaging"""
@@ -177,6 +182,8 @@ class SlackBot:
                 response = 'I tried that and got an error: ```{}```'.format(e)
         elif message.startswith('acro-guess'):
             response = self.guess_acronym(message)
+        elif message.startswith('insult me'):
+            response = self.insult()
         elif message.startswith('emojis like'):
             response = self.get_emojis_like(message)
         elif message.startswith('lights'):
@@ -567,7 +574,7 @@ class SlackBot:
             return "I didn't find a url to use from that text."
 
     def guess_acronym(self, message):
-        """Tries to guess an acronym from a mesage"""
+        """Tries to guess an acronym from a message"""
         message_split = message.split()
         if len(message_split) <= 1:
             response = "I can't work like this! I need a real acronym!!:ragetype:"
@@ -576,8 +583,14 @@ class SlackBot:
         # clean of any punctuation
         acronym = re.sub(r'\W', '', acronym)
 
+        # Determine which file to use
+        file = 'en.txt'
+        if len(message_split) > 2:
+            if message_split[2] == '-f':
+                file = 'en_nsfw.txt'
+
         # Load the massive list of words
-        with open(os.path.join(os.path.expanduser('~'), *['Downloads', 'en.txt'])) as f:
+        with open(os.path.join(os.path.expanduser('~'), *['Downloads', file])) as f:
             words = f.readlines()
 
         # Put the words into a dictionary, classified by first letter
@@ -599,7 +612,21 @@ class SlackBot:
                     meaning.append(letter)
             guesses.append(' '.join(list(map(str.title, meaning))))
 
-        return ':okily-dokily: Here are my guesses!\n {}'.format('\n_OR_\n'.join(guesses))
+        return ':okily-dokily: Here are my guesses for *{}*!\n {}'.format(acronym, '\n_OR_\n'.join(guesses))
+
+    def insult(self):
+        """Insults the user at their request"""
+
+        f_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
+
+        insults = []
+        # Load the insults
+        for part in ['a', 'b', 'c']:
+            with open(os.path.join(f_dir, 'insults_{}.txt'.format(part))) as f:
+                insult_list = [x.replace('\n', '') for x in f.readlines()]
+            insults.append(insult_list[randint(0, len(insult_list) - 1)])
+
+        return "You're nothing but a {}".format(' '.join(insults))
 
 
 class SlackTools:
