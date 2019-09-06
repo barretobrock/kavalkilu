@@ -598,7 +598,8 @@ class SlackBot:
         word_dict = {k: [] for k in a2z}
         for word in words:
             word = word.replace('\n', '')
-            word_dict[word[0].lower()].append(word.lower())
+            if len(word) > 1:
+                word_dict[word[0].lower()].append(word.lower())
 
         # Build out the real acryonym meaning
         guesses = []
@@ -618,7 +619,6 @@ class SlackBot:
         """Insults the user at their request"""
 
         f_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-
         insults = []
         # Load the insults
         for part in ['a', 'b', 'c']:
