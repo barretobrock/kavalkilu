@@ -36,6 +36,7 @@ class SlackBot:
         - `wink wink`
         - `bruh`
         - `access <literally-anything-else>`
+        - `no... thank you...`
     *Useful commands:*
         - `garage`: current snapshot of garage
         - `garage door status`: whether or not the door is open
@@ -192,6 +193,8 @@ class SlackBot:
                 response = self.sarcastic_reponses[randint(0, len(self.sarcastic_reponses) - 1)]
             else:
                 response = self.light_actions(message)
+        elif message.startswith('no') and 'thank you' in message:
+            response = self.overly_polite(message)
         elif message.startswith('access'):
             response = ''.join([':ah-ah-ah:'] * randint(5, 50))
         elif message != '':
@@ -627,6 +630,14 @@ class SlackBot:
             insults.append(insult_list[randint(0, len(insult_list) - 1)])
 
         return "You're nothing but a {}".format(' '.join(insults))
+
+    def overly_polite(self, message):
+        """Responds to 'no, thank you' with an extra 'no' """
+        # Count the 'no's
+        no_cnt = message.count('no')
+        no_cnt += 1
+        response = '{}, thank you!'.format(', '.join(['no'] * no_cnt)).capitalize()
+        return response
 
 
 class SlackTools:
