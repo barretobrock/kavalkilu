@@ -69,9 +69,11 @@ class SlackBot:
 
     def __init__(self):
         slack = __import__('slackclient')
+        # Key starting with 'xoxb...'
         bot_token = Keys().get_key('kodubot-useraccess')
+        self.bot = slack.SlackClient(bot_token)
+        # Key starting with 'xoxp...'
         user_token = Keys().get_key('kodubot-usertoken')
-        self.client = slack.SlackClient(bot_token)
         self.user = slack.SlackClient(user_token)
         self.kodubot_id = None
         self.RTM_READ_DELAY = 1
@@ -79,20 +81,20 @@ class SlackBot:
 
     def run_rtm(self):
         """Initiate real-time messaging"""
-        if self.client.rtm_connect(with_team_state=False):
+        if self.bot.rtm_connect(with_team_state=False):
             print('Viktor is running!!')
-            self.kodubot_id = self.client.api_call('auth.test')['user_id']
+            self.kodubot_id = self.bot.api_call('auth.test')['user_id']
             self.send_message('notifications', 'Rebooted and ready to party! :tada:')
             while True:
                 try:
-                    msg_packet = self.parse_bot_commands(self.client.rtm_read())
+                    msg_packet = self.parse_bot_commands(self.bot.rtm_read())
                     if msg_packet is not None:
                         # print('I got a message "{message}" from user: {user} '.format(**msg_packet))
                         self.handle_command(**msg_packet)
                     time.sleep(self.RTM_READ_DELAY)
                 except Exception as e:
                     print('Reconnecting... {}'.format(e))
-                    self.client.rtm_connect(with_team_state=False)
+                    self.bot.rtm_connect(with_team_state=False)
         else:
             print('Connection failed.')
 
@@ -207,9 +209,66 @@ class SlackBot:
             }
             self.send_message(channel, response.format(**resp_dict))
 
+    def get_channel_members(self, channel, humans_only=False):
+        """Collect members of a particular channel"""
+        resp = self.bot.api_call(
+            'conversations.members',
+            channel=channel
+        )
+        if resp['ok']:
+            users = resp['members']
+            if humans_only:
+                humans = []
+                for user in users:
+                    if not user['is_bot']:
+                        humans.append(user)
+                return humans
+            else:
+                return users
+        return None
+
+    def private_channel_message(self, user_id, channel, message):
+        """Send a message to a user on the channel"""
+        resp2 = self.bot.api_call(
+            'chat.postEphemeral',
+            channel=channel,
+            user=user_id,
+            text=message
+        )
+        if not resp2['ok']:
+            raise Exception(resp2['error'])
+
+    def private_message(self, user_id, message):
+        """Send private message to user"""
+        resp = self.bot.api_call(
+            'im.open',
+            user=user_id,
+        )
+
+        if resp['ok']:
+            resp2 = self.bot.api_call(
+                'chat.postMessage',
+                channel=resp['channel']['id'],
+                text=message
+            )
+            if not resp2['ok']:
+                raise Exception(resp2['error'])
+
+    def get_users_info(self, user_list):
+        """Collects info from a list of user ids"""
+        user_info = []
+        for user in user_list:
+            resp = self.bot.api_call(
+                'users.info',
+                user=user
+            )
+            if resp['ok']:
+                user_info.append(resp['user'])
+        return user_info
+
     def send_message(self, channel, message):
         """Sends a message to the specific channel"""
-        self.client.api_call(
+        self.bot.api_call(
             'chat.postMessage',
             channel=channel,
             text=message
@@ -266,7 +325,7 @@ class SlackBot:
 
     def upload_file(self, channel, filepath, filename):
         """Uploads the selected file to the given channel"""
-        self.client.api_call(
+        self.bot.api_call(
             'files.upload',
             channels=channel,
             filename=filename,
@@ -648,7 +707,7 @@ class SlackTools:
         self.team = team
         self.cookie = cookie
         self.token = token
-        self.client = slack.SlackClient(self.token)
+        self.bot = slack.SlackClient(self.token)
         self.session = self._init_session()
 
     def _init_session(self):
@@ -787,7 +846,7 @@ class SlackTools:
 
     def get_emojis(self):
         """Returns a dict of emojis for a given workspace"""
-        resp = self.client.api_call('emoji.list')
+        resp = self.bot.api_call('emoji.list')
         if resp['ok']:
             return resp['emoji']
         else:
@@ -796,7 +855,7 @@ class SlackTools:
 
     def send_message(self, channel, message):
         """Sends a message to the specific channel"""
-        self.client.api_call(
+        self.bot.api_call(
             'chat.postMessage',
             channel=channel,
             text=message
@@ -829,7 +888,7 @@ class SlackTools:
         slack_date = from_date - tdelta(days=1)
 
         for attempt in range(3):
-            resp = self.client.api_call(
+            resp = self.bot.api_call(
                 'search.messages',
                 query='in:{} after:{:%F}'.format(channel, slack_date),
                 count=max_results

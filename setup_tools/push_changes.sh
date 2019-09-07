@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Run this script after committing
 
+LEVEL=${1:-patch}
+
 # Get highest tag number
 VERSION=`git describe --abbrev=0 --tags`
 
@@ -11,7 +13,22 @@ VERSION_BITS=(${VERSION//./ })
 VNUM1=${VERSION_BITS[0]}
 VNUM2=${VERSION_BITS[1]}
 VNUM3=${VERSION_BITS[2]}
-VNUM3=$((VNUM3+1))
+
+
+if [[ "${LEVEL}" == "patch" ]];
+then
+    VNUM3=$((VNUM3+1))
+elif [[ "${LEVEL}" == "minor" ]];
+then
+    VNUM2=$((VNUM2+1))
+    VNUM3=0
+elif [[ "${LEVEL}" == "major" ]];
+then
+    VNUM1=$((VNUM1+1))
+    VNUM2=0
+    VNUM3=0
+fi
+
 
 #create new tag
 NEW_TAG="${VNUM1}.${VNUM2}.${VNUM3}"

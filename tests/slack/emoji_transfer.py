@@ -4,7 +4,7 @@ import os
 from kavalkilu import Keys, SlackTools
 
 
-moji_dir = dl_path = os.path.join(os.path.expanduser('~'), *['Downloads', 'mojis'])
+moji_dir = os.path.join(os.path.expanduser('~'), *['Downloads', 'mojis'])
 
 okr_name = Keys().get_key('okr-name')
 okr_cookie = Keys().get_key('slack-okrcookie')
