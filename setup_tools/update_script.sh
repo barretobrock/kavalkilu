@@ -20,6 +20,6 @@ echo "Pulling update from git repo"
 echo "Beginning update of python package"
 #(cd ${KAVDIR} &&
 # TODO check if installed, then upgrade if so
-sudo pip3 install git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade
+pip3 install git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade
 
 printf "===============\nProcess completed\n"
