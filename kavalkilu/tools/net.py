@@ -98,7 +98,7 @@ class Keys:
 
         for item in self.keys:
             if item['name'] == name:
-                return item['keys']
+                return item['keys'].strip()
         # If we arrived here, the key wasn't found
         raise KeyRetrievalException('The key ({}) was not found in the database.'.format(name))
 
