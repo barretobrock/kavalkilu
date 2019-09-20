@@ -2,9 +2,14 @@
 import datetime
 import os
 import re
+import amcrest
 import requests
 from requests.auth import HTTPDigestAuth
 from .net import Hosts
+
+
+class YiCam:
+    pass
 
 
 class Amcrest:
@@ -14,8 +19,7 @@ class Amcrest:
         self.name = name
         self.creds = creds
         self.config_url = 'http://{ip}/cgi-bin/configManager.cgi?action=setConfig'
-        self.amc = __import__('amcrest')
-        self.camera = self.amc.AmcrestCamera(ip, port, creds['user'], creds['password']).camera
+        self.camera = amcrest.AmcrestCamera(ip, port, creds['user'], creds['password']).camera
 
     def toggle_motion(self, set_motion=True):
         """Sets motion detection"""
@@ -40,17 +44,19 @@ class Amcrest:
                 raise Exception('Camera "{}" PTZ call saw unexpected response: "{}"'.format(self.name, resp))
 
 
-class AmcrestGroup:
+class SecCamGroup:
     """Methods to control a group of amcrest cameras"""
 
-    def __init__(self, creds, log, camera_filter='.*'):
+    def __init__(self, creds, log):
         self.creds = creds
         self.log = log
-        camera_dict = {i['name'].replace('ac_', ''): i['ip'] for i in Hosts().get_hosts('ac_.*')}
-        if camera_filter != '.*':
-            # Filter cameras further
-            cam_filter = re.compile(camera_filter)
-            camera_dict = {k: v for k, v in camera_dict.items() if cam_filter.match(k)}
+        cams = Hosts().get_host('(ac|yi)_.*')
+        camera_dict = {}
+        for cam in cams:
+            camera_dict[cam['name']] = {
+                'ip': cam['ip'],
+                'type': 'amcrest' if cam['name'].startswith('ac') else 'yi'
+            }
         self.camera_dict = camera_dict
 
     def motion_toggler(self, motion_on):
@@ -59,9 +65,12 @@ class AmcrestGroup:
         Args:
             motion_on: bool, if True, will turn motion detection to ON
         """
-        for name, ip in self.camera_dict.items():
+        for name, vals in self.camera_dict.items():
             try:
-                cam = Amcrest(ip, self.creds, name=name)
+                if vals['type'] == 'amcrest':
+                    cam = Amcrest(vals['ip'], self.creds, name=name)
+                elif vals['type'] == 'yi':
+                    cam = Amcrest(vals['ip'], self.creds, name=name)
             except Exception as e:
                 self.log.error('Exception occurred with connection to camera named "{}". '
                                'Skipping. More info: {}'.format(name, e))
