@@ -5,7 +5,7 @@ import time
 import re
 import traceback
 from random import shuffle
-from kavalkilu import Keys, Log
+from kavalkilu import Keys
 
 
 class CAHBot:
@@ -26,7 +26,7 @@ class CAHBot:
     """
 
     def __init__(self):
-        self.log = Log('cah_bot')
+        #self.log = Log('cah_bot')
         slack = __import__('slackclient')
         # Key starting with 'xoxb...'
         bot_token = Keys().get_key('wizzy-bot-user-token')
@@ -50,10 +50,6 @@ class CAHBot:
                 'bcards_standard.txt',
                 'wcards_standard.txt'
             },
-            'devops': {
-                'bcards_devops.txt',
-                'wcards_devops.txt',
-            },
             'indeed': {
                 'bcards_indeed.txt',
                 'wcards_indeed.txt',
@@ -63,7 +59,7 @@ class CAHBot:
     def run_rtm(self):
         """Initiate real-time messaging"""
         if self.bot.rtm_connect(with_team_state=False):
-            self.log.debug('CAH bot is running.')
+            print('CAH bot is running.')
 
             self.message_grp('Rebooted and ready to play! :hyper-tada:')
             while True:
@@ -73,10 +69,10 @@ class CAHBot:
                         self.handle_command(**msg_packet)
                     time.sleep(self.RTM_READ_DELAY)
                 except Exception as e:
-                    self.log.error('{} Traceback:{}'.format(e, ''.join(traceback.format_tb(e.__traceback__))))
+                    print('{} Traceback:{}'.format(e, ''.join(traceback.format_tb(e.__traceback__))))
                     self.bot.rtm_connect(with_team_state=False)
         else:
-            self.log.error('Connection failed.')
+            print('Connection failed.')
 
     def parse_direct_mention(self, message):
         """Parses user and other text from direct mention"""
@@ -153,7 +149,7 @@ class CAHBot:
             # We're going to skip some players
             skip_idx = msg_split.index('-skip')
             skip_players = msg_split[skip_idx + 1].split(',')
-            self.log.debug('Skipping: {}'.format(', '.join(skip_players)))
+            #self.log.debug('Skipping: {}'.format(', '.join(skip_players)))
         else:
             skip_players = None
 
@@ -175,13 +171,14 @@ class CAHBot:
         players = self._filter_humans(self._get_users_info(self._get_channel_members()))
 
         # Skipping players
-        for player in skip_players:
-            # pop out any player that we don't want to participate
-            if player in [x['display_name'].lower() for x in players]:
-                # Pop them out of the list
-                player_idx = players.index([x for x in players if x['display_name'].lower() == player][0])
-                _ = players.pop(player_idx)
-                self.message_grp('Skipping: *{display_name}*'.format(**_))
+        if skip_players is not None:
+            for player in skip_players:
+                # pop out any player that we don't want to participate
+                if player in [x['display_name'].lower() for x in players]:
+                    # Pop them out of the list
+                    player_idx = players.index([x for x in players if x['display_name'].lower() == player][0])
+                    _ = players.pop(player_idx)
+                    self.message_grp('Skipping: *{display_name}*'.format(**_))
 
         shuffle(players)
         self.message_grp('Judge order: {}'.format(' -> '.join([x['display_name'] for x in players])))
@@ -243,7 +240,7 @@ class CAHBot:
             self.message_grp('Using the *{}* set.'.format(set_type))
         else:
             self.message_grp('The card set "{}" was not found.'.format(set_type))
-            self.log.error('Card set "{}" not found in folder.'.format(set_type))
+            #self.log.error('Card set "{}" not found in folder.'.format(set_type))
             return None
 
         cards = {}
@@ -280,7 +277,13 @@ class CAHBot:
         self._private_channel_message(judge['id'], 'cah', "You're the judge this round!")
         white_cards = self.game_dict['remaining_white']
         black_cards = self.game_dict['remaining_black']
-        current_black = black_cards.pop(0)
+
+        if len(black_cards) == 0:
+            self.message_grp('No more black cards! Game over!')
+            self.display_points()
+            self.end_game()
+        else:
+            current_black = black_cards.pop(0)
 
         self.message_grp('Distributing cards...')
 
@@ -288,22 +291,26 @@ class CAHBot:
         for i, player in enumerate(players):
             # Remove any possible pick from last round
             _ = player.pop('pick', None)
-            cards = white_cards[:num_cards]
-            white_cards = white_cards[num_cards:]
-            if replace_all:
-                player['cards'] = cards
-            else:
-                if 'prev_judge' in self.game_dict:
-                    # If the player was previously a judge, don't give them another card
-                    #   because they didn't play last round
-                    if self.game_dict['prev_judge'] != player:
-                        player['cards'] += cards
+            if len(white_cards) > 0:
+                cards = white_cards[:num_cards]
+                white_cards = white_cards[num_cards:]
+                if replace_all:
+                    player['cards'] = cards
                 else:
-                    player['cards'] += cards
-            if player != self.game_dict['judge']:
-                # Only send these to a player during this round
-                self._distribute_cards(player)
-            players[i] = player
+                    if 'prev_judge' in self.game_dict:
+                        # If the player was previously a judge, don't give them another card
+                        #   because they didn't play last round
+                        if self.game_dict['prev_judge'] != player:
+                            player['cards'] += cards
+                    else:
+                        player['cards'] += cards
+                if player != self.game_dict['judge']:
+                    # Only send these to a player during this round
+                    self._distribute_cards(player)
+                players[i] = player
+            else:
+                self.message_grp('No more cards left to deal!')
+                break
 
         # Show group this round's question
         self.message_grp("Q: `{}`".format(current_black))
@@ -370,6 +377,9 @@ class CAHBot:
 
         msg_txt = 'Here are your cards:\n{}'.format('\n'.join(cards_msg))
         self._private_channel_message(user_dict['id'], 'cah', msg_txt)
+        msg_txt2 = "Psst - In case you didn't get the cards in the channel, here they are. " \
+                   "*Reply in #cah though.*\n\n{}".format(msg_txt)
+        self._private_message(user_dict['id'], msg_txt2)
 
     def process_picks(self, user, message):
         """Processes the card selection made by the user"""
@@ -480,9 +490,11 @@ class CAHBot:
                          "`remaining black cards`: {}".format(num_white, num_black, **self.game_dict)
         self.message_grp(status_message)
 
+
 cbot = CAHBot()
 
 try:
+    print('Running')
     cbot.run_rtm()
 except KeyboardInterrupt:
     cbot.message_grp('Shutting down...')
