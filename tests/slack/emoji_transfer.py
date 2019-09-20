@@ -18,7 +18,7 @@ too = SlackTools(too_name, too_token)
 # Make list of exact matches
 exact_emojis = ['po', 'ta', 'toes']
 # list of fuzzy matches
-fuzzy = '.*(pride).*'
+fuzzy = '.*'
 
 # Collect from workspace
 collected = too.match_emojis(exact_emojis, fuzzy)
@@ -32,6 +32,6 @@ too.download_emojis(missing_emojis, moji_dir)
 
 # Upload emojis in folder
 #   For large uploads, 5s wait is better
-okr.upload_emojis(moji_dir, announce=True, wait_s=0.5)
+okr.upload_emojis(moji_dir, announce=True, wait_s=5)
 
 okr.build_phrase("This is a test. I'll try this? Maybe add some excitement! And then say \"Hello\".")
