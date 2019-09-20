@@ -10,12 +10,27 @@ class GIF:
         self.pil = __import__('PIL', fromlist=['Image'])
         self.Image = self.pil.Image
 
-    def spin(self, filepath, frame_duration_ms=100):
+    def spin(self, new_name, filepath, intensity=1, clockwise=False, frame_duration_ms=100):
         """Converts image to spinning gif"""
-        # TODO
-        pass
+        # Constants
+        # Base degrees to rotate
+        DEG_CONST = 10
+        ORIENTATION = -1 if clockwise else 1
 
-    def intensifies(self, filepath, intensity=1,frame_duration_ms=100):
+        img = self.Image.open(filepath)
+        img = self.make_transparent(img, background='black')
+        img_list = [img]
+
+        rotate_deg = 0
+        while rotate_deg < 360:
+            rotate_deg += (DEG_CONST * intensity)
+            new_img = img.rotate(rotate_deg * ORIENTATION)
+            new_img = self.make_transparent(new_img, background='black')
+            img_list.append(new_img)
+
+        self._save_imgs_to_gif(new_name, img_list, frame_duration_ms)
+
+    def intensifies(self, filepath, intensity=1, frame_duration_ms=100):
         """Converts image to shaky gif"""
         # TODO
         pass
@@ -24,6 +39,40 @@ class GIF:
         """Converts an image into multiple colored frames"""
         # TODO
         pass
+
+    def make_transparent(self, img, background='white'):
+        """Makes an image (or frame) transparent by eliminating the white background"""
+
+        img = img.convert("RGBA")
+        datas = img.getdata()
+
+        if background == 'white':
+            val = 255
+
+        newData = []
+        for item in datas:
+            if all([x == 255 for x in item[:3]]):
+                newData.append((255, 255, 255, 0))
+            else:
+                if item[0] > 150:
+                    newData.append((0, 0, 0, 255))
+                else:
+                    newData.append(item)
+
+        img.putdata(newData)
+
+        return img
+
+    def _save_imgs_to_gif(self, filename, img_list, frame_duration_ms=100):
+        """Saves images to gif
+
+        Args:
+            filename: str, filename to save the gif
+            img_list: list of PIL.Image objs
+            frame_duration_ms: int, the number of milliseconds per frame
+        """
+        img_list[0].save(filename, 'gif', save_all=True, append_images=img_list[1:],
+                         duration=frame_duration_ms, loop=0)
 
     def make_gif(self, filename, img_list, frame_duration_ms=100, ):
         """Makes a gif from a list of images, sorted alphabetically
@@ -37,8 +86,8 @@ class GIF:
         for fpath in img_list_sorted:
             images.append(self.Image.open(fpath))
 
-        images[0].save(filename, 'gif', save_all=True, append_images=images[1:],
-                       duration=frame_duration_ms, loop=0)
+        self._save_imgs_to_gif(filename, img_list, frame_duration_ms)
+
 
 class GIFSlice:
     """Slices a gif into squares of determined size"""
@@ -220,3 +269,8 @@ class GIFTile(object):
                                             os.path.basename(self.filename))
         return '<Tile #{}>'.format(self.number)
 
+ddir = os.path.join(os.path.expanduser('~'), *['Downloads', 'mojis'])
+imgpath = os.path.join(ddir, 'uwu.png')
+
+g = GIF()
+g.spin(os.path.join(ddir, 'oof.gif'), imgpath, intensity=3, clockwise=True, frame_duration_ms=20)
