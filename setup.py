@@ -11,25 +11,19 @@ from setuptools import setup, find_packages
 here_dir = os.path.abspath(os.path.dirname(__file__))
 init_fp = os.path.join(here_dir, *['kavalkilu', '__init__.py'])
 
-setup_args = {
-    'name': 'kavalkilu',
-    'version': versioneer.get_version(),
-    'cmdclass': versioneer.get_cmdclass(),
-    'license': 'MIT',
-    'description': 'A Library for Integrating Home Automation Components',
-    'url': 'https://github.com/barretobrock/kavalkilu',
-    'author': 'Barret Obrock',
-    'author_email': 'barret@barretobrock.ee',
-    'packages': find_packages(),
-    'install_requires': [
-        # Raspberry Pi - specific
-        'Adafruit_DHT;platform_machine=="arm"',
-        'picamera;platform_machine=="arm"',
-        # x86_64 - specific (laptop / server)
-        'daemonize;platform_machine=="x86_64"',
-        'markovify;platform_machine=="x86_64"',
-        'image_slicer;platform_machine=="x86_64"',
-        # All platforms
+# Package Requirements
+packages = {
+    'pi-only': [
+        'Adafruit_DHT',
+        'picamera'
+    ],
+    'server-only': [
+        'daemonize',
+        'markovify',
+        'image_slicer',
+        'versioneer'
+    ],
+    'all-platforms': [
         'amcrest',
         'beautifulsoup4',
         'paramiko',
@@ -43,6 +37,31 @@ setup_args = {
         'sqlalchemy',
         'tabulate',
     ]
+}
+
+# Build out the installation requirements
+install_packages = []
+for k, v in packages.items():
+    if k == 'pi-only':
+        # Raspberry Pi Only packages
+        install_packages += ['{};platform_machine=="arm"'.format(x) for x in v]
+    elif k == 'server-only':
+        # Laptop / Server / Dev environment only packages
+        install_packages += ['{};platform_machine=="x86_64"'.format(x) for x in v]
+    else:
+        install_packages += v
+
+setup_args = {
+    'name': 'kavalkilu',
+    'version': versioneer.get_version(),
+    'cmdclass': versioneer.get_cmdclass(),
+    'license': 'MIT',
+    'description': 'A Library for Integrating Home Automation Components',
+    'url': 'https://github.com/barretobrock/kavalkilu',
+    'author': 'Barret Obrock',
+    'author_email': 'barret@barretobrock.ee',
+    'packages': find_packages(),
+    'install_requires': install_packages
 }
 
 setup(**setup_args)

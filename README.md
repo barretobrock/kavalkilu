@@ -50,7 +50,7 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     `tail -f /var/log/syslog`
 ### raspi
  - ssh slow to respond
-    `echo "IPQoS 0x00" >> /etc/ssh/sshd_config`
+    `echo "IPQoS 0x00" | sudo tee -a /etc/ssh/sshd_config`
 
 ## Tips
  - TBA!
