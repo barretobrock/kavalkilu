@@ -268,9 +268,3 @@ class GIFTile(object):
             return '<Tile #{} - {}>'.format(self.number,
                                             os.path.basename(self.filename))
         return '<Tile #{}>'.format(self.number)
-
-ddir = os.path.join(os.path.expanduser('~'), *['Downloads', 'mojis'])
-imgpath = os.path.join(ddir, 'uwu.png')
-
-g = GIF()
-g.spin(os.path.join(ddir, 'oof.gif'), imgpath, intensity=3, clockwise=True, frame_duration_ms=20)
