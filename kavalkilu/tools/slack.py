@@ -36,7 +36,6 @@ class SlackBot:
         - `wink wink`
         - `bruh`
         - `access <literally-anything-else>`
-        - `no... thank you...`
     *Useful commands:*
         - `garage`: current snapshot of garage
         - `garage door status`: whether or not the door is open
@@ -47,13 +46,14 @@ class SlackBot:
         - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
         - `emojis like <regex-pattern>`: get emojis matching the regex pattern
         - `(make sentences|ms) <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
-        - `acro-guess <acronym> [-f]`: there are a lot of acronyms at work. this tries to guess what it means.
-        - `insult me`: generates an insult just for you
+        - `acro-guess <acronym> [-f|-i]`: there are a lot of acronyms at work. this tries to guess what it means.
+        - `insult <thing|person>`: generates an insult
+        - `quote me <thing-to-quote>`: turns your phrase into letter emojis
     """
 
     commands = {
         'speak': 'woof',
-        'good bot': 'thanks!',
+        'good bot': 'thanks <@{user}>!',
         'hello': 'Hi <@{user}>!',
         'thanks': 'No, thank you!',
         'no, thank you': 'No, no, thank you!',
@@ -78,6 +78,7 @@ class SlackBot:
         self.kodubot_id = None
         self.RTM_READ_DELAY = 1
         self.MENTION_REGEX = "^(<@(|[WU].+?)>|[vV]!)(.*)"
+        self.st = SlackTools()
 
     def run_rtm(self):
         """Initiate real-time messaging"""
@@ -185,8 +186,8 @@ class SlackBot:
                 response = 'I tried that and got an error: ```{}```'.format(e)
         elif message.startswith('acro-guess'):
             response = self.guess_acronym(message)
-        elif message.startswith('insult me'):
-            response = self.insult()
+        elif message.startswith('insult'):
+            response = self.insult(message)
         elif message.startswith('emojis like'):
             response = self.get_emojis_like(message)
         elif message.startswith('lights'):
@@ -195,10 +196,13 @@ class SlackBot:
                 response = self.sarcastic_reponses[randint(0, len(self.sarcastic_reponses) - 1)]
             else:
                 response = self.light_actions(message)
-        elif message.startswith('no') and 'thank you' in message:
+        elif message.startswith('no') and any([x in message for x in ['thank you', 'thanks', 'tanks']]):
             response = self.overly_polite(message)
         elif message.startswith('access'):
             response = ''.join([':ah-ah-ah:'] * randint(5, 50))
+        elif message.startswith('quote me'):
+            msg = message[len('quote me'):].strip()
+            response = self.st.build_phrase(msg)
         elif message != '':
             response = "I didn't understand this: `{}`\n " \
                        "Use `v!help` to get a list of my commands.".format(message)
@@ -210,18 +214,22 @@ class SlackBot:
             self.send_message(channel, response.format(**resp_dict))
 
     def get_channel_members(self, channel, humans_only=False):
-        """Collect members of a particular channel"""
+        """Collect members of a particular channel
+        Args:
+            channel: str, the channel to examine
+            humans_only: bool, if True, will only return non-bots in the channel
+        """
         resp = self.bot.api_call(
             'conversations.members',
             channel=channel
         )
         if resp['ok']:
             users = resp['members']
+            target_data = ['id', 'name', 'real_name', 'is_bot']
+            users = [{x: user[x] for x in target_data} for user in self.get_users_info(users)]
+
             if humans_only:
-                humans = []
-                for user in users:
-                    if not user['is_bot']:
-                        humans.append(user)
+                humans = [user for user in users if not user['is_bot']]
                 return humans
             else:
                 return users
@@ -373,7 +381,9 @@ class SlackBot:
 
         res_df = res_df.reset_index()
         res_df = res_df.rename(columns={'index': 'user'})
-        res_df['user'] = res_df['user'].apply(lambda x: '<@{}>'.format(x))
+        user_names = pd.DataFrame(self.get_users_info(res_df['user'].tolist()))[['id', 'name']]
+        res_df = res_df.merge(user_names, left_on='user', right_on='id', how='left').drop(['user', 'id'], axis=1)
+        res_df = res_df[['real_name', 'total_messages', 'avg_msg_len']]
         res_df['total_messages'] = res_df['total_messages'].astype(int)
         res_df['avg_msg_len'] = res_df['avg_msg_len'].round(1)
         res_df = res_df.sort_values('total_messages', ascending=False)
@@ -650,6 +660,8 @@ class SlackBot:
         if len(message_split) > 2:
             if message_split[2] == '-f':
                 file = 'en_nsfw.txt'
+            elif message_split[2] == '-i':
+                file = 'indeed_words.txt'
 
         # Load the massive list of words
         with open(os.path.join(os.path.expanduser('~'), *['Downloads', file])) as f:
@@ -677,9 +689,13 @@ class SlackBot:
 
         return ':okily-dokily: Here are my guesses for *{}*!\n {}'.format(acronym, '\n_OR_\n'.join(guesses))
 
-    def insult(self):
+    def insult(self, message):
         """Insults the user at their request"""
-
+        message_split = message.split()
+        if len(message_split) <= 1:
+            response = "I can't work like this! I need something to insult!!:ragetype:"
+            return response
+        target = message_split[1]
         f_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
         insults = []
         # Load the insults
@@ -687,8 +703,10 @@ class SlackBot:
             with open(os.path.join(f_dir, 'insults_{}.txt'.format(part))) as f:
                 insult_list = [x.replace('\n', '') for x in f.readlines()]
             insults.append(insult_list[randint(0, len(insult_list) - 1)])
-
-        return "You're nothing but a {}".format(' '.join(insults))
+        if target == 'me':
+            return "You're nothing but a {}".format(' '.join(insults))
+        else:
+            return "That there {} is a no good, {}".format(target, ' '.join(insults))
 
     def overly_polite(self, message):
         """Responds to 'no, thank you' with an extra 'no' """
@@ -935,16 +953,20 @@ class SlackTools:
 
         # Additional, irregular entries
         addl = {
-            'a': ['amazon', 'a'],
+            'a': ['amazon', 'a', 'slayer_a', 'a_'],
             'b': ['b'],
+            'e': ['slayer_e'],
+            'l': ['slayer_l'],
             'm': ['m'],
             'o': ['o'],
-            's': ['s'],
+            'r': ['slayer_r'],
+            's': ['s', 'slayer_s'],
             'x': ['x'],
+            'y': ['slayer_y'],
             'z': ['zabbix'],
-            '.': ['dotdotdot-intensifies'],
-            '!': ['exclamation', 'heavy_heart_exclamation_mark_ornament'],
-            '?': ['question'],
+            '.': ['dotdotdot-intensifies', 'period'],
+            '!': ['exclamation', 'heavy_heart_exclamation_mark_ornament', 'grey_exclamation'],
+            '?': ['question', 'grey_question', 'questionman', 'question_block'],
             '"': ['airquotes-start', 'airquotes-end'],
             "'": ['airquotes-start', 'airquotes-end'],
         }
