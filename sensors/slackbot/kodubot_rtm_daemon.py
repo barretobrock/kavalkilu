@@ -20,15 +20,12 @@ if __name__ == "__main__":
             daemon.start()
         elif 'stop' == cmd:
             s.send_message('notifications', 'Shutting down for now! :sleepyparrot:')
-            log.debug('Exiting daemon')
-            daemon.exit()
             log.debug('Checking for existing instances')
             kodubot_pids = st.get_pids('kodubot_rtm_daemon')
             if len(kodubot_pids) > 0:
                 for pid in kodubot_pids:
                     log.info('Killing pid: {}'.format(pid))
                     st.kill_pid(pid)
-
         else:
             print("Unknown command: {}".format(cmd))
             sys.exit(2)

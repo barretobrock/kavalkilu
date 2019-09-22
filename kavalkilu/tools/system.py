@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Everything to record system-related stats"""
 import subprocess
+from subprocess import check_output, CalledProcessError
 import psutil
-from subprocess import check_output
 
 
 class SysTools:
@@ -16,8 +16,8 @@ class SysTools:
     def get_pids(self, process_name):
         """Get the process id of the process matching the pattern provided"""
         try:
-            res = check_output(['pgrep', '-f', process_name]).split()
-        except subprocess.CalledProcessError:
+            res = check_output(['pgrep', '-f', process_name])
+        except CalledProcessError:
             # Likely no processes found
             return []
 
@@ -30,8 +30,8 @@ class SysTools:
     def kill_pid(self, pid):
         """Kills process with certain pid"""
         if psutil.pid_exists(pid):
-            print('PID of {} found. Terminating'.format(pid))
+            print('PID {} found. Terminating'.format(pid))
             p = psutil.Process(pid)
             p.terminate()
         else:
-            print('PID of {} was not found.'.format(pid))
+            print('PID {} was not found.'.format(pid))
