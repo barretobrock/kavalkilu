@@ -382,7 +382,7 @@ class SlackBot:
 
         res_df = res_df.reset_index()
         res_df = res_df.rename(columns={'index': 'user'})
-        user_names = pd.DataFrame(self.get_users_info(res_df['user'].tolist()))[['id', 'name']]
+        user_names = pd.DataFrame(self.get_users_info(res_df['user'].tolist()))[['id', 'real_name']]
         res_df = res_df.merge(user_names, left_on='user', right_on='id', how='left').drop(['user', 'id'], axis=1)
         res_df = res_df[['real_name', 'total_messages', 'avg_msg_len']]
         res_df['total_messages'] = res_df['total_messages'].astype(int)
