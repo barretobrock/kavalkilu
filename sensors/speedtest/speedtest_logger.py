@@ -7,7 +7,7 @@ from kavalkilu.tools import Log, Paths
 
 
 p = Paths()
-logg = Log('speedtest.logger', 'speedtest')
+logg = Log('speedtest.logger', 'speedtest', log_lvl='INFO')
 logg.debug('Logging initiated')
 
 # Load previous data

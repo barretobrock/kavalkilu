@@ -7,7 +7,7 @@ from kavalkilu import Paths, MySQLLocal, Log
 
 
 # Initiate logging
-log = Log('speedtest_mysql', log_lvl='DEBUG')
+log = Log('speedtest_mysql', log_lvl='INFO')
 log.debug('Logging initiated')
 p = Paths()
 filepath = os.path.join(os.path.abspath(p.data_dir), 'speedtest_data.csv')

@@ -6,7 +6,7 @@ from kavalkilu import SecCamGroup, Keys, Log, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('motion_toggle', log_lvl='DEBUG')
+log = Log('cam_active', log_lvl='INFO')
 log.debug('Logging initiated')
 
 cred = Keys().get_key('webcam_api')

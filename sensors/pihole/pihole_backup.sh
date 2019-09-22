@@ -6,7 +6,7 @@
 # Set logging things
 declare -A levels=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
 log_name="pihole_backup"
-script_logging_level="DEBUG"
+script_logging_level="INFO"
 
 logThis() {
     local log_message=$1

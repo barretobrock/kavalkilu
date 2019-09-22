@@ -5,7 +5,7 @@ from kavalkilu.tools.databases import MySQLLocal
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('pihole_db_shortterm', 'pihole_db', log_lvl='DEBUG')
+log = Log('pihole_db_shortterm', 'pihole_db', log_lvl='INFO')
 log.debug('Logging initiated')
 
 # Number of days to go back

@@ -9,7 +9,7 @@ from kavalkilu import Paths, Log, MySQLLocal, NetTools, Hosts
 
 
 # Initiate logging (META!)
-log = Log('log_collector', log_lvl='DEBUG')
+log = Log('log_collector', log_lvl='INFO')
 log.debug('Logging initiated.')
 
 

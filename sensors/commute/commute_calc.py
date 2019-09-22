@@ -194,7 +194,7 @@ ymdfmt = '%Y-%m-%d %H:%M:%S'
 p = Paths()
 k = Keys()
 
-logg = Log('commute_calculator', 'commute', log_lvl="DEBUG")
+logg = Log('commute_calculator', 'commute', log_lvl="INFO")
 logg.debug('Log initiated')
 
 client_secret_path = k.get_key('client_secret')

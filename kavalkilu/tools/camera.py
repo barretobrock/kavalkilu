@@ -8,10 +8,6 @@ from requests.auth import HTTPDigestAuth
 from .net import Hosts
 
 
-class YiCam:
-    pass
-
-
 class Amcrest:
     """Amcrest camera-related methods"""
     def __init__(self, ip, creds, port=80, name='camera'):

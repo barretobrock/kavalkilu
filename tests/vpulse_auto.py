@@ -6,7 +6,7 @@ from collections import OrderedDict
 from kavalkilu import Log, Keys, BrowserAction
 
 
-logg = Log('vpulse_auto', log_lvl='DEBUG')
+logg = Log('vpulse_auto', log_lvl='INFO')
 
 # TODO
 # build out a table of when monthly, weekly things were last done.

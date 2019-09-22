@@ -7,7 +7,7 @@ from kavalkilu import Paths, Log
 
 
 # Initiate logging (META!)
-log = Log('log_collector', log_lvl='DEBUG')
+log = Log('log_remover', log_lvl='INFO')
 log.debug('Logging initiated.')
 
 p = Paths()
