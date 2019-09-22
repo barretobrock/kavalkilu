@@ -6,7 +6,7 @@ Kavalkilu: A Library for Integrating Home Automation Components
 __update_date__ = '2019-08-21'
 
 # camera.py
-from .tools import Amcrest, AmcrestGroup, AmcrestWeb, Camera
+from .tools import Amcrest, SecCamGroup, AmcrestWeb, Camera
 # databases.py
 from .tools import MySQLLocal, PiHoleDB, CSVHelper
 # date.py

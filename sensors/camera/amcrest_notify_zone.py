@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. If not, will arm the cameras"""
 import os
-from kavalkilu import AmcrestGroup, Keys, Log, Hosts
+from kavalkilu import SecCamGroup, Keys, Log, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -18,7 +18,7 @@ for ip in [i['ip'] for i in Hosts().get_hosts('an_[bm]a.*')]:
     res_list.append(True if resp == 0 else False)
 
 # Instantiate all cameras
-agroup = AmcrestGroup(cred, log)
+agroup = SecCamGroup(cred, log)
 
 if any(res_list):
     log.debug('One of two devices are currently in the network. Disabling motion detection.')
