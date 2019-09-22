@@ -78,7 +78,8 @@ class SlackBot:
         self.kodubot_id = None
         self.RTM_READ_DELAY = 1
         self.MENTION_REGEX = "^(<@(|[WU].+?)>|[vV]!)(.*)"
-        self.st = SlackTools()
+        team_name = Keys().get_key('okr-name')
+        self.st = SlackTools(team_name, user_token)
 
     def run_rtm(self):
         """Initiate real-time messaging"""
