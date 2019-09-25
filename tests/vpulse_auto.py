@@ -3,10 +3,11 @@
 import time
 from datetime import datetime as dtt
 from collections import OrderedDict
-from kavalkilu import Log, Keys, BrowserAction
+from kavalkilu import Log, Keys, BrowserAction, SlackBot
 
 
 logg = Log('vpulse_auto', log_lvl='INFO')
+sb = SlackBot()
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
@@ -15,10 +16,9 @@ logg = Log('vpulse_auto', log_lvl='INFO')
 # Get credentials
 creds = Keys().get_key('vpulse_creds')
 
-today = dtt.today()
-ba = BrowserAction('chrome', headless=True)
-logg.debug('Chrome instantiated.')
 
+def notify_channel(msg):
+    sb.send_message('notifications', msg)
 
 def popup_closer():
     # Try to find the popup close button
@@ -208,6 +208,11 @@ def whil_session():
     time.sleep(310)
 
 
+notify_channel('Vpulse script booted up')
+today = dtt.today()
+ba = BrowserAction('chrome', headless=True)
+logg.debug('Chrome instantiated.')
+
 vpulse_home_url = 'https://member.virginpulse.com/'
 ba.get(vpulse_home_url)
 ba.medium_wait()
@@ -233,7 +238,10 @@ for task_name, task in tasks_dict.items():
     logg.debug('Beginning {} section.'.format(task_name))
     try:
         task()
+        notify_channel('Competed section: {}'.format(task_name))
     except Exception as e:
         logg.error('An error occurred: {}'.format(e))
+        notify_channel('Error occurred in section: {}'.format(task_name))
 
 logg.debug('Script complete. Quitting instance.')
+notify_channel('Competed script.')
