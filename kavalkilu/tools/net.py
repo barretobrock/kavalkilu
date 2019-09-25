@@ -101,7 +101,7 @@ class Keys:
                 keys = item['keys']
                 if isinstance(keys, str):
                     # Remove extra whitespace if returning only string
-                    return keys.split()
+                    return keys.strip()
                 else:
                     return item['keys']
         # If we arrived here, the key wasn't found
