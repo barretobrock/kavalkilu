@@ -6,6 +6,7 @@ General log setup file.
 import os
 import sys
 import logging
+import argparse
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime as dt
 
@@ -101,5 +102,14 @@ class Log:
             self.close()
         except:
             pass
+
+
+class LogArgParser:
+    """Simple class for carrying over standard argparse routines to set log level"""
+    def __init__(self):
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-lvl', action='store', default='INFO')
+        self.args = self.parser.parse_args()
+        self.loglvl = self.args.lvl
 
 

@@ -8,7 +8,7 @@ from .gif import GIF, GIFSlice, GIFTile
 from .gpio import GPIO
 from .image import IMG, IMGSlice
 from .light import HueBulb, LED, hue_lights
-from .log import Log
+from .log import Log, LogArgParser
 from .message import PBullet, Email
 from .net import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
 from .openhab import OpenHab

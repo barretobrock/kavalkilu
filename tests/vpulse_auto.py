@@ -3,10 +3,10 @@
 import time
 from datetime import datetime as dtt
 from collections import OrderedDict
-from kavalkilu import Log, Keys, BrowserAction, SlackBot
+from kavalkilu import Log, LogArgParser, Keys, BrowserAction, SlackBot
 
 
-logg = Log('vpulse_auto', log_lvl='INFO')
+logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
 sb = SlackBot()
 
 # TODO

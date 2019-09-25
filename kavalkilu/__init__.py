@@ -22,7 +22,7 @@ from .tools import IMG, IMGSlice
 # light.py
 from .tools import HueBulb, LED, hue_lights
 # log.py
-from .tools import Log
+from .tools import Log, LogArgParser
 # message.py
 from .tools import PBullet, Email
 # net.py
