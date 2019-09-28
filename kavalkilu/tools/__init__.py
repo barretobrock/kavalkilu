@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from .camera import Amcrest, SecCamGroup, AmcrestWeb, Camera
+from .camera import Amcrest, SecCamGroup, AmcrestWeb, PiCamera
 from .databases import MySQLLocal, PiHoleDB, CSVHelper
 from .date import DateTools
 from .domoticz import Domoticz

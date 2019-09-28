@@ -16,6 +16,7 @@ packages = {
     'pi-only': [
         'Adafruit_DHT',
         'picamera'
+        'rpi-rf'
     ],
     'server-only': [
         'daemonize',

@@ -1,5 +1,6 @@
 # kavalkilu
-Some updated scripts for personal use throughout various personal projects (mostly Raspberry Pi-centric)
+Some updated scripts for personal use throughout various personal projects (mostly Raspberry Pi-centric).
+The main focus of these scripts is in home automation, but more precisely it's a little bit of everything.
 
 ## Installation
 ```bash
@@ -12,14 +13,9 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 ```
 
 ## Testing
- - First, tag the commit
-    ```bash
-    git tag -a qa -m "KILU-1: QA Testing"
-    ```
- - Then, install
-    ```bash
-    sudo pip3 install -e git+https://github.com/barretobrock/kavalkilu.git@qa#egg=kavalkilu_qa
-    ```
+ 1. Commits on the `develop` branch
+ 2. `checkout` the develop branch, perform tests.
+ 3. `merge` `develop` with `master` (asuming all went well.)
 
 ## Setup
 ### Raspberry Pi
@@ -38,13 +34,26 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     - change pw, set network, locale, enable ssh
  - Edit .bashrc to enforce locale changes
     `echo -e "\nLC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8\nLANGUAGE=en_US.UTF-8" | tee -a sudo nano .bashrc`
+### Environment Setup with Script
+_Note: This is to prepare a Raspberry Pi device for installation of this package. This is now to supplement the requirements put in the `setup.py` file._ 
+
+ - Install git and others
+    ```bash
+    # Install support components
+    sudo apt-get install git git-core python3-pip python3-dev python3-pandas python3-mysqldb python3-rpi.gpio
+    # Make directories for storing things
+    mkdir data keys logs extras
+    # Add in kavalkilu repo
+    git clone https://github.com/barretobrock/kavalkilu.git
+    ```
+
 
 ## Troubleshooting
 ### git
  - After git account setup, still prompting for passphrase
     `ssh-add ~/.ssh/id_rsa`
 ### python
- - 
+ - TBD
 ### crontab
  - Debugging from crontab
     `tail -f /var/log/syslog`
@@ -57,6 +66,7 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 
 ## Future Development & Testing
 ### Porting SSH & Wifi Configurations straight from SD card after writing
+_Note: This was tested and failed to produce results. Will be revisited at some point._
  - card in `/media/${USER}`
  - add `/boot/wpa_supplicant.conf`:
     - setup:
@@ -71,9 +81,11 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
         key_mgmt=WPA-PSK
     }
     ```
+ - add "IPQoS 0x00" to /etc/ssh/sshd_config (if possible)
  - add `/boot/ssh`
      - empty file    
 ### Saving configs from one card & duplicating to others
+_Note: This might be abandoned, as writing to the card writes the entire card, regardless of empty space._
  - Save a compressed img from the SD card for easier distribution among all RasPis
     `sudo dd if=/dev/mmcblk0 bs=32M status=progress | gzip -c > ~/Documents/distros/2019-08-18-raspi-with-config.img.gz`
  - When duplicating to another card, use this:
@@ -81,6 +93,7 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
  
 ### Environment Setup With Docker
 #### Docker Install
+_Note: This was a good idea, but a road block in this is that it was difficult to get RasPi components to communicate "out of the box" with the docker instance_
  - install some dependencies
     ```bash
     sudo apt get update
@@ -116,21 +129,5 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
     docker login
     ```
 
-### Environment Setup with Script
-    __Note: 
-        This is to prepare a Raspberry Pi device for installation of this package. 
-        This is mildly different from a requirements.txt file.__ 
-
- - Install git and others
-    ```bash
-    # Install support components
-    sudo apt-get install git git-core python3-pip python3-dev python3-pandas python3-mysqldb python3-rpi.gpio
-    # Install packages
-    sudo pip3 install Adafruit_DHT sqlalchemy selenium
-    # Make directories for storing things
-    mkdir data keys logs extras
-    # Add in kavalkilu repo
-    git clone https://github.com/barretobrock/kavalkilu.git
-    ```
 
 

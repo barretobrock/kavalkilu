@@ -46,7 +46,7 @@ class SecCamGroup:
     def __init__(self, creds, log):
         self.creds = creds
         self.log = log
-        cams = Hosts().get_host('(ac|yi)_.*')
+        cams = Hosts().get_hosts('ac_.*')
         camera_dict = {}
         for cam in cams:
             camera_dict[cam['name']] = {
@@ -66,7 +66,8 @@ class SecCamGroup:
                 if vals['type'] == 'amcrest':
                     cam = Amcrest(vals['ip'], self.creds, name=name)
                 elif vals['type'] == 'yi':
-                    cam = Amcrest(vals['ip'], self.creds, name=name)
+                    # Placeholder until I can find out what to do with these.
+                    pass
             except Exception as e:
                 self.log.error('Exception occurred with connection to camera named "{}". '
                                'Skipping. More info: {}'.format(name, e))
@@ -249,7 +250,7 @@ class AmcrestWeb:
         self.ba.driver.quit()
 
 
-class Camera:
+class PiCamera:
     def __init__(self):
         picamera = __import__('picamera')
         self.PiCamera = picamera.PiCamera
