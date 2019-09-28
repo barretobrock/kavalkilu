@@ -62,7 +62,7 @@ setup_args = {
     'url': 'https://github.com/barretobrock/kavalkilu',
     'author': 'Barret Obrock',
     'author_email': 'barret@barretobrock.ee',
-    'packages': find_packages(),
+    'packages': find_packages(exclude=['tests']),
     'install_requires': install_packages
 }
 
