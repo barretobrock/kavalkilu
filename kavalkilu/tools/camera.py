@@ -1,7 +1,6 @@
 """Camera-related procedures"""
 import datetime
 import os
-import re
 import amcrest
 import requests
 from requests.auth import HTTPDigestAuth
