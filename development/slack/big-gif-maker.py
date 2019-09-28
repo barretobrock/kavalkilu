@@ -4,10 +4,10 @@ import os
 from kavalkilu import SlackTools, GIFSlice, Keys
 
 
-fpath = os.path.join(os.path.expanduser('~'), *['Downloads', 'make-big', 'big-lol.gif'])
+fpath = os.path.join(os.path.expanduser('~'), *['Downloads', 'make-big', 'ahhhhlmao.gif'])
 
 g = GIFSlice()
-imgs = g.slice(fpath, 100)
+imgs = g.slice(fpath, 50)
 
 i = g.arrange_imgs(imgs)
 print(i)
