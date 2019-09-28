@@ -20,6 +20,7 @@ creds = Keys().get_key('vpulse_creds')
 def notify_channel(msg):
     sb.send_message('notifications', msg)
 
+
 def popup_closer():
     # Try to find the popup close button
     try:
