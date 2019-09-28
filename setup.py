@@ -15,7 +15,7 @@ init_fp = os.path.join(here_dir, *['kavalkilu', '__init__.py'])
 packages = {
     'pi-only': [
         'Adafruit_DHT',
-        'picamera'
+        'picamera',
         'rpi-rf'
     ],
     'server-only': [
@@ -37,6 +37,7 @@ packages = {
         'slackclient==1.3.1',
         'sqlalchemy',
         'tabulate',
+        'pytest'
     ]
 }
 
