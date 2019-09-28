@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # Run this script after committing
+# Example use
+# Patch
+#   sh push_changes.sh
+# Minor update
+#   sh push_changes.sh minor
 
 LEVEL=${1:-patch}
 
