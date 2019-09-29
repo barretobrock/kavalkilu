@@ -22,7 +22,6 @@ packages = {
         'daemonize',
         'markovify',
         'image_slicer',
-        'versioneer'
     ],
     'all-platforms': [
         'amcrest',
