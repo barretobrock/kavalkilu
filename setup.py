@@ -45,7 +45,7 @@ install_packages = []
 for k, v in packages.items():
     if k == 'pi-only':
         # Raspberry Pi Only packages
-        install_packages += ['{};platform_machine=="arm"'.format(x) for x in v]
+        install_packages += ['{};platform_machine=="arm" or platform_machine=="armv6l"'.format(x) for x in v]
     elif k == 'server-only':
         # Laptop / Server / Dev environment only packages
         install_packages += ['{};platform_machine=="x86_64"'.format(x) for x in v]
