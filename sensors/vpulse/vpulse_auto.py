@@ -239,7 +239,7 @@ for task_name, task in tasks_dict.items():
     logg.debug('Beginning {} section.'.format(task_name))
     try:
         task()
-        notify_channel('Competed section: {}'.format(task_name))
+        notify_channel('Completed section: {}'.format(task_name))
     except Exception as e:
         logg.error('An error occurred: {}'.format(e))
         notify_channel('Error occurred in section: {}'.format(task_name))
