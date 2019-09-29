@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
-
-# sudo crontab -u root -e
-# -----------------------------
-# Nightly backup of pihole queries
-#0 15 * * * sqlite3 /etc/pihole/pihole-FTL.db ".backup /home/bobrock/data/pihole-FTL.db.backup"
-
-# crontab -e
-# -----------------------------
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
@@ -34,7 +26,7 @@ PY3=/usr/bin/python3
 15 6 * * *          $PY3    $HOME/$SENSORS/slackbot/slack_logger.py
 
 # Vpulse Automation
-40 03 * * * export DISPLAY=:0; python3 ~/kavalkilu/tests/vpulse_auto.py
+40 03 * * * export DISPLAY=:0; python3 $HOME/$SENSORS/vpulse/vpulse_auto.py
 
 # HOSTS API
 @reboot bash $HOME/kavalkilu/apis/hosts/start_service.sh

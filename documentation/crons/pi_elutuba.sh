@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
-# sudo crontab -u root -e
-# -----------------------------
-0 0 * * * /sbin/shutdown -r now
-
-# crontab -e
-# -----------------------------
 # VARIABLES
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
 
+# NIGHTLY REBOOT @23.57
+57 23 * * * root shutdown -r now
 # LOG ANALYSIS
 39 5 * * *       $PY3    $HOME/$SENSORS/log_reader.py
 # SYS DATA COLLECTION
