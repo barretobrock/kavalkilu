@@ -2,9 +2,9 @@
 # Run this script after committing
 # Example use
 # Patch
-#   sh push_changes.sh
+# > sh push_changes.sh
 # Minor update
-#   sh push_changes.sh minor
+# > sh push_changes.sh minor
 
 LEVEL=${1:-patch}
 
@@ -38,7 +38,7 @@ fi
 #create new tag
 NEW_TAG="${VNUM1}.${VNUM2}.${VNUM3}"
 
-echo "Updating ${VERSION} to ${NEW_TAG}"
+read -p "Updating ${VERSION} to ${NEW_TAG}. Mash that Enter key to continue. CTRL+C to halt."
 
 # Get current hash and see if it already has a tag
 GIT_COMMIT=`git rev-parse HEAD`

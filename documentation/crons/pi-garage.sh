@@ -4,8 +4,6 @@
 SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
 
-# NIGHTLY REBOOT @23.57
-57 23 * * * root shutdown -r now
 # LOG ANALYSIS
 13 5 * * *      $PY3    $HOME/$SENSORS/log_reader.py
 # SYS DATA COLLECTION

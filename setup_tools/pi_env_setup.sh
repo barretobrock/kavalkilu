@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# SETUP
+# --------------
+# FILE PATHS
+FUNCTIONS=./setup_tools/general_functions.sh
+
+# Import common functions
+. ${FUNCTIONS} --source-only
+
 # Allow for faster response in SSH
 # Add "IPQoS 0x00" to /etc/ssh/sshd_config
 echo "IPQoS 0x00" | sudo tee -a /etc/ssh/sshd_config
