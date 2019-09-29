@@ -7,7 +7,7 @@ from ..tools.camera import Amcrest, SecCamGroup
 
 class TestAmcrest:
     creds = Keys().get_key('webcam_api')
-    known_ip = Hosts().get_host(name='ac_elutuba')['ip']
+    known_ip = Hosts().get_host(name='ac-elutuba')['ip']
     unknown_ip = '192.168.3.234'
 
     def test_known_init(self):

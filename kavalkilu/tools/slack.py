@@ -395,7 +395,7 @@ class SlackBot:
     def take_garage_pic(self, channel, user):
         """Takes snapshot of garage, sends to Slack channel"""
         # Take a snapshot of the garage
-        garage_cam_ip = Hosts().get_host('ac_garage')['ip']
+        garage_cam_ip = Hosts().get_host('ac-garage')['ip']
         creds = Keys().get_key('webcam_api')
         cam = Amcrest(garage_cam_ip, creds)
         tempfile = '/tmp/garagesnap.jpg'

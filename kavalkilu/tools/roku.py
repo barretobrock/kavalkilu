@@ -11,7 +11,7 @@ class RokuTV(Roku):
     """
     # Set path to roku TV ip
     h = Hosts()
-    tv_ip = h.get_host('ot_roku')['ip']
+    tv_ip = h.get_host('ot-roku')['ip']
 
     # Popular app ids
     NETFLIX = 12

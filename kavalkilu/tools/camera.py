@@ -45,7 +45,7 @@ class SecCamGroup:
     def __init__(self, creds, log):
         self.creds = creds
         self.log = log
-        cams = Hosts().get_hosts('ac_.*')
+        cams = Hosts().get_hosts('ac-.*')
         camera_dict = {}
         for cam in cams:
             camera_dict[cam['name']] = {
