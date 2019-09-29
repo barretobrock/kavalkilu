@@ -26,7 +26,7 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --u
 echo "Checking for crontab updates"
 MACHINE_HOSTNAME=${HOSTNAME}
 CRON_FILE=${KAVDIR}/documentation/crons/${MACHINE_HOSTNAME}.sh
-if [[ -d ${CRONFILE} ]];
+if [[ -f ${CRONFILE} ]];
 then
     # Matching file found. Apply as update to cronjobs
     echo "Found matching cronjob file for ${CRON_FILE}. Applying changes..."
