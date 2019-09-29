@@ -29,10 +29,10 @@ CRON_FILE=${KAVDIR}/documentation/crons/${MACHINE_HOSTNAME}.sh
 if [[ -d ${CRONFILE} ]];
 then
     # Matching file found. Apply as update to cronjobs
-    echo "Found matching cronjob file for ${HOSTNAME}. Applying changes..."
+    echo "Found matching cronjob file for ${CRON_FILE}. Applying changes..."
     crontab ${CRON_FILE}
 else
-    echo "No matching cronjob file found for ${HOSTNAME}."
+    echo "No matching cronjob file found for ${CRON_FILE}."
 fi
 
 printf "===============\nProcess completed\n"
