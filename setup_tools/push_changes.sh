@@ -6,6 +6,14 @@
 # Minor update
 # > sh push_changes.sh minor
 
+# SETUP
+# --------------
+# FILE PATHS
+FUNCTIONS=./setup_tools/general_functions.sh
+
+# Import common functions
+. ${FUNCTIONS} --source-only
+
 LEVEL=${1:-patch}
 
 # Get highest tag number
@@ -38,7 +46,8 @@ fi
 #create new tag
 NEW_TAG="${VNUM1}.${VNUM2}.${VNUM3}"
 
-read -p "Updating ${VERSION} to ${NEW_TAG}. Mash that Enter key to continue. CTRL+C to halt."
+CONFIRM="Updating ${BLUE}${VERSION}${RESET} to ${BLUE}${NEW_TAG}${RESET}. Enter to continue. CTRL+C to halt."
+read -p "$( echo -e ${CONFIRM})"
 
 # Get current hash and see if it already has a tag
 GIT_COMMIT=`git rev-parse HEAD`
