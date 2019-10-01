@@ -11,7 +11,7 @@ log.debug('Logging initiated')
 
 eng = MySQLLocal('logdb')
 
-device = 'an_barret'
+device = 'an-barret'
 log.debug('Pinging device...')
 # Ping phone's ip and check response
 status = NetTools(host=device).ping()
