@@ -11,33 +11,22 @@ from setuptools import setup, find_packages
 here_dir = os.path.abspath(os.path.dirname(__file__))
 init_fp = os.path.join(here_dir, *['kavalkilu', '__init__.py'])
 
+
+def parse_reqs(file_prefix):
+    """Takes in a requirements file (ending in *_requirements.frozen) in reqs/,
+    parses a list of requirements"""
+    fpath = os.path.join(here_dir, *['reqs', '{}_requirements.frozen'.format(file_prefix)])
+    with open(fpath, 'r') as f:
+        reqs_raw = f.read()
+    reqs_list = reqs_raw.strip().split('\n')
+    return reqs_list
+
+
 # Package Requirements
 packages = {
-    'pi-only': [
-        'Adafruit_DHT',
-        'picamera',
-        'rpi-rf'
-    ],
-    'server-only': [
-        'daemonize',
-        'markovify',
-        'image_slicer',
-    ],
-    'all-platforms': [
-        'amcrest',
-        'beautifulsoup4',
-        'paramiko',
-        'phue',
-        'Pillow',
-        'psutil',
-        'pushbullet.py',
-        'roku',
-        'selenium',
-        'slackclient==1.3.1',
-        'sqlalchemy',
-        'tabulate',
-        'pytest'
-    ]
+    'pi-only': parse_reqs('raspi_only'),
+    'server-only': parse_reqs('server_only'),
+    'all-platforms': parse_reqs('all_machines')
 }
 
 # Build out the installation requirements
