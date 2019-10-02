@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
 import pandas as pd
-from kavalkilu import Log, MySQLLocal, SlackBot, NetTools
+from kavalkilu import Log, LogArgParser, MySQLLocal, SlackBot, NetTools
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('device_connected', log_lvl='INFO')
+log = Log('device_connected', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated')
 
 eng = MySQLLocal('logdb')
@@ -31,7 +31,12 @@ WHERE
 log.debug('Querying for last ping...')
 last_ping = pd.read_sql_query(last_ping_query, con=eng.connection)
 
-last_ping_status = last_ping['status'].values[0]
+try:
+    last_ping_status = last_ping['status'].values[0]
+except IndexError:
+    # No info for this device yet.
+    last_ping_status = status
+
 if last_ping_status != status:
     # Status has changed. Update the channel
     if last_ping_status == 'CONNECTED':
