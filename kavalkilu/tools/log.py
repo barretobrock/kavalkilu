@@ -109,7 +109,10 @@ class LogArgParser:
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-lvl', action='store', default='INFO')
-        self.args = self.parser.parse_args()
-        self.loglvl = self.args.lvl
-
-
+        sysargs = sys.argv
+        if 'pydevconsole.py' not in sysargs[0]:
+            self.args = self.parser.parse_args()
+            self.loglvl = self.args.lvl
+        else:
+            print('Bypassing argument parser in test environment')
+            self.loglvl = 'DEBUG'
