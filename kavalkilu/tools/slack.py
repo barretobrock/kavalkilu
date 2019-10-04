@@ -36,6 +36,7 @@ class SlackBot:
         - `wink wink`
         - `bruh`
         - `access <literally-anything-else>`
+        - `sauce`
     *Useful commands:*
         - `garage`: current snapshot of garage
         - `garage door status`: whether or not the door is open
@@ -92,7 +93,11 @@ class SlackBot:
                     msg_packet = self.parse_bot_commands(self.bot.rtm_read())
                     if msg_packet is not None:
                         # print('I got a message "{message}" from user: {user} '.format(**msg_packet))
-                        self.handle_command(**msg_packet)
+                        try:
+                            self.handle_command(**msg_packet)
+                        except Exception as e:
+                            exception_msg = "Exception occurred: \n\t`{}`".format(e)
+                            self.send_message(msg_packet['channel'], exception_msg)
                     time.sleep(self.RTM_READ_DELAY)
                 except Exception as e:
                     print('Reconnecting... {}'.format(e))
@@ -173,7 +178,7 @@ class SlackBot:
             try:
                 response = self.get_uptime()
             except Exception as e:
-                response = 'I tried, but I could not retrieve that info! \nError: {}'.format(e)
+                response = 'I tried, but I could not retrieve that info! \nError: `{}`'.format(e)
         elif message == 'garage door status':
             response = self.get_garage_status()
         elif message == 'temps':
@@ -204,6 +209,8 @@ class SlackBot:
         elif message.startswith('quote me'):
             msg = message[len('quote me'):].strip()
             response = self.st.build_phrase(msg)
+        elif 'sauce' in message:
+            response = 'ay <@{user}> u got some jokes!'
         elif message != '':
             response = "I didn't understand this: `{}`\n " \
                        "Use `v!help` to get a list of my commands.".format(message)
