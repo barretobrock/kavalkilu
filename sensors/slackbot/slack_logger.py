@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """Posts error logs to #errors channel in Slack"""
 import pandas as pd
-from kavalkilu import MySQLLocal, SlackBot
+from kavalkilu import MySQLLocal, SlackTools
 
 
 db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
-sb = SlackBot()
+st = SlackTools()
 
 # We read errors from x hours previous
 # Currently, logs are read in every day at 6AM, so this will be 24 hours while we test it
-hour_interval = 24
+hour_interval = 4
 # The date to measure from
 read_from = (pd.datetime.today() - pd.Timedelta(hours=hour_interval)).replace(minute=0, second=0)
 
@@ -57,14 +57,14 @@ if not result_df.empty:
         channel = log_dict['channel']
         if not df.empty:
             # Send the info to Slack
-            msg = """*Last 24 hours in {}*:\n\n```{}````""".format(channel, sb.df_to_slack_table(df))
+            msg = """*Last 24 hours in {}*:\n\n```{}````""".format(channel, sb.st.df_to_slack_table(df))
         else:
             msg = 'No {} logs for this round.'.format(log_type)
-        sb.send_message(channel, msg)
+        st.send_message(channel, msg)
 else:
     channel = '#logs'
     msg = 'No logs were able to be captured in either category.'
-    sb.send_message(channel, msg)
+    st.send_message(channel, msg)
 
 
 

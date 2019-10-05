@@ -18,7 +18,7 @@ if __name__ == "__main__":
         if 'start' == cmd:
             daemon.start()
         elif 'stop' == cmd:
-            s.send_message('notifications', 'Shutting down for now! :sleepyparrot:')
+            s.st.send_message('notifications', 'Shutting down for now! :sleepyparrot:')
             log.debug('Closing daemon')
             daemon.exit()
         else:

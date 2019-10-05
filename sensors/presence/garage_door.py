@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Detects whether the garage door is up or down"""
 import pandas as pd
-from kavalkilu import DistanceSensor, Log, LogArgParser, SlackBot, MySQLLocal
+from kavalkilu import DistanceSensor, Log, LogArgParser, SlackTools, MySQLLocal
 
 
 logg = Log('garage_door', 'gdoor', log_lvl=LogArgParser().loglvl)
@@ -10,7 +10,7 @@ TRIGGER_PIN = 23
 ECHO_PIN = 24
 logg.debug('Initializing sensor...')
 ds = DistanceSensor(TRIGGER_PIN, ECHO_PIN)
-sb = SlackBot()
+st = SlackTools()
 
 # Take an average of 10 readings
 readings = []
@@ -46,7 +46,7 @@ else:
 
 if garage_status['status'] != status:
     # This is probably the first time
-    sb.send_message('notifications', 'Garage door is now `{}`.'.format(status.lower()))
+    st.send_message('notifications', 'Garage door is now `{}`.'.format(status.lower()))
     # Record change in database
     garage_set_query = """
         UPDATE

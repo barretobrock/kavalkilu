@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, SlackBot, NetTools, Hosts
+from kavalkilu import Log, LogArgParser, MySQLLocal, SlackTools, NetTools, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -49,7 +49,7 @@ if last_ping_status != status or new_device:
     else:
         msg = '<@UM3E3G72S> Mehe ühik on taas koduvõrgus! :meow_party:'
     log.debug("Sending message to Slack channel")
-    sb = SlackBot().send_message('wifi-pinger-dinger', msg)
+    SlackTools().send_message('wifi-pinger-dinger', msg)
 
 if new_device:
     new_dev_dict = {

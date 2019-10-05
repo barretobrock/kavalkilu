@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, SlackBot, NetTools, Hosts
+from kavalkilu import Log, LogArgParser, MySQLLocal, SlackTools, NetTools, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -34,12 +34,12 @@ log.debug('Querying for last ping...')
 last_ping = pd.read_sql_query(last_ping_query, con=db_eng.connection)
 
 today = pd.datetime.now()
-sb = SlackBot()
+st = SlackTools()
 if last_ping.empty:
     # Machine is not yet in database. Add it.
     log.info('New machine logged: {}'.format(machine_name))
     slack_msg = 'A new machine (`{}`) will be loaded into `logdb.devices`.'.format(machine_name)
-    sb.send_message('notifications', slack_msg)
+    st.send_message('notifications', slack_msg)
     new_machine_dict = {
         'name': machine_name,
         'ip': ip_addr,
@@ -55,7 +55,7 @@ else:
         log.debug('Status changed from {} to {} for device {}.'.format(db_status, status, machine_name))
         slack_msg = 'Machine `{}` changed connection status from {} to {}. Its new status will be' \
                     ' loaded into `logdb.devices`.'.format(machine_name, db_status, status)
-        sb.send_message('notifications', slack_msg)
+        st.send_message('notifications', slack_msg)
         update_uptime_query = """
             UPDATE
                 devices

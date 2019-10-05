@@ -3,11 +3,11 @@
 import time
 from datetime import datetime as dtt
 from collections import OrderedDict
-from kavalkilu import Log, LogArgParser, Keys, BrowserAction, SlackBot
+from kavalkilu import Log, LogArgParser, Keys, BrowserAction, SlackTools
 
 
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
-sb = SlackBot()
+st = SlackTools()
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
@@ -18,7 +18,7 @@ creds = Keys().get_key('vpulse_creds')
 
 
 def notify_channel(msg):
-    sb.send_message('notifications', msg)
+    st.send_message('notifications', msg)
 
 
 def popup_closer():

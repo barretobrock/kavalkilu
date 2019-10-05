@@ -6,7 +6,7 @@ import re
 import socket
 import psutil
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, SlackBot, NetTools
+from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, SlackTools, NetTools
 
 
 log = Log('machine_uptime', log_lvl=LogArgParser().loglvl)
@@ -34,12 +34,12 @@ WHERE
 """.format(machine_name, ip_addr)
 uptime_df = pd.read_sql_query(uptime_query, db_eng.connection)
 
-sb = SlackBot()
+st = SlackTools()
 if uptime_df.empty:
     # Machine is not yet in database. Add it.
     log.info('New machine logged: {}'.format(machine_name))
     slack_msg = 'A new machine (`{}`) will be loaded into `logdb.devices`.'.format(machine_name)
-    sb.send_message('notifications', slack_msg)
+    st.send_message('notifications', slack_msg)
     new_machine_dict = {
         'name': machine_name,
         'ip': ip_addr,
@@ -56,7 +56,7 @@ else:
         log.debug('Uptime measured ({}) did not match uptime in db ({}). Updating db.'.format(uptime, db_uptime))
         slack_msg = 'Machine `{}` was recently rebooted. Its new uptime of `{}` will be' \
                     ' loaded into `logdb.devices`.'.format(machine_name, uptime)
-        sb.send_message('notifications', slack_msg)
+        st.send_message('notifications', slack_msg)
         update_uptime_query = """
             UPDATE
                 devices
