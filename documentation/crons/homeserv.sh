@@ -21,7 +21,6 @@ PY3=/usr/bin/python3
 # HOME AUTOMATION
 */10 03-22 * * *    $PY3    $HOME/$SENSORS/camera/amcrest_notify_zone.py
 5 23 * * *          $PY3    $HOME/$SENSORS/camera/amcrest_nighttime.py
-*/5 * * * *         $PY3    $HOME/$SENSORS/presence/garage_door.py
 # SLACK
 @reboot             $PY3    $HOME/$SENSORS/slackbot/kodubot_rtm_daemon.py start
 15 */4 * * *        $PY3    $HOME/$SENSORS/slackbot/slack_logger.py
