@@ -1,11 +1,9 @@
 """A script to load a short-term snapshot of pihole data into a sql table for faster loading"""
-
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal
+from kavalkilu import Log, LogArgParser, MySQLLocal
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('pihole_db_shortterm', 'pihole_db', log_lvl='INFO')
+log = Log('pihole_db_shortterm', 'pihole_db', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated')
 
 # Number of days to go back

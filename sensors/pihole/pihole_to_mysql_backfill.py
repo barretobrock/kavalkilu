@@ -3,12 +3,11 @@
 import os
 import sqlite3
 import pandas as pd
-from kavalkilu.tools.log import Log
-from kavalkilu.tools.databases import MySQLLocal, PiHoleDB
+from kavalkilu import Log, LogArgParser, MySQLLocal, PiHoleDB
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('pihole_db_backfill', 'pihole_db', log_lvl='DEBUG')
+log = Log('pihole_db_backfill', 'pihole_db', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated')
 
 

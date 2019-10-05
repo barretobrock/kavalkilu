@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """Detects whether the garage door is up or down"""
 import pandas as pd
-from kavalkilu import DistanceSensor, Log, SlackBot, MySQLLocal
+from kavalkilu import DistanceSensor, Log, LogArgParser, SlackBot, MySQLLocal
 
 
-logg = Log('garage_door', 'gdoor', log_lvl='INFO')
+logg = Log('garage_door', 'gdoor', log_lvl=LogArgParser().loglvl)
 TRIGGER_PIN = 23
 ECHO_PIN = 24
 logg.debug('Initializing sensor...')

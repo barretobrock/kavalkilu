@@ -3,11 +3,11 @@ import datetime
 from datetime import datetime as dtt
 import pandas as pd
 import numpy as np
-from kavalkilu import Paths, MySQLLocal, Log
+from kavalkilu import Paths, MySQLLocal, Log, LogArgParser
 
 
 # Initiate logging
-log = Log('speedtest_mysql', log_lvl='INFO')
+log = Log('speedtest_mysql', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated')
 p = Paths()
 filepath = os.path.join(os.path.abspath(p.data_dir), 'speedtest_data.csv')

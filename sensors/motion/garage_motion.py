@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Detects motion in garage and turns on lights"""
-from kavalkilu import PIRSensor, HueBulb, hue_lights, OpenHab, Log, MySQLLocal
+from kavalkilu import PIRSensor, HueBulb, hue_lights, OpenHab, Log, LogArgParser, MySQLLocal
 from datetime import datetime
 
 
+# Initiate Log, including a suffix to the log name to denote which instance of log is running
+log = Log('garage_motion', 'motion', log_lvl=LogArgParser().loglvl)
+log.debug('Logging initiated')
 MOTION_PIN = 18
 lights = [x for x in hue_lights if 'Garage' in x['hue_name']]
 
 # Set up OpenHab connection
 oh = OpenHab()
-# Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('garage_motion', 'motion', log_lvl='INFO')
-log.debug('Logging initiated')
 
 # Set up motion detector
 md = PIRSensor(MOTION_PIN)

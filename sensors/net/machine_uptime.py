@@ -6,10 +6,10 @@ import re
 import socket
 import psutil
 import pandas as pd
-from kavalkilu import Log, MySQLLocal, Hosts, DateTools, SlackBot, NetTools
+from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, SlackBot, NetTools
 
 
-log = Log('machine_uptime', log_lvl='INFO')
+log = Log('machine_uptime', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated.')
 
 ip_addr = NetTools().ip

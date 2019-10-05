@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
 import pandas as pd
-from kavalkilu import Log, MySQLLocal, SlackBot, NetTools, Hosts
+from kavalkilu import Log, LogArgParser, MySQLLocal, SlackBot, NetTools, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('device_connected', log_lvl='INFO')
+log = Log('device_connected', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated')
 
 db_eng = MySQLLocal('logdb')

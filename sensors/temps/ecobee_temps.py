@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Method to collect temperature and other useful data from ecobee"""
-from kavalkilu import OpenHab, Log, MySQLLocal
+from kavalkilu import OpenHab, Log, LogArgParser, MySQLLocal
 from datetime import datetime
 
+
+# Initiate Log, including a suffix to the log name to denote which instance of log is running
+log = Log('ecobee_temp', 'temp', log_lvl=LogArgParser().loglvl)
+log.debug('Logging initiated')
 
 # Initiate Openhab
 oh = OpenHab()
 LOC_ID = 3
 VAL_TBLS = ['temps', 'humidity']
-
-# Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('ecobee_temp', 'temp', log_lvl='INFO')
-log.debug('Logging initiated')
 
 
 def log_values(loc_id, ts, measurement_list, tbl_list, conn, log=log):

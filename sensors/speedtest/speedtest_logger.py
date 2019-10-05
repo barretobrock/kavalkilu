@@ -3,11 +3,11 @@
 import os
 from speedtest import Speedtest
 import pandas as pd
-from kavalkilu.tools import Log, Paths
+from kavalkilu.tools import Log, LogArgParser, Paths
 
 
 p = Paths()
-logg = Log('speedtest.logger', 'speedtest', log_lvl='INFO')
+logg = Log('speedtest.logger', 'speedtest', log_lvl=LogArgParser().loglvl)
 logg.debug('Logging initiated')
 
 # Load previous data

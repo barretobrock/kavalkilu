@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """Read temperatures from several locations outside using Dallas sensors"""
 from time import sleep
-from kavalkilu import DallasTempSensor as Dallas, Log, SensorLogger
+from kavalkilu import DallasTempSensor as Dallas, Log, LogArgParser, SensorLogger
 
 
-log = Log('porch_temp', 'temp', log_lvl='INFO')
+log = Log('porch_temp', 'temp', log_lvl=LogArgParser().loglvl)
 # Serial numbers of the Dallas temp sensors
 sensors = [
     {

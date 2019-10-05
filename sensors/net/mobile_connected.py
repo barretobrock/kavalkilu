@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, SlackBot, NetTools
+from kavalkilu import Log, LogArgParser, MySQLLocal, SlackBot, NetTools, Hosts
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -33,13 +33,17 @@ last_ping = pd.read_sql_query(last_ping_query, con=eng.connection)
 
 try:
     last_ping_status = last_ping['status'].values[0]
+    new_device = False
 except IndexError:
     # No info for this device yet.
     last_ping_status = status
+    new_device = True
 
-if last_ping_status != status:
+if last_ping_status != status or new_device:
     # Status has changed. Update the channel
-    if last_ping_status == 'CONNECTED':
+    if new_device:
+        msg = 'New device connected: `{}`'.format(device)
+    elif last_ping_status == 'CONNECTED':
         # Phone disconnected
         msg = 'Mehe ühik on koduvõrgust läinud :sadcowblob:'
     else:
@@ -47,17 +51,26 @@ if last_ping_status != status:
     log.debug("Sending message to Slack channel")
     sb = SlackBot().send_message('wifi-pinger-dinger', msg)
 
-query = """
-    UPDATE
-        devices
-    SET
-        status = '{}'
-        , update_date = NOW()
-    WHERE
-        name = '{}'
-""".format(status, device)
-# Update values in table
-log.debug('Updating table.')
-eng.write_sql(query)
+if new_device:
+    new_dev_dict = {
+        'name': device,
+        'ip': Hosts().get_host(name=device)['ip'],
+        'status': status
+    }
+    log.info('Adding new device to table: {}.'.format(device))
+    eng.write_dataframe('devices', pd.DataFrame(new_dev_dict, index=[0]))
+else:
+    query = """
+        UPDATE
+            devices
+        SET
+            status = '{}'
+            , update_date = NOW()
+        WHERE
+            name = '{}'
+    """.format(status, device)
+    # Update values in table
+    log.debug('Updating table.')
+    eng.write_sql(query)
 
 log.close()

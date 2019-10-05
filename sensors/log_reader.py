@@ -5,11 +5,11 @@ import os
 import re
 import socket
 import pandas as pd
-from kavalkilu import Paths, Log, MySQLLocal, NetTools, Hosts
+from kavalkilu import Paths, Log, LogArgParser, MySQLLocal, NetTools, Hosts
 
 
 # Initiate logging (META!)
-log = Log('log_collector', log_lvl='INFO')
+log = Log('log_collector', log_lvl=LogArgParser().loglvl)
 log.debug('Logging initiated.')
 
 

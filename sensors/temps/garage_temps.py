@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Read temperature and humidity from garage"""
-from kavalkilu import DHTTempSensor as DHT, Log, SensorLogger
+from kavalkilu import DHTTempSensor as DHT, Log, LogArgParser, SensorLogger
 
 
-log = Log('garage_temp', 'temp', log_lvl='INFO')
+log = Log('garage_temp', 'temp', log_lvl=LogArgParser().loglvl)
 # Set the pin
 TEMP_PIN = 4
 sl = SensorLogger('garage', DHT(TEMP_PIN, decimals=3))

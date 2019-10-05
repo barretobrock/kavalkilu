@@ -12,7 +12,7 @@ pid = '/tmp/kodubot.pid'
 
 if __name__ == "__main__":
     s = SlackBot()
-    daemon = daemonize.Daemonize(app='kodubot', pid=pid, action=s.run_rtm, logger=log)
+    daemon = daemonize.Daemonize(app='kodubot', pid=pid, action=s.run_rtm, logger=log, verbose=True)
     if len(sys.argv) == 2:
         cmd = sys.argv[1]
         if 'start' == cmd:
