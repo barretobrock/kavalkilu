@@ -14,7 +14,7 @@ from random import randint
 from .camera import Amcrest
 from .light import HueBulb, hue_lights
 from .net import Hosts, Keys
-from .databases import MySQLLocal
+from .databases import MySQLLocal, GSheetReader
 from .date import DateTools
 from .text import MarkovText, TextCleaner, WebExtractor
 
@@ -25,7 +25,7 @@ class SlackBot:
     help_txt = """
     I'm Viktor. Here's what I can do:
     *Basic Commands:*
-        - `hello`
+        - `(hello|hi|hey|qq|wyd|greetings)`
         - `speak`
         - `good bot`
         - `thanks`
@@ -47,15 +47,15 @@ class SlackBot:
         - `channel stats`: get a leaderboard of the last 1000 messages posted in the channel
         - `emojis like <regex-pattern>`: get emojis matching the regex pattern
         - `(make sentences|ms) <url1> <url2`: reads in text from the given urls, tries to generate up to 5 sentences
-        - `acro-guess <acronym> [-f|-i]`: there are a lot of acronyms at work. this tries to guess what it means.
-        - `insult <thing|person>`: generates an insult
+        - `(acro-guess|ag) <acronym> [<group>]`: there are a lot of acronyms at work. this tries to guess what it means.
+        - `insult <thing|person> [<group>]`: generates an insult
         - `quote me <thing-to-quote>`: turns your phrase into letter emojis
+        - `refresh sheets`: Refreshes the GSheet that holds viktor's insults and acronyms
     """
 
     commands = {
         'speak': 'woof',
         'good bot': 'thanks <@{user}>!',
-        'hello': 'Hi <@{user}>!',
         'thanks': 'No, thank you!',
         'no, thank you': 'No, no, thank you!',
     }
@@ -81,6 +81,8 @@ class SlackBot:
         self.MENTION_REGEX = "^(<@(|[WU].+?)>|[vV]!)(.*)"
         team_name = Keys().get_key('okr-name')
         self.st = SlackTools(team_name, user_token)
+        self.gs_dict = {}
+        self._read_in_sheets()
 
     def run_rtm(self):
         """Initiate real-time messaging"""
@@ -147,7 +149,7 @@ class SlackBot:
             if user not in approved_users:
                 response = self.sarcastic_reponses[randint(0, len(self.sarcastic_reponses) - 1)]
             else:
-                self.take_garage_pic(channel, user)
+                self.take_garage_pic(channel)
                 response = 'There ya go!'
         elif message == 'help':
             response = self.help_txt
@@ -173,7 +175,7 @@ class SlackBot:
                 response = self.generate_sentences(message)
             except Exception as e:
                 response = 'I tried that and got an error: ```{}```'.format(e)
-        elif message.startswith('acro-guess'):
+        elif any([message.startswith(x) for x in ['acro-guess', 'ag']]):
             response = self.guess_acronym(message)
         elif message.startswith('insult'):
             response = self.insult(message)
@@ -192,6 +194,11 @@ class SlackBot:
         elif message.startswith('quote me'):
             msg = message[len('quote me'):].strip()
             response = self.st.build_phrase(msg)
+        elif message == 'refresh sheets':
+            self._read_in_sheets()
+            response = 'Sheets have been refreshed!'
+        elif any([message.startswith(x) for x in ['hey', 'hello', 'hi', 'qq', 'wyd', 'greetings']]):
+            response = self.sh_response()
         elif 'sauce' in message:
             response = 'ay <@{user}> u got some jokes!'
         elif message != '':
@@ -492,27 +499,42 @@ class SlackBot:
         else:
             return "I didn't find a url to use from that text."
 
+    def _read_in_sheets(self):
+        """Reads in GSheets for Viktor"""
+        gs = GSheetReader(Keys().get_key('viktor_sheet'))
+        sheets = gs.sheets
+        for sheet in sheets:
+            self.gs_dict.update({
+                sheet.title: gs.get_sheet(sheet.title)
+            })
+
+    def sh_response(self):
+        """Responds to SHs"""
+        resp_df = self.gs_dict['responses']
+        responses = resp_df['responses_list'].unique().tolist()
+        return responses[randint(0, len(responses))]
+
     def guess_acronym(self, message):
         """Tries to guess an acronym from a message"""
         message_split = message.split()
         if len(message_split) <= 1:
-            response = "I can't work like this! I need a real acronym!!:ragetype:"
+            return "I can't work like this! I need a real acronym!!:ragetype:"
         # We can work with this
         acronym = message_split[1]
-        # clean of any punctuation
+        if len(message_split) >= 3:
+            flag = message_split[2].replace('-', '')
+        else:
+            flag = 'standard'
+        # clean of any punctuation (or non-letters)
         acronym = re.sub(r'\W', '', acronym)
 
-        # Determine which file to use
-        file = 'en.txt'
-        if len(message_split) > 2:
-            if message_split[2] == '-f':
-                file = 'en_nsfw.txt'
-            elif message_split[2] == '-i':
-                file = 'indeed_words.txt'
-
-        # Load the massive list of words
-        with open(os.path.join(os.path.expanduser('~'), *['Downloads', file])) as f:
-            words = f.readlines()
+        # Choose the acronym list to use
+        acro_df = self.gs_dict['acronyms']
+        cols = acro_df.columns.tolist()
+        if flag not in cols:
+            return 'Cannot find set `{}` in the `acronyms` sheet. ' \
+                   'Available sets: `{}`'.format(flag, ','.join(cols))
+        words = acro_df.loc[~acro_df[flag].isnull(), flag].unique().tolist()
 
         # Put the words into a dictionary, classified by first letter
         a2z = string.ascii_lowercase
@@ -534,26 +556,50 @@ class SlackBot:
                     meaning.append(letter)
             guesses.append(' '.join(list(map(str.title, meaning))))
 
-        return ':okily-dokily: Here are my guesses for *{}*!\n {}'.format(acronym, '\n_OR_\n'.join(guesses))
+        return ':robot-face: Here are my guesses for *{}*!\n {}'.format(acronym.upper(), '\n_OR_\n'.join(guesses))
 
     def insult(self, message):
         """Insults the user at their request"""
         message_split = message.split()
         if len(message_split) <= 1:
-            response = "I can't work like this! I need something to insult!!:ragetype:"
-            return response
-        target = message_split[1]
-        f_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-        insults = []
-        # Load the insults
-        for part in ['a', 'b', 'c']:
-            with open(os.path.join(f_dir, 'insults_{}.txt'.format(part))) as f:
-                insult_list = [x.replace('\n', '') for x in f.readlines()]
-            insults.append(insult_list[randint(0, len(insult_list) - 1)])
-        if target == 'me':
-            return "You're nothing but a {}".format(' '.join(insults))
+            return "I can't work like this! I need something to insult!!:ragetype:"
+
+        # We can work with this
+        flag = message_split[-1]
+        if '-' in flag:
+            flag = flag.replace('-', '')
+            # Skip the last part of the message, as that's the flag
+            target = ' '.join(message_split[1:-1])
         else:
-            return "That there {} is a no good, {}".format(target, ' '.join(insults))
+            flag = 'standard'
+            # Get the rest of the message
+            target = ' '.join(message_split[1:])
+
+        # Choose the acronym list to use
+        insult_df = self.gs_dict['insults']
+        cols = insult_df.columns.tolist()
+        # Parse the columns into flags and order
+        flag_dict = {}
+        for col in cols:
+            if '_' in col:
+                k, v = col.split('_')
+                if k in flag_dict.keys():
+                    flag_dict[k].append(col)
+                else:
+                    flag_dict[k] = [col]
+
+        if flag not in flag_dict.keys():
+            return 'Cannot find set `{}` in the `insults` sheet. ' \
+                   'Available sets: `{}`'.format(flag, ','.join(flag_dict.keys()))
+        insults = []
+        for insult_part in sorted(flag_dict[flag]):
+            part = insult_df.loc[~insult_df[insult_part].isnull(), insult_part].unique().tolist()
+            insults.append(part[randint(0, len(part) - 1)])
+
+        if target == 'me':
+            return "You aint nothin but a {}".format(' '.join(insults))
+        else:
+            return "{} aint nothin but a {}".format(target, ' '.join(insults))
 
     def overly_polite(self, message):
         """Responds to 'no, thank you' with an extra 'no' """
