@@ -28,13 +28,9 @@ class SlackBot:
         - `(hello|hi|hey|qq|wyd|greetings)`
         - `speak`
         - `good bot`
-        - `thanks`
-        - `no, thank you`
+        - `[no] (thanks|thank you|tanks)`
         - `time`
-        - `look (left|right|up|down)`
-        - `oof`
-        - `wink wink`
-        - `bruh`
+        - `(look (left|right|up|down)|oof|wink wink|bruh)`
         - `access <literally-anything-else>`
         - `sauce`
     *Useful commands:*
@@ -196,7 +192,7 @@ class SlackBot:
             response = self.st.build_phrase(msg)
         elif message == 'refresh sheets':
             self._read_in_sheets()
-            response = 'Sheets have been refreshed!'
+            response = 'Sheets have been refreshed! `{}`'.format(','.join(self.gs_dict.keys()))
         elif any([message.startswith(x) for x in ['hey', 'hello', 'hi', 'qq', 'wyd', 'greetings']]):
             response = self.sh_response()
         elif 'sauce' in message:
@@ -512,7 +508,7 @@ class SlackBot:
         """Responds to SHs"""
         resp_df = self.gs_dict['responses']
         responses = resp_df['responses_list'].unique().tolist()
-        return responses[randint(0, len(responses))]
+        return responses[randint(0, len(responses) - 1)]
 
     def guess_acronym(self, message):
         """Tries to guess an acronym from a message"""
