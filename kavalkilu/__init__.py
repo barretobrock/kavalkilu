@@ -8,7 +8,7 @@ __update_date__ = '2019-08-21'
 # camera.py
 from .tools import Amcrest, SecCamGroup, AmcrestWeb, PiCamera
 # databases.py
-from .tools import MySQLLocal, PiHoleDB, CSVHelper
+from .tools import MySQLLocal, PiHoleDB, CSVHelper, GSheetReader
 # date.py
 from .tools import DateTools
 # domoticz.py

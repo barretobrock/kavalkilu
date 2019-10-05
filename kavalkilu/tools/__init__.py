@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from .camera import Amcrest, SecCamGroup, AmcrestWeb, PiCamera
-from .databases import MySQLLocal, PiHoleDB, CSVHelper
+from .databases import MySQLLocal, PiHoleDB, CSVHelper, GSheetReader
 from .date import DateTools
 from .domoticz import Domoticz
 from .gif import GIF, GIFSlice, GIFTile

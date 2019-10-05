@@ -52,6 +52,15 @@ _Note: This is to prepare a Raspberry Pi device for installation of this package
 ### git
  - After git account setup, still prompting for passphrase
     `ssh-add ~/.ssh/id_rsa`
+    - Long term fix: Add the following to `~/.bashrc`
+    ```bash
+    if [ ! -S ~/.ssh/ssh_auth_sock ]; then
+      eval `ssh-agent`
+      ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock
+    fi
+    export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock
+    ssh-add -l > /dev/null || ssh-add
+    ```
 ### python
  - TBD
 ### crontab

@@ -3,6 +3,7 @@
 
 import os
 import glob
+import json
 import csv
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, Numeric, DateTime
@@ -179,6 +180,23 @@ class HomeAutoDB:
                      extend_existing=True)
 
 
+class GSheetReader:
+    """A class to help with reading in Google Sheets"""
+    def __init__(self, sheet_key):
+        pyg = __import__('pygsheets')
+        gsheets_creds = Keys().get_key('gsheet-reader')
+        os.environ['GDRIVE_API_CREDENTIALS'] = json.dumps(gsheets_creds)
+        self.gc = pyg.authorize(service_account_env_var='GDRIVE_API_CREDENTIALS')
+        self.sheets = self.gc.open_by_key(sheet_key).worksheets()
+
+    def get_sheet(self, sheet_name):
+        """Retrieves a sheet as a pandas dataframe"""
+        for sheet in self.sheets:
+            if sheet.title == sheet_name:
+                return sheet.get_as_df()
+        raise ValueError('The sheet name "{}" was not found in the list of available sheets: ({})'.format(sheet_name, ','.join([x.title for x in self.sheets])))
+
+
 class CSVHelper:
     """
     Handles CSV <-> OrderedDictionary reading/writing.
@@ -277,4 +295,3 @@ class CSVHelper:
                     writer.writerows(row)
             else:
                 writer.writerows(data_dict)
-

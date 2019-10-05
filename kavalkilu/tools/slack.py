@@ -87,7 +87,7 @@ class SlackBot:
         if self.bot.rtm_connect(with_team_state=False):
             print('Viktor is running!!')
             self.kodubot_id = self.bot.api_call('auth.test')['user_id']
-            self.send_message('notifications', 'Rebooted and ready to party! :tada:')
+            self.st.send_message('notifications', 'Rebooted and ready to party! :tada:')
             while True:
                 try:
                     msg_packet = self.parse_bot_commands(self.bot.rtm_read())
@@ -97,7 +97,7 @@ class SlackBot:
                             self.handle_command(**msg_packet)
                         except Exception as e:
                             exception_msg = "Exception occurred: \n\t`{}`".format(e)
-                            self.send_message(msg_packet['channel'], exception_msg)
+                            self.st.send_message(msg_packet['channel'], exception_msg)
                     time.sleep(self.RTM_READ_DELAY)
                 except Exception as e:
                     print('Reconnecting... {}'.format(e))
@@ -151,27 +151,10 @@ class SlackBot:
                 response = 'There ya go!'
         elif message == 'help':
             response = self.help_txt
-        elif message == 'look left':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-left.jpg'])
-            self.upload_file(channel, fpath, 'whatamilookingfor.png')
-        elif message == 'look right':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-right.jpg'])
-            self.upload_file(channel, fpath, 'whatamilookingfor.png')
-        elif message == 'look up':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-up.jpg'])
-            self.upload_file(channel, fpath, 'whatamilookingfor.png')
-        elif message == 'look down':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'look-down.jpg'])
-            self.upload_file(channel, fpath, 'whatamilookingfor.png')
-        elif message == 'oof':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'oof.jpg'])
-            self.upload_file(channel, fpath, 'oof')
-        elif message == 'wink wink':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'wink.jpg'])
-            self.upload_file(channel, fpath, ':smirk:')
-        elif message == 'bruh':
-            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', 'shock.jpg'])
-            self.upload_file(channel, fpath, 'omg')
+        elif message in ['look left', 'look right', 'look up', 'look down', 'oof', 'wink wink', 'bruh']:
+            fname = message.replace(' ', '-')
+            fpath = os.path.join(os.path.expanduser('~'), *['Pictures', '{}.jpg'.format(fname)])
+            self.st.upload_file(channel, fpath, 'here-you-go.exe')
         elif message == 'time':
             response = 'The time is {:%F %T}'.format(dt.today())
         elif message == 'uptime':
@@ -219,164 +202,24 @@ class SlackBot:
             resp_dict = {
                 'user': user
             }
-            self.send_message(channel, response.format(**resp_dict))
-
-    def get_channel_members(self, channel, humans_only=False):
-        """Collect members of a particular channel
-        Args:
-            channel: str, the channel to examine
-            humans_only: bool, if True, will only return non-bots in the channel
-        """
-        resp = self.bot.api_call(
-            'conversations.members',
-            channel=channel
-        )
-        if resp['ok']:
-            users = resp['members']
-            target_data = ['id', 'name', 'real_name', 'is_bot']
-            users = [{x: user[x] for x in target_data} for user in self.get_users_info(users)]
-
-            if humans_only:
-                humans = [user for user in users if not user['is_bot']]
-                return humans
-            else:
-                return users
-        return None
-
-    def private_channel_message(self, user_id, channel, message):
-        """Send a message to a user on the channel"""
-        resp2 = self.bot.api_call(
-            'chat.postEphemeral',
-            channel=channel,
-            user=user_id,
-            text=message
-        )
-        if not resp2['ok']:
-            raise Exception(resp2['error'])
-
-    def private_message(self, user_id, message):
-        """Send private message to user"""
-        resp = self.bot.api_call(
-            'im.open',
-            user=user_id,
-        )
-
-        if resp['ok']:
-            resp2 = self.bot.api_call(
-                'chat.postMessage',
-                channel=resp['channel']['id'],
-                text=message
-            )
-            if not resp2['ok']:
-                raise Exception(resp2['error'])
-
-    def get_users_info(self, user_list):
-        """Collects info from a list of user ids"""
-        user_info = []
-        for user in user_list:
-            resp = self.bot.api_call(
-                'users.info',
-                user=user
-            )
-            if resp['ok']:
-                user_info.append(resp['user'])
-        return user_info
-
-    def send_message(self, channel, message):
-        """Sends a message to the specific channel"""
-        self.bot.api_call(
-            'chat.postMessage',
-            channel=channel,
-            text=message
-        )
-
-    def delete_message(self, message_dict):
-        """Deletes a given message"""
-        self.user.api_call(
-            'chat.delete',
-            channel=message_dict['channel']['id'],
-            ts=message_dict['ts']
-        )
-
-    def search_messages_by_date(self, channel, from_date, date_format='%Y-%m-%d %H:%M', max_results=100):
-        """Search for messages in a channel after a certain date
-
-        Args:
-            channel: str, the channel (e.g., "#channel")
-            from_date: str, the date from which to begin collecting channels
-            date_format: str, the format of the date entered
-            max_results: int, the maximum number of results per page to return
-
-        Returns: list of dict, channels matching the query
-        """
-        from_date = dt.strptime(from_date, date_format)
-        # using the 'after' filter here, so take it back one day
-        slack_date = from_date - tdelta(days=1)
-
-        for attempt in range(3):
-            resp = self.user.api_call(
-                'search.messages',
-                query='in:{} after:{:%F}'.format(channel, slack_date),
-                count=max_results
-            )
-            if resp['ok']:
-                # Search was successful
-                break
-            else:
-                # Wait before retrying
-                print('Call failed. Waiting two seconds')
-                time.sleep(2)
-
-        if 'messages' in resp.keys():
-            msgs = resp['messages']['matches']
-            filtered_msgs = []
-            for msg in msgs:
-                # Append the message as long as it's timestamp is later or equal to the time entered
-                ts = dt.fromtimestamp(int(round(float(msg['ts']), 0)))
-                if ts >= from_date:
-                    filtered_msgs.append(msg)
-            return filtered_msgs
-
-        return None
-
-    def upload_file(self, channel, filepath, filename):
-        """Uploads the selected file to the given channel"""
-        self.bot.api_call(
-            'files.upload',
-            channels=channel,
-            filename=filename,
-            file=open(filepath, 'rb')
-        )
-
-    def df_to_slack_table(self, df):
-        """Takes in a dataframe, outputs a string formatted for Slack"""
-        return tabulate(df, headers='keys', tablefmt='github', showindex='never')
+            self.st.send_message(channel, response.format(**resp_dict))
 
     def get_channel_stats(self, channel):
         """Collects posting stats for a given channel"""
-        resp = self.user.api_call(
-            'channels.history',
-            channel=channel,
-            count=1000
-        )
+        msgs = self.st.get_channel_history(channel, limit=1000)
+        results = {}
 
-        if resp['ok']:
-            results = {}
-
-            msgs = resp['messages']
-            for msg in msgs:
-                try:
-                    user = msg['user']
-                except KeyError:
-                    user = msg['bot_id']
-                txt_len = len(msg['text'])
-                if user in results.keys():
-                    results[user]['msgs'].append(txt_len)
-                else:
-                    # Apply new dict for new user
-                    results[user] = {'msgs': [txt_len]}
-        else:
-            return "Oops - there was an error in the API call for this :shrugman:"
+        for msg in msgs:
+            try:
+                user = msg['user']
+            except KeyError:
+                user = msg['bot_id']
+            txt_len = len(msg['text'])
+            if user in results.keys():
+                results[user]['msgs'].append(txt_len)
+            else:
+                # Apply new dict for new user
+                results[user] = {'msgs': [txt_len]}
 
         # Process messages
         for k, v in results.items():
@@ -389,17 +232,17 @@ class SlackBot:
 
         res_df = res_df.reset_index()
         res_df = res_df.rename(columns={'index': 'user'})
-        user_names = pd.DataFrame(self.get_users_info(res_df['user'].tolist()))[['id', 'real_name']]
+        user_names = pd.DataFrame(self.st.get_users_info(res_df['user'].tolist()))[['id', 'real_name']]
         res_df = res_df.merge(user_names, left_on='user', right_on='id', how='left').drop(['user', 'id'], axis=1)
         res_df = res_df[['real_name', 'total_messages', 'avg_msg_len']]
         res_df['total_messages'] = res_df['total_messages'].astype(int)
         res_df['avg_msg_len'] = res_df['avg_msg_len'].round(1)
         res_df = res_df.sort_values('total_messages', ascending=False)
         response = '*Stats for this channel:*\n Total messages examined: {}\n' \
-                   '```{}```'.format(len(msgs), self.df_to_slack_table(res_df))
+                   '```{}```'.format(len(msgs), self.st.df_to_slack_table(res_df))
         return response
 
-    def take_garage_pic(self, channel, user):
+    def take_garage_pic(self, channel):
         """Takes snapshot of garage, sends to Slack channel"""
         # Take a snapshot of the garage
         garage_cam_ip = Hosts().get_host('ac-garage')['ip']
@@ -407,7 +250,7 @@ class SlackBot:
         cam = Amcrest(garage_cam_ip, creds)
         tempfile = '/tmp/garagesnap.jpg'
         cam.camera.snapshot(channel=0, path_file=tempfile)
-        self.upload_file(channel, tempfile, 'garage_snapshot_{:%F %T}.jpg'.format(dt.today()))
+        self.st.upload_file(channel, tempfile, 'garage_snapshot_{:%F %T}.jpg'.format(dt.today()))
 
     def light_actions(self, packet):
         """Performs various light-related actions
@@ -508,7 +351,7 @@ class SlackBot:
         uptime = uptime[['name', 'uptime']]
         uptime['name'] = uptime['name'].apply(lambda x: '{:>10}'.format(x))
         uptime['uptime'] = uptime['uptime'].apply(lambda x: '{:>20}'.format(x))
-        response = '*Device Uptime:*\n```{}```'.format(self.df_to_slack_table(uptime))
+        response = '*Device Uptime:*\n```{}```'.format(self.st.df_to_slack_table(uptime))
         return response
 
     def get_temps(self):
@@ -550,7 +393,7 @@ class SlackBot:
             temps.loc[i, 'ago'] = datediff
 
         temps = temps[['location', 'value', 'ago']]
-        response = '*Most Recent Temperature Readings:*\n```{}```'.format(self.df_to_slack_table(temps))
+        response = '*Most Recent Temperature Readings:*\n```{}```'.format(self.st.df_to_slack_table(temps))
         return response
 
     def get_garage_status(self):
@@ -582,23 +425,19 @@ class SlackBot:
         if ptrn.group(0) != '':
             # We've got a pattern to use
             pattern = re.compile(ptrn.group(0))
-            resp = self.user.api_call('emoji.list')
-            if resp['ok']:
-                emojis = resp['emoji']
-                matches = [k for k, v in emojis.items() if pattern.match(k)]
-                len_match = len(matches)
-                if len_match > 0:
-                    # Slack apparently handles message length limitations on its end, so
-                    #   let's just put all the emojis together into one string
-                    response = ''.join([':{}:'.format(x) for x in matches[:max_res]])
-                else:
-                    response = 'No results for pattern `{}`'.format(ptrn.group(0))
-
-                if len_match >= max_res:
-                    # Append to the emoji_str that it was truncated
-                    response = '`**Truncated Results ({}) -> ({})**'.format(len_match, max_res, response)
+            emojis = self.st.get_emojis()
+            matches = [k for k, v in emojis.items() if pattern.match(k)]
+            len_match = len(matches)
+            if len_match > 0:
+                # Slack apparently handles message length limitations on its end, so
+                #   let's just put all the emojis together into one string
+                response = ''.join([':{}:'.format(x) for x in matches[:max_res]])
             else:
-                response = 'Oopsies, something went wrong.'
+                response = 'No results for pattern `{}`'.format(ptrn.group(0))
+
+            if len_match >= max_res:
+                # Append to the emoji_str that it was truncated
+                response = '`**Truncated Results ({}) -> ({})**'.format(len_match, max_res, response)
         else:
             response = "I couldn't find a pattern from your message. Get your shit together <@{user}>"
         return response
@@ -728,13 +567,17 @@ class SlackBot:
 class SlackTools:
     """Tools to make working with Slack better"""
 
-    def __init__(self, team, token, cookie=''):
+    def __init__(self, team=None, xoxp_token=None, xoxb_token=None, cookie=''):
         slack = __import__('slackclient')
-        self.team = team
+        self.team = Keys().get_key('okr-name') if team is None else team
+        # Key starting with 'xoxp...'
+        self.xoxp_token = Keys().get_key('kodubot-usertoken') if xoxp_token is None else xoxp_token
+        self.xoxb_token = Keys().get_key('kodubot-useraccess') if xoxb_token is None else xoxb_token
         self.cookie = cookie
-        self.token = token
-        self.bot = slack.SlackClient(self.token)
-        self.session = self._init_session()
+
+        self.user = slack.SlackClient(self.xoxp_token)
+        self.bot = slack.SlackClient(self.xoxb_token)
+        self.session = self._init_session() if cookie != '' else None
 
     def _init_session(self):
         """Initialises a session for use with special API calls not allowed through the python package"""
@@ -745,13 +588,112 @@ class SlackTools:
         session.url_customize = '{}/customize/emoji'.format(base_url)
         session.url_add = '{}/api/emoji.add'.format(base_url)
         session.url_list = '{}/api/emoji.adminList'.format(base_url)
-        session.api_token = self.token
+        session.api_token = self.xoxp_token
         return session
+
+    def _check_for_exception(self, response):
+        """Checks API response for exception info.
+        If error, will return error message and any additional info
+        """
+        if not response['ok']:
+            # Error occurred
+            err_msg = response['error']
+            if err_msg == 'missing_scope':
+                err_msg += '\nneeded: {needed}\n'.format(**response)
+            raise Exception(err_msg)
+
+    def get_channel_members(self, channel, humans_only=False):
+        """Collect members of a particular channel
+        Args:
+            channel: str, the channel to examine
+            humans_only: bool, if True, will only return non-bots in the channel
+        """
+        resp = self.user.api_call(
+            'conversations.members',
+            channel=channel
+        )
+        # Check response for exception
+        self._check_for_exception(resp)
+        users = resp['members']
+        target_data = ['id', 'name', 'real_name', 'is_bot']
+        users = [{x: user[x] for x in target_data} for user in self.get_users_info(users)]
+
+        return [user for user in users if not user['is_bot']] if humans_only else users
+
+    def private_channel_message(self, user_id, channel, message):
+        """Send a message to a user on the channel"""
+        resp = self.user.api_call(
+            'chat.postEphemeral',
+            channel=channel,
+            user=user_id,
+            text=message
+        )
+        # Check response for exception
+        self._check_for_exception(resp)
+
+    def private_message(self, user_id, message):
+        """Send private message to user"""
+        # Grab the DM "channel" associated with the user
+        resp = self.user.api_call(
+            'im.open',
+            user=user_id,
+        )
+        # Check response for exception
+        self._check_for_exception(resp)
+        # DM the user
+        self.send_message(channel=resp['channel']['id'], message=message)
+
+    def get_channel_history(self, channel, limit=1000):
+        """Collect channel history"""
+        resp = self.user.api_call(
+            'channels.history',
+            channel=channel,
+            count=1000
+        )
+        self._check_for_exception(resp)
+        return resp['messages']
+
+    def get_users_info(self, user_list):
+        """Collects info from a list of user ids"""
+        user_info = []
+        for user in user_list:
+            resp = self.bot.api_call(
+                'users.info',
+                user=user
+            )
+            self._check_for_exception(resp)
+            user_info.append(resp['user'])
+        return user_info
+
+    def send_message(self, channel, message):
+        """Sends a message to the specific channel"""
+        resp = self.user.api_call(
+            'chat.postMessage',
+            channel=channel,
+            text=message
+        )
+        self._check_for_exception(resp)
+
+    def upload_file(self, channel, filepath, filename):
+        """Uploads the selected file to the given channel"""
+        resp = self.user.api_call(
+            'files.upload',
+            channels=channel,
+            filename=filename,
+            file=open(filepath, 'rb')
+        )
+        self._check_for_exception(resp)
+
+    def df_to_slack_table(self, df):
+        """Takes in a dataframe, outputs a string formatted for Slack"""
+        return tabulate(df, headers='keys', tablefmt='github', showindex='never')
 
     def _upload_emoji(self, filepath):
         """Uploads an emoji to the workspace
         NOTE: The name of the emoji is taken from the filepath
         """
+        if self.session is None:
+            raise Exception('Cannot initialize session. Session not established due to lack of cookie.')
         filename = os.path.split(filepath)[1]
         emoji_name = os.path.splitext(filename)[0]
         data = {
@@ -872,31 +814,21 @@ class SlackTools:
 
     def get_emojis(self):
         """Returns a dict of emojis for a given workspace"""
-        resp = self.bot.api_call('emoji.list')
-        if resp['ok']:
-            return resp['emoji']
-        else:
-            print('Emoji query failed.')
-            return {}
-
-    def send_message(self, channel, message):
-        """Sends a message to the specific channel"""
-        self.bot.api_call(
-            'chat.postMessage',
-            channel=channel,
-            text=message
-        )
+        resp = self.user.api_call('emoji.list')
+        self._check_for_exception(resp)
+        return resp['emoji']
 
     def delete_message(self, message_dict):
         """Deletes a given message
         NOTE: Since messages are deleted by channel id and timestamp, it's recommended to
             use search_messages_by_date() to determine the messages to delete
         """
-        self.user.api_call(
+        resp = self.user.api_call(
             'chat.delete',
             channel=message_dict['channel']['id'],
             ts=message_dict['ts']
         )
+        self._check_for_exception(resp)
 
     def search_messages_by_date(self, channel, from_date, date_format='%Y-%m-%d %H:%M', max_results=100):
         """Search for messages in a channel after a certain date
@@ -914,17 +846,16 @@ class SlackTools:
         slack_date = from_date - tdelta(days=1)
 
         for attempt in range(3):
-            resp = self.bot.api_call(
+            resp = self.user.api_call(
                 'search.messages',
                 query='in:{} after:{:%F}'.format(channel, slack_date),
                 count=max_results
             )
-            if resp['ok']:
-                # Search was successful
+            try:
+                self._check_for_exception(resp)
                 break
-            else:
-                # Wait before retrying
-                print('Call failed. Waiting two seconds')
+            except Exception as e:
+                print('Call failed. Error: {}'.format(e))
                 time.sleep(2)
 
         if 'messages' in resp.keys():
