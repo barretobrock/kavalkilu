@@ -3,7 +3,6 @@
 """Goes through log files for the given period and prepares them for import into a monitoring database"""
 import os
 import re
-import socket
 import pandas as pd
 from kavalkilu import Paths, Log, LogArgParser, MySQLLocal, NetTools, Hosts
 

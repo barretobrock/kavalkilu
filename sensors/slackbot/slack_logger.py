@@ -9,11 +9,22 @@ db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
 st = SlackTools()
 
+log_splitter = {
+    'normal': {
+        'channel': '#logs',
+        'levels': ['DEBUG', 'INFO']
+    },
+    'error': {
+        'channel': '#errors',
+        'levels': ['ERROR', 'WARN']
+    }
+}
+
 # We read errors from x hours previous
-# Currently, logs are read in every day at 6AM, so this will be 24 hours while we test it
 hour_interval = 4
+now = pd.datetime.now()
 # The date to measure from
-read_from = (pd.datetime.today() - pd.Timedelta(hours=hour_interval)).replace(minute=0, second=0)
+read_from = (now - pd.Timedelta(hours=hour_interval)).replace(minute=0, second=0)
 
 error_logs_query = """
     SELECT 
@@ -29,21 +40,10 @@ error_logs_query = """
         time ASC 
 """.format(read_from)
 result_df = pd.read_sql_query(error_logs_query, mysqlconn)
-result_df['cnt'] = 1
-result_df = result_df.groupby(['machine', 'log', 'lvl',
-                               pd.Grouper(key='log_ts', freq='D')]).count().reset_index()
-
-
-log_splitter = {
-    'normal': {
-        'channel': '#logs',
-        'levels': ['DEBUG', 'INFO']
-    },
-    'error': {
-        'channel': '#errors',
-        'levels': ['ERROR', 'WARN']
-    }
-}
+if not result_df.empty:
+    result_df['cnt'] = 1
+    result_df = result_df.groupby(['machine', 'log', 'lvl',
+                                   pd.Grouper(key='log_ts', freq='H')]).count().reset_index()
 
 if not result_df.empty:
     for log_type, log_dict in log_splitter.items():
@@ -57,13 +57,15 @@ if not result_df.empty:
         channel = log_dict['channel']
         if not df.empty:
             # Send the info to Slack
-            msg = """*Last 24 hours in {}*:\n\n```{}````""".format(channel, sb.st.df_to_slack_table(df))
+            msg = """*{:%F %T} to {:%F %T} in {}*:\n\n```{}````""".format(read_from, now,
+                                                                          channel, st.df_to_slack_table(df))
         else:
-            msg = 'No {} logs for this round.'.format(log_type)
+            msg = 'No {} logs for the period {:%F %T} to {:%F %T}.'.format(log_type, read_from, now)
         st.send_message(channel, msg)
 else:
     channel = '#logs'
-    msg = 'No logs were able to be captured in either category.'
+    msg = 'No logs were able to be captured in either category ' \
+          'for the period {:%F %T} to {:%F %T}.'.format(read_from, now)
     st.send_message(channel, msg)
 
 
