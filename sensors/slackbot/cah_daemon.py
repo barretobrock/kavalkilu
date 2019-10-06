@@ -32,6 +32,7 @@ class CAHBot:
      - `cah choose <card-index>`: used by the judge to determine the best card from picks
      - `cah new round`: continue gameplay to a new round
      - `cah end game`: end the current game
+     - `cah refresh sheets`: Refreshes the GSheets that contain the card sets
     """
 
     def __init__(self):
@@ -123,11 +124,11 @@ class CAHBot:
         elif message == 'status':
             self.display_status()
         elif message == 'refresh sheets':
-            if self.game_dict['status'] not in ['end_round']:
+            if self.game_dict['status'] not in ['ended']:
                 self.message_grp('Please end the game before refreshing :))))))')
             else:
                 self._read_in_sheets()
-            response = 'Sheets have been refreshed! `{}`'.format(','.join(self.set_dict.keys()))
+                response = 'Sheets have been refreshed! `{}`'.format(','.join(self.set_dict.keys()))
         elif message != '':
             response = "I didn't understand this: `{}`\n " \
                        "Use `cah help` to get a list of my commands.".format(message)
