@@ -499,6 +499,7 @@ class SlackBot:
         """Reads in GSheets for Viktor"""
         gs = GSheetReader(Keys().get_key('viktor_sheet'))
         sheets = gs.sheets
+        self.gs_dict = {}
         for sheet in sheets:
             self.gs_dict.update({
                 sheet.title: gs.get_sheet(sheet.title)

@@ -1,20 +1,19 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 import time
-import json
 import re
 import traceback
-import pygsheets
+import sys
+import daemonize
 from random import shuffle
+from kavalkilu import Keys, GSheetReader, Log
 
 
-def get_key(fname):
-    fdir = os.path.join(os.path.expanduser('~'), *['extras', 'cah'])
+# Initiate logging
+log = Log('cah_bot', log_lvl='DEBUG')
+log.debug('Logging initiated.')
 
-    with open(os.path.join(fdir, fname)) as f:
-        key = f.read()
-    return key.replace('\n', '')
+pid = '/tmp/cah_bot.pid'
 
 
 class CAHBot:
@@ -39,14 +38,12 @@ class CAHBot:
         #self.log = Log('cah_bot')
         slack = __import__('slackclient')
         # Key starting with 'xoxb...'
-        bot_token = get_key('wizzy-bot-user-token').replace(' ', '')
+        bot_token = Keys().get_key('wizzy-bot-user-token')
         self.bot = slack.SlackClient(bot_token)
         # Key starting with 'xoxp...'
-        user_token = get_key('wizzy-token').replace(' ', '')
+        user_token = Keys().get_key('wizzy-token')
         self.user = slack.SlackClient(user_token)
 
-        # Directory where our cards are stored
-        self.file_dir = os.path.join(os.path.expanduser('~'), *['extras', 'cah'])
         # Starting number of cards for each player
         self.DECK_SIZE = 5
         self.bot_id = self.bot.api_call('auth.test')['user_id']
@@ -56,17 +53,8 @@ class CAHBot:
         self.game_dict = {
             'players': self._filter_humans(self._get_users_info(self._get_channel_members())),
         }
-        # All the card sets
-        self.card_sets = {
-            'standard': {
-                'bcards_standard.txt',
-                'wcards_standard.txt'
-            },
-            'indeed': {
-                'bcards_indeed.txt',
-                'wcards_indeed.txt',
-            }
-        }
+        self.set_dict = {}
+        self._read_in_sheets()
 
     def run_rtm(self):
         """Initiate real-time messaging"""
@@ -134,6 +122,12 @@ class CAHBot:
             self.toggle_card_dm(user)
         elif message == 'status':
             self.display_status()
+        elif message == 'refresh sheets':
+            if self.game_dict['status'] not in ['end_round']:
+                self.message_grp('Please end the game before refreshing :))))))')
+            else:
+                self._read_in_sheets()
+            response = 'Sheets have been refreshed! `{}`'.format(','.join(self.set_dict.keys()))
         elif message != '':
             response = "I didn't understand this: `{}`\n " \
                        "Use `cah help` to get a list of my commands.".format(message)
@@ -143,6 +137,16 @@ class CAHBot:
                 'user': user
             }
             self.send_message(channel, response.format(**resp_dict))
+
+    def _read_in_sheets(self):
+        """Reads in GSheets for Viktor"""
+        gs = GSheetReader(Keys().get_key('cah_sheet'))
+        sheets = gs.sheets
+        self.set_dict = {}
+        for sheet in sheets:
+            self.set_dict.update({
+                sheet.title: gs.get_sheet(sheet.title)
+            })
 
     def send_message(self, channel, message):
         """Sends a message to the specific channel"""
@@ -261,24 +265,18 @@ class CAHBot:
     def _read_in_cards(self, set_type='standard'):
         """Reads in the cards"""
 
-        if set_type in self.card_sets.keys():
-            card_files = self.card_sets[set_type]
-            self.message_grp('Using the *{}* set.'.format(set_type))
+        if set_type in self.set_dict.keys():
+            set_df = self.set_dict[set_type]
+            self.message_grp('Using the `{}` set.'.format(set_type))
         else:
-            self.message_grp('The card set "{}" was not found.'.format(set_type))
-            #self.log.error('Card set "{}" not found in folder.'.format(set_type))
+            self.message_grp('The card set `{}` was not found. '
+                             'Possible sets: `{}`.'.format(set_type, ','.join(self.set_dict.keys())))
             return None
 
         cards = {}
-        for file in card_files:
-            with open(os.path.join(self.file_dir, file)) as f:
-                txt = f.readlines()
-            if file[0] == 'b':
-                # Question cards
-                cards['q'] = [x.replace('\n', '') for x in txt if len(x) > 1]
-            elif file[0] == 'w':
-                # Answer cards
-                cards['a'] = [x.replace('\n', '') for x in txt if len(x) > 1]
+        for part in ['questions', 'answers']:
+            cards[part[0]] = set_df.loc[(~set_df[part].isnull()) & (set_df[part] != ''), part].unique().tolist()
+
         return cards
 
     def toggle_card_dm(self, user_id):
@@ -295,6 +293,8 @@ class CAHBot:
 
         if not self.game_dict['status'] in ['end_round', 'initiated']:
             # Avoid starting a new round when one has already been started
+            self.message_grp('Cannot transition to new round '
+                             'due to status (`{}`)'.format(self.game_dict['status']))
             return None
 
         if replace_all:
@@ -535,12 +535,23 @@ class CAHBot:
         self.message_grp(status_message)
 
 
-cbot = CAHBot()
-
-try:
-    print('Running')
-    cbot.run_rtm()
-except KeyboardInterrupt:
-    cbot.message_grp('Shutting down...')
+if __name__ == "__main__":
+    cbot = CAHBot()
+    daemon = daemonize.Daemonize(app='kodubot', pid=pid, action=cbot.run_rtm, logger=log, verbose=True)
+    if len(sys.argv) == 2:
+        cmd = sys.argv[1]
+        if 'start' == cmd:
+            daemon.start()
+        elif 'stop' == cmd:
+            cbot.message_grp('Shutting down for now! :sleepyparrot:')
+            log.debug('Closing daemon')
+            daemon.exit()
+        else:
+            print("Unknown command: {}".format(cmd))
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print("Usage: {} start|stop".format(sys.argv[0]))
+        sys.exit(2)
 
 
