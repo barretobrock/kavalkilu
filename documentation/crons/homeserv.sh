@@ -5,7 +5,7 @@ SENSORS=kavalkilu/sensors
 PY3=/usr/bin/python3
 
 # LOG ANALYSIS
-0 6 * * *           $PY3    $HOME/$SENSORS/log_reader.py
+0 */4 * * *           $PY3    $HOME/$SENSORS/log_reader.py
 # PIHOLE
 5 6 * * *           bash    $HOME/$SENSORS/pihole/pihole_backup.sh
 # MYSQL

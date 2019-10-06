@@ -687,10 +687,10 @@ class SlackTools:
 
     def get_channel_history(self, channel, limit=1000):
         """Collect channel history"""
-        resp = self.user.api_call(
+        resp = self.bot.api_call(
             'channels.history',
             channel=channel,
-            count=1000
+            count=limit
         )
         self._check_for_exception(resp)
         return resp['messages']
@@ -718,7 +718,7 @@ class SlackTools:
 
     def upload_file(self, channel, filepath, filename):
         """Uploads the selected file to the given channel"""
-        resp = self.user.api_call(
+        resp = self.bot.api_call(
             'files.upload',
             channels=channel,
             filename=filename,

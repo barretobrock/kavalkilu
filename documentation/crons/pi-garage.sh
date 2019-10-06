@@ -10,4 +10,5 @@ PY3=/usr/bin/python3
 */10 * * * *    $PY3    $HOME/$SENSORS/net/machine_uptime.py
 # ENV DATA COLLECTION
 */10 * * * *    $PY3    $HOME/$SENSORS/temps/garage_temps.py
+*/5 * * * *     $PY3    $HOME/$SENSORS/presence/garage_door.py
 
