@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """Posts error logs to #errors channel in Slack"""
 import pandas as pd
-from kavalkilu import MySQLLocal, SlackTools
+from kavalkilu import MySQLLocal, SlackTools, Log, LogArgParser
 
 
+log = Log('slack_logger', log_lvl=LogArgParser().loglvl)
 db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
 st = SlackTools()
@@ -48,24 +49,22 @@ if not result_df.empty:
 if not result_df.empty:
     for log_type, log_dict in log_splitter.items():
         df = result_df[result_df.lvl.isin(log_dict['levels'])].copy()
-        df['lvl'] = df['lvl'].str[:3]
-        df['log'] = df['log'].str[:10]
-        df['log_ts'] = pd.to_datetime(df['log_ts']).dt.strftime('%d %b')
+        df['log_ts'] = pd.to_datetime(df['log_ts']).dt.strftime('%d %b %H:%M')
         df.loc['total'] = df.copy().sum(numeric_only=True)
         df['cnt'] = df['cnt'].astype(int)
         df = df.fillna('')
         channel = log_dict['channel']
         if not df.empty:
             # Send the info to Slack
-            msg = """*{:%F %T} to {:%F %T} in {}*:\n\n```{}````""".format(read_from, now,
-                                                                          channel, st.df_to_slack_table(df))
+            msg = """`{:%H:%M}` to `{:%H:%M}` in `{}`:\n\n```{}````""".format(read_from, now,
+                                                                              channel, st.df_to_slack_table(df))
         else:
-            msg = 'No {} logs for the period {:%F %T} to {:%F %T}.'.format(log_type, read_from, now)
+            msg = 'No {} logs for the period `{:%H:%M}` to `{:%H:%M}`.'.format(log_type, read_from, now)
         st.send_message(channel, msg)
 else:
     channel = '#logs'
     msg = 'No logs were able to be captured in either category ' \
-          'for the period {:%F %T} to {:%F %T}.'.format(read_from, now)
+          'for the period `{:%H:%M}` to `{:%H:%M}`'.format(read_from, now)
     st.send_message(channel, msg)
 
 

@@ -8,7 +8,6 @@ from kavalkilu import Paths, MySQLLocal, Log, LogArgParser
 
 # Initiate logging
 log = Log('speedtest_mysql', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated')
 p = Paths()
 filepath = os.path.join(os.path.abspath(p.data_dir), 'speedtest_data.csv')
 
@@ -47,3 +46,4 @@ for i in range(sliced.shape[0]):
 speedtest_df = speedtest_df[['TIMESTAMP', 'DOWNLOAD', 'UPLOAD']].tail(10)
 speedtest_df.to_csv(filepath, index=False)
 
+log.close()

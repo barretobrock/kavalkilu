@@ -7,7 +7,6 @@ from kavalkilu import Log, LogArgParser, MySQLLocal, SlackTools, NetTools, Hosts
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('device_connected', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated')
 
 eng = MySQLLocal('logdb')
 

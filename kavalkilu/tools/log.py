@@ -64,6 +64,7 @@ class Log:
         self.logger.addHandler(fh)
         # Intercept exceptions
         sys.excepthook = self.handle_exception
+        self.info('Logging initiated.')
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         """Intercepts an exception and prints it to log file"""
@@ -90,7 +91,7 @@ class Log:
 
     def close(self):
         """Close logger"""
-        self.logger.debug('Log disconnected.\n' + '-' * 80)
+        self.logger.info('Log disconnected.\n' + '-' * 80)
         handlers = self.logger.handlers
         for handler in handlers:
             handler.close()

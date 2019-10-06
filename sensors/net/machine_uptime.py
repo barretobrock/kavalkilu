@@ -10,7 +10,6 @@ from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, SlackTool
 
 
 log = Log('machine_uptime', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated.')
 
 ip_addr = NetTools().ip
 machine_name = Hosts().get_host(ip=ip_addr)['name']

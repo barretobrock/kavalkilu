@@ -9,7 +9,6 @@ from kavalkilu import Paths, Log, LogArgParser, MySQLLocal, NetTools, Hosts
 
 # Initiate logging (META!)
 log = Log('log_collector', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated.')
 
 
 def read_log_file(log_path, log_dict, most_recent_ts):

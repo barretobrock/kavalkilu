@@ -6,7 +6,6 @@ from kavalkilu import SlackBot, Log
 
 # Initiate logging
 log = Log('kodubot', log_lvl='DEBUG')
-log.debug('Logging initiated.')
 
 pid = '/tmp/kodubot.pid'
 

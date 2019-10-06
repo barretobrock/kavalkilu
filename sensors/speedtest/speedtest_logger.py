@@ -8,7 +8,6 @@ from kavalkilu.tools import Log, LogArgParser, Paths
 
 p = Paths()
 logg = Log('speedtest.logger', 'speedtest', log_lvl=LogArgParser().loglvl)
-logg.debug('Logging initiated')
 
 # Load previous data
 save_path = os.path.join(p.data_dir, 'speedtest_data.csv')

@@ -8,7 +8,6 @@ from kavalkilu import Log, LogArgParser, MySQLLocal, PiHoleDB
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('pihole_db', 'pihole_db', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated')
 
 
 def convert_unix_to_dtt(obj, unit='s', tz='US/Central'):

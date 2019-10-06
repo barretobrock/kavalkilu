@@ -11,7 +11,6 @@ from kavalkilu import Keys, GSheetReader, Log
 
 # Initiate logging
 log = Log('cah_bot', log_lvl='DEBUG')
-log.debug('Logging initiated.')
 
 pid = '/tmp/cah_bot.pid'
 

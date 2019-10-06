@@ -246,3 +246,4 @@ for task_name, task in tasks_dict.items():
 
 logg.debug('Script complete. Quitting instance.')
 notify_channel('Competed script.')
+logg.close()

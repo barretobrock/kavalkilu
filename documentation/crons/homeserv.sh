@@ -6,7 +6,7 @@ PY3=/usr/bin/python3
 
 # LOG ANALYSIS
 0 */4 * * *         $PY3    $HOME/$SENSORS/log_reader.py
-32 3 20 * *         $PY3    $HOME/$SENSORS/log_remover.py debug
+32 3 20 * *         $PY3    $HOME/$SENSORS/log_remover.py -lvl debug
 # PIHOLE
 5 6 * * *           bash    $HOME/$SENSORS/pihole/pihole_backup.sh
 # MYSQL

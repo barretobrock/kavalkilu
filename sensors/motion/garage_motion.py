@@ -7,7 +7,6 @@ from datetime import datetime
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('garage_motion', 'motion', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated')
 MOTION_PIN = 18
 lights = [x for x in hue_lights if 'Garage' in x['hue_name']]
 

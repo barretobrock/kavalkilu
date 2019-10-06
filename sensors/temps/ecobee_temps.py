@@ -7,7 +7,6 @@ from datetime import datetime
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('ecobee_temp', 'temp', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated')
 
 # Initiate Openhab
 oh = OpenHab()

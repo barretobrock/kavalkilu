@@ -6,7 +6,6 @@ from kavalkilu import SecCamGroup, Keys, Log, LogArgParser
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('cam_night', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated')
 
 cred = Keys().get_key('webcam_api')
 
