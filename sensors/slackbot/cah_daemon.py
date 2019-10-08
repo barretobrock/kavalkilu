@@ -52,6 +52,7 @@ class CAHBot:
         # For storing game info
         self.game_dict = {
             'players': self._filter_humans(self._get_users_info(self._get_channel_members())),
+            'status': 'stahted'
         }
         self.set_dict = {}
         self._read_in_sheets()
@@ -101,15 +102,15 @@ class CAHBot:
 
     def handle_command(self, channel, message, user):
         """Handles a bot command if it's known"""
-        # Users that get to use higher-level actions
-        approved_users = ['UM35HE6R5', 'UM3E3G72S']
         response = None
         if message == 'help':
             response = self.help_txt
         elif message.startswith('new game'):
             self.new_game(message)
         elif message == 'new round':
-            self.new_round()
+            response = self.new_round()
+            if response is not None:
+                '\n'.join(response)
         elif message == 'end game':
             self.end_game()
         elif message.startswith('pick'):
@@ -123,8 +124,8 @@ class CAHBot:
         elif message == 'status':
             self.display_status()
         elif message == 'refresh sheets':
-            if self.game_dict['status'] not in ['ended']:
-                self.message_grp('Please end the game before refreshing :))))))')
+            if self.game_dict['status'] not in ['stahted', 'ended']:
+                response = 'Please end the game before refreshing :))))))'
             else:
                 self._read_in_sheets()
                 response = 'Sheets have been refreshed! `{}`'.format(','.join(self.set_dict.keys()))
@@ -163,6 +164,7 @@ class CAHBot:
     def new_game(self, message):
         """Begins a new game"""
         msg_split = message.split()
+        response_list = []
         if '-skip' in msg_split and len(msg_split) > 3:
             # We're going to skip some players
             skip_idx = msg_split.index('-skip')
@@ -179,7 +181,7 @@ class CAHBot:
                 except ValueError:
                     continue
             if set_idx is None:
-                self.message_grp('Could not find the \\-[s]?et flag. Defaulting to standard set.')
+                response_list.append('Could not find the \\-[s]?et flag. Defaulting to standard set.')
                 card_set = 'standard'
             else:
                 card_set = msg_split[set_idx + 1].strip()
@@ -187,13 +189,17 @@ class CAHBot:
             card_set = 'standard'
 
         cards = self._read_in_cards(set_type=card_set)
-        black_cards = cards['q']
-        white_cards = cards['a']
-        # Shuffle cards
-        shuffle(black_cards)
-        shuffle(white_cards)
+        if cards is not None:
+            response_list.append('Reading in the `{}` card set'.format(card_set))
+            black_cards = cards['q']
+            white_cards = cards['a']
+            # Shuffle cards
+            shuffle(black_cards)
+            shuffle(white_cards)
+        else:
+            return None
 
-        self.message_grp('New game started! Cards have been shuffled. Generating players...')
+        response_list.append('Cards have been shuffled. Generating players...')
         # players = self._filter_humans(self._get_users_info(self._get_channel_members()))
         players = self.game_dict['players']
 
@@ -205,10 +211,10 @@ class CAHBot:
                     # Mark them as skipped
                     player_idx = players.index([x for x in players if x['display_name'].lower() == skip_player][0])
                     players[player_idx]['skip'] = True
-                    self.message_grp('Skipping: *{display_name}*'.format(**skip_player))
+                    response_list.append('Skipping: *{display_name}*'.format(**skip_player))
 
         shuffle(players)
-        self.message_grp('Judge order: {}'.format(' -> '.join([x['display_name'] for x in players])))
+        response_list.append('Judge order: {}'.format(' :finger-wag-right: '.join([x['display_name'] for x in players])))
 
         # store game details in a dict
         self.game_dict.update({
@@ -220,7 +226,11 @@ class CAHBot:
             'remaining_black': black_cards,
         })
 
-        self.new_round(replace_all=True)
+        new_round_list = self.new_round(replace_all=True)
+        if new_round_list is not None:
+            response_list += new_round_list
+        msg = '\n'.join(response_list)
+        self.message_grp(msg)
 
     def _get_channel_members(self):
         resp = self.user.api_call(
@@ -267,7 +277,6 @@ class CAHBot:
 
         if set_type in self.set_dict.keys():
             set_df = self.set_dict[set_type]
-            self.message_grp('Using the `{}` set.'.format(set_type))
         else:
             self.message_grp('The card set `{}` was not found. '
                              'Possible sets: `{}`.'.format(set_type, ','.join(self.set_dict.keys())))
@@ -290,7 +299,7 @@ class CAHBot:
 
     def new_round(self, replace_all=False):
         """Starts a new round"""
-
+        resp_list = []
         if not self.game_dict['status'] in ['end_round', 'initiated']:
             # Avoid starting a new round when one has already been started
             self.message_grp('Cannot transition to new round '
@@ -308,7 +317,7 @@ class CAHBot:
             players = self.game_dict['players']
             judge = self._find_new_judge()
 
-        self.message_grp('*{display_name}* is the judge!'.format(**judge))
+        resp_list.append('*{display_name}* is the judge!'.format(**judge))
         self._private_channel_message(judge['id'], 'cah', "You're the judge this round!")
         white_cards = self.game_dict['remaining_white']
         black_cards = self.game_dict['remaining_black']
@@ -317,10 +326,11 @@ class CAHBot:
             self.message_grp('No more black cards! Game over!')
             self.display_points()
             self.end_game()
+            return None
         else:
             current_black = black_cards.pop(0)
 
-        self.message_grp('Distributing cards...')
+        resp_list.append('Distributing cards...')
 
         # Distribute cards
         for i, player in enumerate(players):
@@ -344,11 +354,11 @@ class CAHBot:
                     self._distribute_cards(player)
                 players[i] = player
             else:
-                self.message_grp('No more cards left to deal!')
+                resp_list.append('No more cards left to deal!')
                 break
 
         # Show group this round's question
-        self.message_grp("Q: `{}`".format(current_black))
+        resp_list.append("Q: `{}`".format(current_black))
         # Load everything back into the game dict
         self.game_dict.update({
             'status': 'players_decision',
@@ -358,6 +368,8 @@ class CAHBot:
             'current_black': current_black,
             'chosen_cards': []
         })
+
+        return resp_list
 
     def _find_new_judge(self, new_game=False):
         """Determines the next judge by order of players"""
@@ -408,7 +420,7 @@ class CAHBot:
     def _distribute_cards(self, user_dict):
         """Distribute cards to user"""
 
-        cards_msg = ['\t`{}`: {}'.format(i, x) for i, x in enumerate(user_dict['cards'])]
+        cards_msg = ['\t`{}`: {}'.format(i + 1, x) for i, x in enumerate(user_dict['cards'])]
 
         msg_txt = 'Here are your cards:\n{}'.format('\n'.join(cards_msg))
         self._private_channel_message(user_dict['id'], 'cah', msg_txt)
@@ -461,7 +473,7 @@ class CAHBot:
         if len(msg_split) > 1:
             if msg_split[pick_idx].isnumeric():
                 pick = int(msg_split[pick_idx])
-                return pick
+                return pick - 1
             else:
                 self.message_grp("<@{}> - I didn't understand your pick: {}".format(user, message))
         else:
