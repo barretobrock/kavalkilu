@@ -54,7 +54,7 @@ if not result_df.empty:
         df['cnt'] = df['cnt'].astype(int)
         df = df.fillna('')
         channel = log_dict['channel']
-        if not df.empty:
+        if df.shape[0] > 0:
             # Send the info to Slack
             msg = """`{:%H:%M}` to `{:%H:%M}` in `{}`:\n\n```{}````""".format(read_from, now,
                                                                               channel, st.df_to_slack_table(df))

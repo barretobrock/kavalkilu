@@ -36,7 +36,8 @@ def read_log_file(log_path, log_dict, most_recent_ts):
             break
 
     # Begin log parsing
-    for line in lines:
+    for i in range(0, len(lines)):
+        line = lines[i]
         match = log_patterns['compiled'].match(line)
         if match is not None:
             match_str = match.group(0)
@@ -51,11 +52,34 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                     # Timestamp in log name. remove it
                     log_name = log_name[:-5]
                 log_level = match_list[2].split(' ')[0]
+                exc_class = ''
+                exc_msg = ''
+                if log_level in ['ERROR']:
+                    # Grab more info (err class & message)
+                    for j in range(i + 1, len(lines) - 1):
+                        # Try and find the error class
+                        new_line = lines[j]
+                        if re.match('^\w+\:.*', new_line) is not None:
+                            # We've detected a line matching this: {exception}: {message}
+                            exception = new_line.split(':')
+                            exc_class = exception[0].strip()
+                            exc_msg = exception[1].strip()
+                            # Let iterator continue onward
+                            i = j
+                            break
+                        elif re.match('^\d+\-\d+\-\d+', new_line) is not None:
+                            # We've gotten to a new item in the log. Call off the search for this mysterious class
+                            exc_class = 'UnkException'
+                            exc_msg = "Parsing pattern in log_reader couldn't find the Exception message"
+                            i = j - 1
+                            break
 
                 output_list.append({
                     'time': log_ts,
                     'name': log_name,
                     'level': log_level,
+                    'exc_class': exc_class,
+                    'exc_msg': exc_msg,
                     'type': log_patterns['type']
                 })
 
@@ -116,7 +140,7 @@ if not log_df.empty:
     # Begin process to record to database
     # Establish order of log data
     log_df['machine_name'] = machine_name
-    log_df = log_df[['machine_name', 'name', 'time', 'level', 'type']]
+    log_df = log_df[['machine_name', 'name', 'time', 'exc_class', 'exc_msg', 'level', 'type']]
     # Rename to adhere to columns in database
     log_df = log_df.rename(columns={'name': 'log_name'})
     log_df['time'] = pd.to_datetime(log_df['time'])
