@@ -62,7 +62,9 @@ _Note: This is to prepare a Raspberry Pi device for installation of this package
     ssh-add -l > /dev/null || ssh-add
     ```
 ### python
- - TBD
+ - python calling dist-packages version
+ (better instructions to come.)
+ `sudo pip3 install --target=/usr/local/lib/python3.6/dist-packages git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade`
 ### crontab
  - Debugging from crontab
     `tail -f /var/log/syslog`

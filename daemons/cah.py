@@ -3,16 +3,12 @@
 import time
 import re
 import traceback
-import sys
-import daemonize
 from random import shuffle
-from kavalkilu import Keys, GSheetReader, Log
+from kavalkilu import Keys, GSheetReader, Log, LogArgParser
 
 
 # Initiate logging
-log = Log('cah_bot', log_lvl='DEBUG')
-
-pid = '/tmp/cah_bot.pid'
+log = Log('cah', log_lvl=LogArgParser().loglvl)
 
 
 class CAHBot:
@@ -556,23 +552,10 @@ class CAHBot:
         self.message_grp(status_message)
 
 
-if __name__ == "__main__":
-    cbot = CAHBot()
-    daemon = daemonize.Daemonize(app='kodubot', pid=pid, action=cbot.run_rtm, logger=log, verbose=True)
-    if len(sys.argv) == 2:
-        cmd = sys.argv[1]
-        if 'start' == cmd:
-            daemon.start()
-        elif 'stop' == cmd:
-            cbot.message_grp('Shutting down for now! :sleepyparrot:')
-            log.debug('Closing daemon')
-            daemon.exit()
-        else:
-            print("Unknown command: {}".format(cmd))
-            sys.exit(2)
-        sys.exit(0)
-    else:
-        print("Usage: {} start|stop".format(sys.argv[0]))
-        sys.exit(2)
+cbot = CAHBot()
+try:
+    cbot.run_rtm()
+except KeyboardInterrupt:
+    log.debug('Script ended manually.')
 
-
+log.close()

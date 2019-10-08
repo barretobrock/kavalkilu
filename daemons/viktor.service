@@ -1,0 +1,17 @@
+# Put this in /lib/systemd/system
+# Then
+# sudo chmod 644 <filename>
+# sudo systemctl daemon-reload
+# sudo systemctl enable <filename>
+
+[Unit]
+Description=Kodubot Slack Bot Real Time Messager
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /home/bobrock/kavalkilu/daemons/viktor.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
