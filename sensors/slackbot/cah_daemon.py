@@ -532,16 +532,25 @@ class CAHBot:
 
     def display_status(self):
         """Displays points for all players"""
-        num_white = len(self.game_dict['remaining_white'])
-        num_black = len(self.game_dict['remaining_black'])
 
-        status_list = [
-            '`current game status`: {status}',
-            '`players`: {player_names}',
-            '`judge`: {}'.format(self.game_dict['judge']['display_name']),
-            '`remaining white cards`: {}'.format(num_white),
-            '`remaining black cards`: {}'.format(num_black),
-        ]
+        status_list = ['`current game status`: {status}']
+
+        try:
+            num_white = len(self.game_dict['remaining_white'])
+            num_black = len(self.game_dict['remaining_black'])
+        except KeyError:
+            # No cards, no game
+            num_white, num_black = None, None
+
+        if 'player_names' in self.game_dict.keys():
+            status_list.append('`players`: {player_names}')
+        if 'judge' in self.game_dict.keys():
+            status_list.append('`judge`: {}'.format(self.game_dict['judge']['display_name']))
+        if all([x is not None for x in [num_white, num_black]]):
+            status_list += [
+                '`remaining white cards`: {}'.format(num_white),
+                '`remaining black cards`: {}'.format(num_black),
+            ]
 
         status_message = '\n'.join(status_list).format(**self.game_dict)
         self.message_grp(status_message)
