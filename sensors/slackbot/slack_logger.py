@@ -33,6 +33,8 @@ error_logs_query = """
         , log_name AS log
         , time AS log_ts
         , level AS lvl
+        , exc_class
+        , exc_msg
     FROM 
         logs
     WHERE
@@ -43,7 +45,7 @@ error_logs_query = """
 result_df = pd.read_sql_query(error_logs_query, mysqlconn)
 if not result_df.empty:
     result_df['cnt'] = 1
-    result_df = result_df.groupby(['machine', 'log', 'lvl',
+    result_df = result_df.groupby(['machine', 'log', 'lvl', 'exc_class', 'exc_msg',
                                    pd.Grouper(key='log_ts', freq='H')]).count().reset_index()
 
 if not result_df.empty:
@@ -54,6 +56,9 @@ if not result_df.empty:
         df['cnt'] = df['cnt'].astype(int)
         df = df.fillna('')
         channel = log_dict['channel']
+        if log_type == 'normal':
+            # remove the exception-related columns
+            df = df.drop(['exc_class', 'exc_msg'], axis=1)
         if df.shape[0] > 0:
             # Send the info to Slack
             msg = """`{:%H:%M}` to `{:%H:%M}` in `{}`:\n\n```{}````""".format(read_from, now,
