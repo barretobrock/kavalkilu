@@ -24,6 +24,7 @@ class CAHBot:
      - `cah (points|score|scores)`: show points/score of all players
      - `cah status`: get the current status of the game
      - `cah toggle dm`: Toggles whether or not you receive cards as a DM from Wizzy (default is off)
+     - `cah cahds now': Send cards immediately without toggling DM
      - `cah choose <card-index>`: used by the judge to determine the best card from picks
      - `cah new round`: continue gameplay to a new round
      - `cah end game`: end the current game
@@ -47,7 +48,7 @@ class CAHBot:
         self.MENTION_REGEX = "^(cah)(.*)"
         # For storing game info
         self.game_dict = {
-            'players': self._filter_humans(self._get_users_info(self._get_channel_members())),
+            'players': self.refresh_players(),
             'status': 'stahted'
         }
         self.set_dict = {}
@@ -117,6 +118,8 @@ class CAHBot:
             self.display_points()
         elif message == 'toggle dm':
             self.toggle_card_dm(user)
+        elif message == 'cahds now':
+            self.dm_cards_now(user)
         elif message == 'status':
             self.display_status()
         elif message == 'refresh sheets':
@@ -196,7 +199,8 @@ class CAHBot:
             return None
 
         response_list.append('Cards have been shuffled. Generating players...')
-        # players = self._filter_humans(self._get_users_info(self._get_channel_members()))
+        # Refresh the players' names
+        self.game_dict['players'] = self.refresh_players()
         players = self.game_dict['players']
 
         # Skipping players
@@ -268,6 +272,9 @@ class CAHBot:
                 humans.append(user_cleaned)
         return humans
 
+    def refresh_players(self):
+        return self._filter_humans(self._get_users_info(self._get_channel_members()))
+
     def _read_in_cards(self, set_type='standard'):
         """Reads in the cards"""
 
@@ -292,6 +299,23 @@ class CAHBot:
         # Read in the new values
         player = self.game_dict['players'][player_idx]
         self.message_grp('Card DMing for player `{display_name}` set to `{dm_cards}`'.format(**player))
+        # Send cards to user if the status shows we're currently in a game
+        if self.game_dict['status'] == 'player_decision':
+            self.dm_cards_now(user_id)
+
+    def dm_cards_now(self, user_id):
+        """DMs current card set to user"""
+        players = self.game_dict['players']
+        player = [x for x in players if x['id'] == user_id][0]
+
+        # Send cards to user if the status shows we're currently in a game
+        if self.game_dict['status'] == 'player_decision':
+            # self._distribute_cards(self.game_dict['players'][player_idx])
+            cards_msg = ['\t`{}`: {}'.format(i + 1, x) for i, x in enumerate(player['cards'])]
+            msg_txt = 'Here are your cards:\n{}'.format('\n'.join(cards_msg))
+        else:
+            msg_txt = "The game's current status doesn't allow for card DMing"
+        self._private_message(player['id'], msg_txt)
 
     def new_round(self, replace_all=False):
         """Starts a new round"""
@@ -487,7 +511,7 @@ class CAHBot:
                 }
                 picks.append(player_details)
         shuffle(picks)
-        pick_str = '\n'.join(['`{}`: {}'.format(x, y['pick']) for x, y in enumerate(picks)])
+        pick_str = '\n'.join(['`{}`: {}'.format(x + 1, y['pick']) for x, y in enumerate(picks)])
         self.message_grp('Q: `{}`\n\n{}'.format(self.game_dict['current_black'], pick_str))
         self.game_dict['chosen_cards'] = picks
 
@@ -499,7 +523,7 @@ class CAHBot:
 
         if user == self.game_dict['judge']['id']:
             pick = self._get_pick(user, message, pick_idx=1)
-            if pick > len(self.game_dict['players']) - 2 or pick < 0:
+            if pick > len(self.game_dict['players']) - 1 or pick < 1:
                 self.message_grp('I think you picked outside the range of suggestions.')
                 return None
             else:
@@ -508,7 +532,7 @@ class CAHBot:
                 for i, player in enumerate(self.game_dict['players']):
                     if player['id'] == chosen_cards[pick]['id']:
                         player['score'] += 1
-                        self.message_grp("Winning card: {}\n\t({display_name}, new score: *{score}*pts)".format(
+                        self.message_grp("Winning card: `{}`\n\t(`{display_name}`, new score: *{score}* )".format(
                             chosen_cards[pick]['pick'], **player))
                         self.game_dict['status'] = 'end_round'
                         self.message_grp('Round ended. `cah new round` to start another.')
@@ -539,13 +563,15 @@ class CAHBot:
             num_white, num_black = None, None
 
         if 'player_names' in self.game_dict.keys():
-            status_list.append('`players`: {player_names}')
+            status_list.append('players: `{player_names}`')
         if 'judge' in self.game_dict.keys():
-            status_list.append('`judge`: {}'.format(self.game_dict['judge']['display_name']))
+            status_list.append('judge: `{}`'.format(self.game_dict['judge']['display_name']))
+        if self.game_dict['status'] in ['players_decision', 'judge_decision']:
+            status_list.append('Current Q: `{current_black}`'.format(**self.game_dict))
         if all([x is not None for x in [num_white, num_black]]):
             status_list += [
-                '`remaining white cards`: {}'.format(num_white),
-                '`remaining black cards`: {}'.format(num_black),
+                'remaining white cards: `{}`'.format(num_white),
+                'remaining black cards: `{}`'.format(num_black),
             ]
 
         status_message = '\n'.join(status_list).format(**self.game_dict)

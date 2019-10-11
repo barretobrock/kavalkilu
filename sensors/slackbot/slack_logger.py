@@ -50,13 +50,13 @@ if not result_df.empty:
     # Establish column order
     result_df = result_df[['log_ts', 'machine', 'log', 'lvl', 'exc_class', 'exc_msg', 'cnt']]
     for log_type, log_dict in log_splitter.items():
+        channel = log_dict['channel']
         df = result_df[result_df.lvl.isin(log_dict['levels'])].copy()
         if df.shape[0] > 0:
             df['log_ts'] = pd.to_datetime(df['log_ts']).dt.strftime('%d %b %H:%M')
             df.loc['total'] = df.copy().sum(numeric_only=True)
             df['cnt'] = df['cnt'].astype(int)
             df = df.fillna('')
-            channel = log_dict['channel']
             if log_type == 'normal':
                 # remove the exception-related columns
                 df = df.drop(['exc_class', 'exc_msg'], axis=1)
