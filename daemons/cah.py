@@ -24,15 +24,15 @@ class CAHBot:
      - `cah (points|score|scores)`: show points/score of all players
      - `cah status`: get the current status of the game
      - `cah toggle dm`: Toggles whether or not you receive cards as a DM from Wizzy (default is off)
-     - `cah cahds now': Send cards immediately without toggling DM
+     - `cah cahds now`: Send cards immediately without toggling DM
      - `cah choose <card-index>`: used by the judge to determine the best card from picks
      - `cah new round`: continue gameplay to a new round
      - `cah end game`: end the current game
      - `cah refresh sheets`: Refreshes the GSheets that contain the card sets
     """
 
-    def __init__(self):
-        #self.log = Log('cah_bot')
+    def __init__(self, log):
+        self.log = log
         slack = __import__('slackclient')
         # Key starting with 'xoxb...'
         bot_token = Keys().get_key('wizzy-bot-user-token')
@@ -211,10 +211,11 @@ class CAHBot:
                     # Mark them as skipped
                     player_idx = players.index([x for x in players if x['display_name'].lower() == skip_player][0])
                     players[player_idx]['skip'] = True
-                    response_list.append('Skipping: *{display_name}*'.format(**skip_player))
+                    response_list.append('Skipping: *{display_name}*'.format(**players[player_idx]))
 
         shuffle(players)
-        response_list.append('Judge order: {}'.format(' :finger-wag-right: '.join([x['display_name'] for x in players])))
+        response_list.append('Judge order: {}'.format(' :finger-wag-right: '.join(
+            [x['display_name'] for x in players if not x['skip']])))
 
         # store game details in a dict
         self.game_dict.update({
@@ -269,6 +270,9 @@ class CAHBot:
                     'dm_cards': False,
                     'score': 0
                 }
+                # Make sure display name is not empty
+                if user_cleaned['display_name'] == '':
+                    user_cleaned['display_name'] = user_cleaned['real_name']
                 humans.append(user_cleaned)
         return humans
 
@@ -309,10 +313,11 @@ class CAHBot:
         player = [x for x in players if x['id'] == user_id][0]
 
         # Send cards to user if the status shows we're currently in a game
-        if self.game_dict['status'] == 'player_decision':
+        if self.game_dict['status'] == 'players_decision':
             # self._distribute_cards(self.game_dict['players'][player_idx])
+            question = 'Current Question:\n`{current_black}`'.format(**self.game_dict)
             cards_msg = ['\t`{}`: {}'.format(i + 1, x) for i, x in enumerate(player['cards'])]
-            msg_txt = 'Here are your cards:\n{}'.format('\n'.join(cards_msg))
+            msg_txt = '{}\nYour cards:\n{}'.format(question, '\n'.join(cards_msg))
         else:
             msg_txt = "The game's current status doesn't allow for card DMing"
         self._private_message(player['id'], msg_txt)
@@ -356,6 +361,9 @@ class CAHBot:
         for i, player in enumerate(players):
             # Remove any possible pick from last round
             _ = player.pop('pick', None)
+            if player['skip']:
+                # Skip that player
+                continue
             if len(white_cards) > 0:
                 cards = white_cards[:num_cards]
                 white_cards = white_cards[num_cards:]
@@ -476,7 +484,7 @@ class CAHBot:
         # See who else has yet to decide
         remaining = []
         for i, player in enumerate(self.game_dict['players']):
-            if 'pick' not in player.keys() and player != self.game_dict['judge']:
+            if 'pick' not in player.keys() and player != self.game_dict['judge'] and not player['skip']:
                 remaining.append(player['display_name'])
         if len(remaining) == 0:
             self.message_grp('All players have made their picks.')
@@ -553,7 +561,7 @@ class CAHBot:
     def display_status(self):
         """Displays points for all players"""
 
-        status_list = ['`current game status`: {status}']
+        status_list = ['current game status: `{status}`']
 
         try:
             num_white = len(self.game_dict['remaining_white'])
@@ -567,7 +575,7 @@ class CAHBot:
         if 'judge' in self.game_dict.keys():
             status_list.append('judge: `{}`'.format(self.game_dict['judge']['display_name']))
         if self.game_dict['status'] in ['players_decision', 'judge_decision']:
-            status_list.append('Current Q: `{current_black}`'.format(**self.game_dict))
+            status_list.append('current q: `{current_black}`'.format(**self.game_dict))
         if all([x is not None for x in [num_white, num_black]]):
             status_list += [
                 'remaining white cards: `{}`'.format(num_white),
@@ -578,7 +586,7 @@ class CAHBot:
         self.message_grp(status_message)
 
 
-cbot = CAHBot()
+cbot = CAHBot(log)
 try:
     cbot.run_rtm()
 except KeyboardInterrupt:
