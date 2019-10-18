@@ -6,7 +6,8 @@ import re
 import socket
 import psutil
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, SlackTools, NetTools
+from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, NetTools
+from slacktools import SlackTools
 
 
 log = Log('machine_uptime', log_lvl=LogArgParser().loglvl)
@@ -33,7 +34,7 @@ WHERE
 """.format(machine_name, ip_addr)
 uptime_df = pd.read_sql_query(uptime_query, db_eng.connection)
 
-st = SlackTools()
+st = SlackTools(log)
 if uptime_df.empty:
     # Machine is not yet in database. Add it.
     log.info('New machine logged: {}'.format(machine_name))

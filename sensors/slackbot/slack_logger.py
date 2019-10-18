@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 """Posts error logs to #errors channel in Slack"""
 import pandas as pd
-from kavalkilu import MySQLLocal, SlackTools, Log, LogArgParser
+from kavalkilu import MySQLLocal, Log, LogArgParser
+from slacktools import SlackTools
 
 
 log = Log('slack_logger', log_lvl=LogArgParser().loglvl)
 db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
-st = SlackTools()
+st = SlackTools(log)
 
 log_splitter = {
     'normal': {

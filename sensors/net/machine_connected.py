@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, SlackTools, NetTools, Hosts
+from kavalkilu import Log, LogArgParser, MySQLLocal, NetTools, Hosts
+from slacktools import SlackTools
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -33,7 +34,7 @@ log.debug('Querying for last ping...')
 last_ping = pd.read_sql_query(last_ping_query, con=db_eng.connection)
 
 today = pd.datetime.now()
-st = SlackTools()
+st = SlackTools(log)
 if last_ping.empty:
     # Machine is not yet in database. Add it.
     log.info('New machine logged: {}'.format(machine_name))

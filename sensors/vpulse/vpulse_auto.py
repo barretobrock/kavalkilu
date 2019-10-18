@@ -3,11 +3,12 @@
 import time
 from datetime import datetime as dtt
 from collections import OrderedDict
-from kavalkilu import Log, LogArgParser, Keys, BrowserAction, SlackTools
+from kavalkilu import Log, LogArgParser, Keys, BrowserAction
+from slacktools import SlackTools
 
 
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
-st = SlackTools()
+st = SlackTools(logg)
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
