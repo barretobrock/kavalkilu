@@ -16,7 +16,6 @@ from .path import Paths
 from .relay import Relay
 from .selenium import ChromeDriver, PhantomDriver, BrowserAction
 from .sensors import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, SensorLogger, DarkSkyWeatherSensor
-from .slack import SlackBot, SlackTools
 from .system import SysTools
 from .text import MarkovText, WebExtractor, TextCleaner, TextHelper
 from .weather import DarkSkyWeather

@@ -3,7 +3,6 @@
 """
 Kavalkilu: A Library for Integrating Home Automation Components
 """
-__update_date__ = '2019-08-21'
 
 # camera.py
 from .tools import Amcrest, SecCamGroup, AmcrestWeb, PiCamera
@@ -41,8 +40,6 @@ from .tools import ChromeDriver, PhantomDriver, BrowserAction
 from .tools import DHTTempSensor, DallasTempSensor, DistanceSensor, PIRSensor, SensorLogger, DarkSkyWeatherSensor
 # serial.py
 # from .tools import
-# slack.py
-from .tools import SlackBot, SlackTools
 # system.py
 from .tools import SysTools
 # text.py
@@ -52,4 +49,5 @@ from .tools import DarkSkyWeather
 
 from ._version import get_versions
 __version__ = get_versions()['version']
+__update_date__ = get_versions()['date']
 del get_versions
