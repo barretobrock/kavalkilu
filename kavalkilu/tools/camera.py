@@ -72,6 +72,9 @@ class SecCamGroup:
                                'Skipping. More info: {}'.format(name, e))
                 continue
 
+            # Set PTZ-oriented cameras to armed/disarmed positions
+            cam.set_ptz_flag(armed=motion_on)
+
             if cam.camera.is_motion_detector_on() != motion_on:
                 # Mismatch indicates settings should be changed
                 if motion_on:
@@ -79,8 +82,6 @@ class SecCamGroup:
                 else:
                     log_txt = 'Camera "{}" is currently set to motion detection. Disabling'
                 self.log.debug(log_txt.format(cam.name))
-                # Set PTZ-oriented cameras to armed/disarmed positions
-                cam.set_ptz_flag(armed=motion_on)
                 # Send command to turn on motion detection
                 resp = cam.toggle_motion(set_motion=motion_on)
 
