@@ -11,7 +11,6 @@ from kavalkilu import Paths, Log, LogArgParser
 
 # Initiate logging (META!)
 log = Log('log_remover', log_lvl=LogArgParser().loglvl)
-log.debug('Logging initiated.')
 
 p = Paths()
 log_dir = p.log_dir
@@ -22,12 +21,15 @@ ts_limit = (dtime.now() - tdelta(days=MAX_DAYS)).timestamp()
 
 for path, subdirs, files in os.walk(log_dir):
     for name in files:
-        path = os.path.join(path, name)
-        # Get timestamp of log file's latest modification
-        file_ts = os.path.getmtime(path)
-        if file_ts < ts_limit:
-            # Remove the log file
-            log.info('Removing file {}'.format(name))
-            os.remove(path)
+        logpath = os.path.join(path, name)
+        if os.path.exists(logpath):
+            # Get timestamp of log file's latest modification
+            file_ts = os.path.getmtime(logpath)
+            if file_ts < ts_limit:
+                # Remove the log file
+                log.info('Removing file {}'.format(name))
+                os.remove(logpath)
+        else:
+            log.error('Could not remove file. Path not valid: {}'.format(logpath))
 
 log.close()
