@@ -1,5 +1,6 @@
 amcrest==1.5.3
 beautifulsoup4==4.7.1
+numpy==0.17.3
 pandas==0.25.1
 paramiko==2.6.0
 phue==1.1
