@@ -71,6 +71,9 @@ _Note: This is to prepare a Raspberry Pi device for installation of this package
 ### raspi
  - ssh slow to respond
     `echo "IPQoS 0x00" | sudo tee -a /etc/ssh/sshd_config`
+ - some strange error about not able to use pandas due to Import Error with `numpy`
+    - This seems to only happen to the older raspis (revision 2)
+    `sudo apt-get install libatlas-base-dev`
 
 ## Tips
  - TBA!
