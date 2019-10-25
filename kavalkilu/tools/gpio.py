@@ -89,3 +89,6 @@ class GPIO:
     def cleanup(self):
         """Resets GPIO by pin"""
         self.GPIO.cleanup(self.pin)
+
+    def __del__(self):
+        self.cleanup()

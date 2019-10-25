@@ -45,7 +45,7 @@ else:
     logg.debug('Door is closed. Reading of {}'.format(avg))
     status = 'CLOSED'
 
-if garage_status['status'] != status:
+if garage_status['status'].values[0] != status:
     # This is probably the first time
     st.send_message('notifications', 'Garage door is now `{}`.'.format(status.lower()))
     # Record change in database
