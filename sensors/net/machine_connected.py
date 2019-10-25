@@ -13,7 +13,7 @@ st = SlackTools(log)
 db_eng = MySQLLocal('logdb')
 
 # Get connections of all the device we want to track
-machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|yi).*')
+machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|yi|homeserv).*')
 machines_df = pd.DataFrame(machines)
 
 # Collect current state of these machines
@@ -26,7 +26,6 @@ WHERE
     d.ip IN {}
 """.format(tuple(machines_df.ip.unique().tolist()))
 cur_state = pd.read_sql_query(cur_state_query, db_eng.connection)
-cur_state = cur_state.drop('id', axis=1)
 cur_state = cur_state.rename(columns={'status': 'prev_status'})
 # Merge with machines_df
 machines_df = machines_df.merge(cur_state, how='left', on=['name', 'ip'])
@@ -64,8 +63,10 @@ for devname in ['an-barret']:
         st.send_message('wifi-pinger-dinger', msg)
 
 
-machines_df = machines_df.drop('prev_status', axis=1)
+# Enforce column order
+machines_df = machines_df[['name', 'ip', 'status', 'update_date', 'uptime_since']]
+
 # Update database
-machines_df.to_sql('devices', db_eng.connection, if_exists='replace')
+machines_df.to_sql('devices', db_eng.connection, if_exists='replace', index_label='id')
 
 log.close()
