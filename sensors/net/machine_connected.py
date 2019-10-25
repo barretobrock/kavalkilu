@@ -54,8 +54,10 @@ for i, row in machines_df.iterrows():
 
 # Notify on specific device state changes
 for devname in ['an-barret']:
-    df = machines_df[machines_df.name == devname]
-    if df['prev_status'] != df['status']:
+    df = machines_df.loc[machines_df.name == devname]
+    prev_status = df['prev_status'].values[0]
+    status = df['status'].values[0]
+    if prev_status != status:
         if df['status'] == 'CONNECTED':
             msg = '<@UM3E3G72S> Mehe ühik on taas koduvõrgus! :meow_party:'
         else:
