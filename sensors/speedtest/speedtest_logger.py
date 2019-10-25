@@ -1,40 +1,38 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os
 from speedtest import Speedtest
 import pandas as pd
-from kavalkilu.tools import Log, LogArgParser, Paths
+from kavalkilu.tools import Log, LogArgParser, Paths, MySQLLocal
 
 
 p = Paths()
 logg = Log('speedtest.logger', 'speedtest', log_lvl=LogArgParser().loglvl)
 
-# Load previous data
-save_path = os.path.join(p.data_dir, 'speedtest_data.csv')
 
 # Prep speedtest by getting nearby servers
 speed = Speedtest()
-speed.get_servers([])
-speed.get_best_server()
+servers = speed.get_servers([])
+best_server = speed.get_best_server()
 
 down = speed.download()/1000000
 up = speed.upload()/1000000
+ping = best_server['latency'] if 'latency' in best_server.keys() else None
 
 # put variables into pandas type dataframe
 test = pd.DataFrame({
-    'TIMESTAMP': pd.datetime.now().isoformat(),
-    'DOWNLOAD': down,
-    'UPLOAD': up,
+    'test_date': pd.datetime.now(),
+    'download': down,
+    'upload': up,
+    'ping': ping
 }, index=[0])
-# Enforce column order
-test = test[['TIMESTAMP', 'DOWNLOAD', 'UPLOAD']]
 
-# Append data to csv file
-if os.path.exists(save_path):
-    # Append
-    test.to_csv(save_path, mode='a', header=False, index=False)
-else:
-    # Write
-    test.to_csv(save_path, index=False)
+data_cols = ['download', 'upload', 'ping']
+test.loc[:, data_cols] = test[data_cols].applymap(lambda x: round(float(x), 4))
+
+# Connect to db
+eng = MySQLLocal('speedtestdb')
+
+# Write dataframe to db
+eng.write_dataframe('speedtest', test)
 
 logg.close()
