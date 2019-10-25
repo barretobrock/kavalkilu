@@ -1,18 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Activates nighttime mode on cameras"""
-from kavalkilu import SecCamGroup, Keys, Log, LogArgParser
+from kavalkilu import Keys, Log, LogArgParser, Hosts, Amcrest, MySQLLocal
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('cam_night', log_lvl=LogArgParser().loglvl)
-
 cred = Keys().get_key('webcam_api')
 
-# Instantiate all cameras
-agroup = SecCamGroup(cred, log)
+cam_info_list = Hosts().get_hosts('ac-.*')
 
-# This is for the evening, so let's enable motion detection for all devices
-agroup.motion_toggler(motion_on=True)
+eng = MySQLLocal('homeautodb')
+
+
+def arm_camera(cam_dict, arm):
+    """Toggles motion detection on/off"""
+    try:
+        cam = Amcrest(cam_dict['ip'], cred, name=cam_dict['name'])
+        # Toggle motion
+        cam.toggle_motion(set_motion=arm)
+        # Set PTZ to 'armed' area
+        cam.set_ptz_flag(armed=arm)
+        # Get PTZ xyz coordinates
+        ptz_list = cam.camera.ptz_status().split('\r\n')[2:5]
+        return ','.join([x.split('=')[1] for x in ptz_list])
+    except Exception as e:
+        log.error('Unexpected exception occurred: {}, '.format(e))
+
+
+for cam_dict in cam_info_list:
+    # Instantiate cam & arm
+    ptz_coords = arm_camera(cam_dict, True)
+
+    update_query = """
+        UPDATE
+            cameras
+        SET
+            is_armed = TRUE 
+            , is_connected = TRUE 
+            , ptz_loc = '{}'
+            , update_date = NOW()
+            , last_check_date = NOW()
+        WHERE
+            ip = '{}'
+    
+    """.format(ptz_coords, cam_dict['ip'])
+    # Update values in db
+    eng.write_sql(update_query)
 
 log.close()
