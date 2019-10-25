@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """For given machine, collects when device was last booted up"""
-import os
-import re
-import socket
 import psutil
 import pandas as pd
 from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, NetTools
@@ -61,7 +58,7 @@ else:
             UPDATE
                 devices
             SET
-                uptime_since = '{}'
+                uptime_since = TIMESTAMP('{}')
                 , update_date = NOW()
             WHERE
                 name = '{}'

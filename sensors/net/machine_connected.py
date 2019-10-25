@@ -13,7 +13,7 @@ st = SlackTools(log)
 db_eng = MySQLLocal('logdb')
 
 # Get connections of all the device we want to track
-machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|yi|homeserv).*')
+machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|homeserv).*')
 machines_df = pd.DataFrame(machines)
 
 # Collect current state of these machines
