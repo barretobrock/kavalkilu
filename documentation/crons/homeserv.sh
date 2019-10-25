@@ -11,12 +11,12 @@ PY3=/usr/bin/python3
 5 6 * * *           bash    $HOME/$SENSORS/pihole/pihole_backup.sh
 # MYSQL
 25 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_to_mysql.py
+30 6 * * *          $PY3    $HOME/$SENSORS/grafana/grafana.py
 35 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_mysql_short_term_etl.py
-0 2 * * *           $PY3    $HOME/$SENSORS/speedtest/speedtest_to_mysql.py
 # SYS DATA COLLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/net/machine_uptime.py
 */5 03-22 * * *     $PY3    $HOME/$SENSORS/net/mobile_connected.py
-0 */6 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
+0 */3 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
 # ENV DATA COLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
 # HOME AUTOMATION
