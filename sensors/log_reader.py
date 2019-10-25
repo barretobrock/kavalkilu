@@ -48,7 +48,7 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                 # Prepare log entry for entry into dataframe
                 # Clean log name from time stamp at end
                 log_name = match_list[1]
-                if re.match('\d{4}', log_name.split('_')[-1]):
+                if re.match(r'\d{4}', log_name.split('_')[-1]):
                     # Timestamp in log name. remove it
                     log_name = log_name[:-5]
                 log_level = match_list[2].split(' ')[0]
@@ -59,7 +59,7 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                     for j in range(i + 1, len(lines) - 1):
                         # Try and find the error class
                         new_line = lines[j]
-                        if re.match('^\w+\:.*', new_line) is not None:
+                        if re.match(r'^\w+\:.*', new_line) is not None:
                             # We've detected a line matching this: {exception}: {message}
                             exception = new_line.split(':')
                             exc_class = exception[0].strip()
