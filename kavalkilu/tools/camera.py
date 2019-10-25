@@ -23,8 +23,8 @@ class Amcrest:
         motion_url = '{}&MotionDetect[0].Enable={{tf}}'.format(self.config_url)
         motion_url = motion_url.format(ip=self.ip, tf=motion_val)
         result = requests.get(motion_url, auth=HTTPDigestAuth(self.creds['user'], self.creds['password']))
-
-        return result
+        if result.status_code != 200:
+            raise Exception('Error in HTTP GET response. Status code: {}, Message: {}'.format(result.status_code, result.text))
 
     def set_ptz_flag(self, armed):
         """Orients PTZ-enabled cameras either to armed position (1) or disarmed (2)"""
