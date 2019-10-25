@@ -15,7 +15,7 @@ PY3=/usr/bin/python3
 35 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_mysql_short_term_etl.py
 # SYS DATA COLLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/net/machine_uptime.py
-*/5 03-22 * * *     $PY3    $HOME/$SENSORS/net/mobile_connected.py
+*/5 * * * *         $PY3    $HOME/$SENSORS/net/machine_connected.py
 0 */3 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
 # ENV DATA COLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py

@@ -7,65 +7,65 @@ from slacktools import SlackTools
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('device_connected', log_lvl=LogArgParser().loglvl)
-
+log = Log('machine_conn', log_lvl=LogArgParser().loglvl)
+today = pd.datetime.now()
+st = SlackTools(log)
 db_eng = MySQLLocal('logdb')
 
-ip_addr = NetTools().get_ip()
-machine_name = Hosts().get_host(ip=ip_addr)['name']
+# Get connections of all the device we want to track
+machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|yi).*')
+machines_df = pd.DataFrame(machines)
 
-log.debug('Pinging device...')
-# Ping phone's ip and check response
-status = NetTools(host=machine_name).ping()
-log.debug('Ping result: {}'.format(status))
-
-# pull last_ping for device from db here
-last_ping_query = """
+# Collect current state of these machines
+cur_state_query = """
 SELECT
-    d.name
-    , d.status AS status
-    , d.update_date AS update_ts
+    *
 FROM
     devices AS d 
 WHERE
-    d.name = '{}'
-""".format(machine_name)
-log.debug('Querying for last ping...')
-last_ping = pd.read_sql_query(last_ping_query, con=db_eng.connection)
+    d.ip IN {}
+""".format(tuple(machines_df.ip.unique().tolist()))
+cur_state = pd.read_sql_query(cur_state_query, db_eng.connection)
+cur_state = cur_state.drop('id', axis=1)
+cur_state = cur_state.rename(columns={'status': 'prev_status'})
+# Merge with machines_df
+machines_df = machines_df.merge(cur_state, how='left', on=['name', 'ip'])
 
-today = pd.datetime.now()
-st = SlackTools(log)
-if last_ping.empty:
-    # Machine is not yet in database. Add it.
-    log.info('New machine logged: {}'.format(machine_name))
-    slack_msg = 'A new machine (`{}`) will be loaded into `logdb.devices`.'.format(machine_name)
-    st.send_message('notifications', slack_msg)
-    new_machine_dict = {
-        'name': machine_name,
-        'ip': ip_addr,
-        'status': status,
-        'update_date': today
-    }
-    db_eng.write_dataframe('devices', pd.DataFrame(new_machine_dict, index=[0]))
-else:
-    # Check if uptime matches the uptime in the db
-    db_status = last_ping['status'].values[0]
-    if db_status != status:
-        # If not, update the uptime in the db
-        log.debug('Status changed from {} to {} for device {}.'.format(db_status, status, machine_name))
-        slack_msg = 'Machine `{}` changed connection status from {} to {}. Its new status will be' \
-                    ' loaded into `logdb.devices`.'.format(machine_name, db_status, status)
+for i, row in machines_df.iterrows():
+    # Ping machine
+    machine_name = row['name']
+    prev_status = row['prev_status']
+    status = NetTools(ip=row['ip']).ping()
+    log.debug('Ping result for {}: {}'.format(machine_name, status))
+    machines_df.loc[i, 'status'] = status
+    if pd.isnull(prev_status):
+        # Log new machine regardless of current status
+        log.info('New machine logged: {}'.format(machine_name))
+        slack_msg = 'A new machine `{}` will be loaded into `logdb.devices`.'.format(machine_name)
         st.send_message('notifications', slack_msg)
-        update_uptime_query = """
-            UPDATE
-                devices
-            SET
-                status = '{}'
-                , update_date = NOW()
-            WHERE
-                name = '{}'
-                AND ip = '{}'
-        """.format(status, machine_name, ip_addr)
-        db_eng.write_sql(update_uptime_query)
+        machines_df.loc[i, 'update_date'] = today
+    else:
+        if status != prev_status:
+            # State change
+            log.info('Machine changed state: {}'.format(machine_name))
+            slack_msg = '`{}` changed state from `{}` to `{}`. Record made in `logdb.devices`.'.format(
+                machine_name, prev_status, status)
+            st.send_message('notifications', slack_msg)
+            machines_df.loc[i, 'update_date'] = today
+
+# Notify on specific device state changes
+for devname in ['an-barret']:
+    df = machines_df[machines_df.name == devname]
+    if df['prev_status'] != df['status']:
+        if df['status'] == 'CONNECTED':
+            msg = '<@UM3E3G72S> Mehe ühik on taas koduvõrgus! :meow_party:'
+        else:
+            msg = 'Mehe ühik on koduvõrgust läinud :sadcowblob:'
+        st.send_message('wifi-pinger-dinger', msg)
+
+
+machines_df = machines_df.drop('prev_status', axis=1)
+# Update database
+machines_df.to_sql('devices', db_eng.connection, if_exists='replace')
 
 log.close()
