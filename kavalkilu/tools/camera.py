@@ -15,6 +15,11 @@ class Amcrest:
         self.creds = creds
         self.config_url = 'http://{ip}/cgi-bin/configManager.cgi?action=setConfig'
         self.camera = amcrest.AmcrestCamera(ip, port, creds['user'], creds['password']).camera
+        self.is_ptz_enabled = self._check_for_ptz()
+
+    def _check_for_ptz(self):
+        """Checks if camera is capable of ptz actions"""
+        return True if self.camera.ptz_presets_list() != '' else False
 
     def toggle_motion(self, set_motion=True):
         """Sets motion detection"""
@@ -37,6 +42,12 @@ class Amcrest:
             if resp[:2] != 'OK':
                 # Something went wrong. Raise exception so it gets logged
                 raise Exception('Camera "{}" PTZ call saw unexpected response: "{}"'.format(self.name, resp))
+
+    def get_current_ptz_coordinates(self):
+        """Gets the current xyz coordinates for a PTZ-enabled camera"""
+        if self.is_ptz_enabled:
+            ptz_list = self.camera.ptz_status().split('\r\n')[2:5]
+            return ','.join([x.split('=')[1] for x in ptz_list])
 
 
 class SecCamGroup:

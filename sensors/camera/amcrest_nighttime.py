@@ -22,10 +22,9 @@ def arm_camera(cam_dict, arm):
         # Set PTZ to 'armed' area
         cam.set_ptz_flag(armed=arm)
         # Get PTZ xyz coordinates
-        ptz_list = cam.camera.ptz_status().split('\r\n')[2:5]
-        return ','.join([x.split('=')[1] for x in ptz_list])
+        return cam.get_current_ptz_coordinates()
     except Exception as e:
-        log.error('Unexpected exception occurred: {}, '.format(e))
+        log.error('Unexpected exception occurred: {}'.format(e))
 
 
 for cam_dict in cam_info_list:
