@@ -56,10 +56,13 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                 exc_msg = ''
                 if log_level in ['ERROR']:
                     # Grab more info (err class & message)
-                    for j in range(i + 1, len(lines) - 1):
+                    for j in range(i, len(lines) - 1):
                         # Try and find the error class
                         new_line = lines[j]
-                        if re.match(r'^\w+\:.*', new_line) is not None:
+                        method1 = re.search(r'^\w+\:.*', new_line)
+                        method2 = re.search(r'(Unexpected (\w|\s)+\:)((\w|\s)+\:)(.*)', new_line)
+
+                        if method1 is not None:
                             # We've detected a line matching this: {exception}: {message}
                             exception = new_line.split(':')
                             exc_class = exception[0].strip()
@@ -67,7 +70,13 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                             # Let iterator continue onward
                             i = j
                             break
-                        elif re.match('^\d+\-\d+\-\d+', new_line) is not None:
+                        elif method2 is not None:
+                            # This is an already-caught exception
+                            exc_class = method2.group(3).strip().replace(':', '')
+                            exc_msg = method2.group(5).strip()
+                            i = j
+                            break
+                        elif re.search(r'^\d+\-\d+\-\d+', new_line) is not None and j != i:
                             # We've gotten to a new item in the log. Call off the search for this mysterious class
                             exc_class = 'UnkException'
                             exc_msg = "Parsing pattern in log_reader couldn't find the Exception message"
