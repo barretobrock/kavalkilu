@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """For given machine, collects when device was last booted up"""
+import time
 import psutil
 import pandas as pd
 from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, NetTools
@@ -53,7 +54,6 @@ else:
         log.debug('Uptime measured ({}) did not match uptime in db ({}). Updating db.'.format(uptime, db_uptime))
         slack_msg = 'Machine `{}` was recently rebooted. Its new uptime of `{}` will be' \
                     ' loaded into `logdb.devices`.'.format(machine_name, uptime)
-        st.send_message('notifications', slack_msg)
         update_uptime_query = """
             UPDATE
                 devices
@@ -65,5 +65,7 @@ else:
                 AND ip = '{}'
         """.format(uptime, machine_name, ip_addr)
         db_eng.write_sql(update_uptime_query)
+        time.sleep(2)
+        st.send_message('notifications', slack_msg)
 
 log.close()

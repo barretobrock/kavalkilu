@@ -31,7 +31,7 @@ announce_section "Pulling update from git repo"
 # Then update the python package locally
 announce_section "Beginning update of python package"
 # TODO check if installed, then upgrade if so
-pip3 install git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade
+python3 -m pip install git+https://github.com/barretobrock/kavalkilu.git#egg=kavalkilu --upgrade
 
 # CRON UPDATE
 # --------------
