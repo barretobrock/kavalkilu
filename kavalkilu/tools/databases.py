@@ -91,7 +91,7 @@ class MySQLLocal:
         list_to_write = df.to_dict(orient='records')
 
         metadata = sqlalchemy.schema.MetaData(bind=self.engine)
-        table = sqlalchemy.Table(table_name, metadata.reflect(), autoload=True)
+        table = sqlalchemy.Table(table_name, metadata, autoload=True)
         # Open the session
         Session = sessionmaker(bind=self.engine)
         session = Session()
