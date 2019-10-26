@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-from kavalkilu import Keys, SlackTools
+from kavalkilu import Keys
+from slacktools import SlackTools
 
 
 moji_dir = os.path.join(os.path.expanduser('~'), *['Downloads', 'mojis'])
@@ -16,9 +17,9 @@ okr = SlackTools(okr_name, okr_token, okr_cookie)
 too = SlackTools(too_name, too_token)
 
 # Make list of exact matches
-exact_emojis = ['po', 'ta', 'toes']
+exact_emojis = None
 # list of fuzzy matches
-fuzzy = '.*'
+fuzzy = '.*().*'
 
 # Collect from workspace
 collected = too.match_emojis(exact_emojis, fuzzy)
@@ -34,4 +35,3 @@ too.download_emojis(missing_emojis, moji_dir)
 #   For large uploads, 5s wait is better
 okr.upload_emojis(moji_dir, announce=True, wait_s=5)
 
-okr.build_phrase("This is a test. I'll try this? Maybe add some excitement! And then say \"Hello\".")
