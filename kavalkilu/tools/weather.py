@@ -41,15 +41,20 @@ class DarkSkyWeather:
             df = pd.DataFrame(data, index=[0])
 
         # Convert any "time" column to locally-formatted datetime
-        time_cols = [col for col in df.columns if 'time' in col.lower()]
-        if len(time_cols) > 0:
-            for time_col in time_cols:
+        time_cols = [col for col in df.columns if any([x in col.lower() for x in ['time', 'expire']])]
+        df = self._convert_time_cols(time_cols, df)
+
+        return df
+
+    def _convert_time_cols(self, cols, df):
+        """Converts time columns from epoch to local time"""
+        if len(cols) > 0:
+            for time_col in cols:
                 # Convert column to datetime
                 dtt_col = pd.to_datetime(df[time_col], unit='s')
                 # Convert datetime col to local timezone and remove tz
                 dtt_col = dtt_col.dt.tz_localize('utc').dt.tz_convert(self.tz).dt.tz_localize(None)
                 df[time_col] = dtt_col
-
         return df
 
     def current_summary(self):
@@ -68,6 +73,15 @@ class DarkSkyWeather:
         """Get 7-day weather forecast"""
         data = self.data['daily']['data']
         df = self._format_tables(data)
+        return df
+
+    def get_alerts(self):
+        """Determines if there are any active weather alerts"""
+        if 'alerts' not in self.data.keys():
+            # No alerts
+            return None
+        alerts = self.data['alerts']
+        df = self._format_tables(alerts)
         return df
 
 
