@@ -17,7 +17,7 @@ dark = DarkSkyWeather(austin)
 hours_df = dark.hourly_summary()
 # Filter by column & get only the next 10 hours of forecasted temps
 cols = ['time', 'temperature', 'apparentTemperature', 'dewPoint', 'windSpeed']
-hours_df = hours_df.loc[hours_df.time < (now + pd.Timedelta(hours=10)), cols]
+hours_df = hours_df.loc[hours_df.time < (now + pd.Timedelta(hours=12)), cols]
 
 logic_dict = {
     'freeze': (hours_df.temperature < 0) & ((hours_df.dewPoint < -8) | (hours_df.windSpeed > 5)),
@@ -28,6 +28,8 @@ logic_dict = {
 warning = None
 for name, cond in logic_dict.items():
     if any(cond.tolist()):
+        # We want the warnings to move from severe to relatively mild &
+        # break on the first one that matches the condition
         warning = name
         break
 

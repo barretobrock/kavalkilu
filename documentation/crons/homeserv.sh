@@ -19,6 +19,8 @@ PY3=/usr/bin/python3
 0 */3 * * *         $PY3    $HOME/$SENSORS/speedtest/speedtest_logger.py
 # ENV DATA COLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/temps/ecobee_temps.py
+20 19 * * *         $PY3    $HOME/$SENSORS/temps/frost_warning.py
+*/10 * * * *        $PY3    $HOME/$SENSORS/temps/severe_weather_check.py
 # HOME AUTOMATION
 */10 03-22 * * *    $PY3    $HOME/$SENSORS/camera/amcrest_notify_zone.py
 5 23 * * *          $PY3    $HOME/$SENSORS/camera/amcrest_nighttime.py
