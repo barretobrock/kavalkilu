@@ -9,7 +9,6 @@ from kavalkilu import Log, LogArgParser, DarkSkyWeather
 log = Log('darksky', 'temp', log_lvl=LogArgParser().loglvl)
 
 # Temp in C that serves as the floor of the warning
-frost_threshold = 2
 austin = '30.3428,-97.7582'
 now = pd.datetime.now()
 
