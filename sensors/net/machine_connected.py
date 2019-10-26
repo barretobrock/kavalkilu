@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Determines if mobile is connected to local network. When connections change, will post to channel"""
+import os
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, NetTools, Hosts
+from kavalkilu import Log, LogArgParser, NetTools, Hosts, Paths
 from slacktools import SlackTools
 
 
@@ -10,25 +11,24 @@ from slacktools import SlackTools
 log = Log('machine_conn', log_lvl=LogArgParser().loglvl)
 today = pd.datetime.now()
 st = SlackTools(log)
-db_eng = MySQLLocal('logdb')
+
+fpath = os.path.join(os.path.abspath(Paths().data_dir), 'machine_connected.json')
 
 # Get connections of all the device we want to track
 machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|homeserv).*')
 machines_df = pd.DataFrame(machines)
 
-# Collect current state of these machines
-cur_state_query = """
-SELECT
-    *
-FROM
-    devices AS d 
-WHERE
-    d.ip IN {}
-""".format(tuple(machines_df.ip.unique().tolist()))
-cur_state = pd.read_sql_query(cur_state_query, db_eng.connection)
-cur_state = cur_state.rename(columns={'status': 'prev_status'})
+# Read in the json file if there is one
+if os.path.exists(fpath):
+    cur_state_df = pd.read_json(fpath)
+else:
+    cur_state_df = machines_df.copy()
+    for col in ['status', 'update_date', 'connected_since']:
+        cur_state_df[col] = None
+
+cur_state_df = cur_state_df.rename(columns={'status': 'prev_status'})
 # Merge with machines_df
-machines_df = machines_df.merge(cur_state, how='left', on=['name', 'ip'])
+machines_df = machines_df.merge(cur_state_df, how='left', on=['name', 'ip'])
 
 for i, row in machines_df.iterrows():
     # Ping machine
@@ -43,6 +43,7 @@ for i, row in machines_df.iterrows():
         slack_msg = 'A new machine `{}` will be loaded into `logdb.devices`.'.format(machine_name)
         st.send_message('notifications', slack_msg)
         machines_df.loc[i, 'update_date'] = today
+        machines_df.loc[i, 'connected_since'] = today
     else:
         if status != prev_status:
             # State change
@@ -57,18 +58,19 @@ for devname in ['an-barret']:
     df = machines_df.loc[machines_df.name == devname]
     prev_status = df['prev_status'].values[0]
     status = df['status'].values[0]
-    if prev_status != status:
-        if df['status'] == 'CONNECTED':
-            msg = '<@UM3E3G72S> Mehe ühik on taas koduvõrgus! :meow_party:'
-        else:
-            msg = 'Mehe ühik on koduvõrgust läinud :sadcowblob:'
-        st.send_message('wifi-pinger-dinger', msg)
+    if not pd.isnull(prev_status):
+        if prev_status != status:
+            if status == 'CONNECTED':
+                msg = '<@UM3E3G72S> Mehe ühik on taas koduvõrgus! :meow_party:'
+            else:
+                msg = 'Mehe ühik on koduvõrgust läinud :sadcowblob:'
+            st.send_message('wifi-pinger-dinger', msg)
 
 
 # Enforce column order
-machines_df = machines_df[['name', 'ip', 'status', 'update_date', 'uptime_since']]
+machines_df = machines_df[['name', 'ip', 'status', 'update_date', 'connected_since']]
 
-# Update database
-machines_df.to_sql('devices', db_eng.connection, if_exists='replace', index_label='id')
+# Save to JSON
+machines_df.to_json(fpath)
 
 log.close()
