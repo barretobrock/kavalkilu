@@ -50,6 +50,7 @@ if alerts is not None:
             old_alerts = old_alerts.append(alerts.iloc[i, :])
 
 if not old_alerts.empty:
+    old_alerts = old_alerts.reset_index(drop=True)
     # Write old alerts to JSON
     old_alerts.to_json(fpath)
 
