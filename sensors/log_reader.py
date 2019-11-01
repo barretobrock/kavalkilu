@@ -153,6 +153,8 @@ if not log_df.empty:
     # Rename to adhere to columns in database
     log_df = log_df.rename(columns={'name': 'log_name'})
     log_df['time'] = pd.to_datetime(log_df['time'])
+    # Cut off execution message if longer than 100 chars
+    log_df['exc_msg'] = log_df['exc_msg'].apply(lambda x: x[:100])
 
     query = db.write_df_to_sql('logs', log_df, debug=True)
     res = mysqlconn.execute(query)

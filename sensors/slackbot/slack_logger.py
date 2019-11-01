@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Posts error logs to #errors channel in Slack"""
+import os
 import pandas as pd
-from kavalkilu import MySQLLocal, Log, LogArgParser
+from kavalkilu import MySQLLocal, Log, LogArgParser, Paths
 from slacktools import SlackTools
 
 
@@ -10,6 +11,14 @@ log = Log('slack_logger', log_lvl=LogArgParser().loglvl)
 db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
 st = SlackTools(log)
+datapath = os.path.join(Paths().data_dir, 'slack_logs.txt')
+
+
+def save_log_tbl(df, fpath=datapath):
+    """Saves logs to path"""
+    with open(fpath, 'w') as f:
+        f.write(st.df_to_slack_table(df))
+
 
 log_splitter = {
     'normal': {
@@ -61,12 +70,15 @@ if not result_df.empty:
             if log_type == 'normal':
                 # remove the exception-related columns
                 df = df.drop(['exc_class', 'exc_msg'], axis=1)
+            # Save before sending
+            save_log_tbl(df, datapath)
             # Send the info to Slack
-            msg = """`{:%H:%M}` to `{:%H:%M}` in `{}`:\n\n```{}```""".format(read_from, now,
-                                                                             channel, st.df_to_slack_table(df))
+            msg = "`{:%H:%M}` to `{:%H:%M}` in `{}`:".format(read_from, now, channel)
+            st.send_message(channel, msg)
+            st.upload_file(channel, datapath, 'log_table')
         else:
             msg = 'No {} logs for the period `{:%H:%M}` to `{:%H:%M}`.'.format(log_type, read_from, now)
-        st.send_message(channel, msg)
+            st.send_message(channel, msg)
 else:
     channel = '#logs'
     msg = 'No logs were able to be captured in either category ' \
