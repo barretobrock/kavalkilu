@@ -48,13 +48,19 @@ def daily_cards():
     else:
         logg.debug("Card view already active.")
 
-    # Iterate through cards
+    # Iterate through cards (2)
     for i in range(0, 2):
         # Get the 'done' button
         ba.scroll_absolute('up')
         done_btn = ba.get_elem('//div[@class="card-options-wrapper"]/*/button[@id="triggerCloseCurtain"]')
         ba.scroll_absolute(dir='0,20')
-        done_btn.click()
+        try:
+            done_btn.click()
+        except:
+            logg.debug('Done button missing. Trying to click the True button instead.')
+            # That button likely wasn't rendered because Vpulse has a True/False setup
+            tf_btn = ba.get_elem('//div[@class="card-options-wrapper"]/*/button[contains(text(), "True"]')
+            tf_btn.click()
         ba.fast_wait()
 
 
