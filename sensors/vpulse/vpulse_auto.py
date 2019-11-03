@@ -27,6 +27,7 @@ def popup_closer():
     try:
         # Scroll back up to the top
         ba.scroll_absolute()
+        ba.fast_wait()
         pu_close_btn = ba.get_elem('//div[@id="trophy-modal-close-btn"]')
         pu_close_btn.click()
         logg.debug('Popup close button likely successfully clicked.')
