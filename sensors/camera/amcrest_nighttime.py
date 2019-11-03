@@ -7,8 +7,8 @@ from kavalkilu import Keys, Log, LogArgParser, Hosts, Amcrest, MySQLLocal
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('cam_night', log_lvl=LogArgParser().loglvl)
 cred = Keys().get_key('webcam_api')
-
-cam_info_list = Hosts().get_hosts('ac-.*')
+# Get only cameras without numbers in the name
+cam_info_list = Hosts().get_hosts('(?!^ac-.*\d.*$)^ac-.+$')
 
 eng = MySQLLocal('homeautodb')
 

@@ -9,7 +9,8 @@ from kavalkilu import Amcrest, Keys, Log, LogArgParser, Hosts, MySQLLocal
 log = Log('cam_active', log_lvl=LogArgParser().loglvl)
 
 cred = Keys().get_key('webcam_api')
-cam_info_list = Hosts().get_hosts('ac-.*')
+# Get only cameras without numbers in the name
+cam_info_list = Hosts().get_hosts('(?!^ac-.*\d.*$)^ac-.+$')
 eng = MySQLLocal('homeautodb')
 
 
