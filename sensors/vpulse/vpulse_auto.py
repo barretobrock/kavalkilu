@@ -57,6 +57,7 @@ def daily_cards():
         ba.scroll_absolute(dir='0,20')
         try:
             done_btn.click()
+            logg.debug('Done button most likely clicked.')
         except:
             logg.debug('Done button missing. Trying to click the True button instead.')
             # That button likely wasn't rendered because Vpulse has a True/False setup
@@ -229,6 +230,19 @@ ba.medium_wait()
 ba.enter('//input[@id="username"]', creds['user'])
 ba.enter('//input[@id="password"]', creds['password'])
 ba.click('//input[@id="kc-login"]')
+ba.medium_wait()
+# Look for a security check
+sec_form = ba.get_elem('//input[@value="Send code"]')
+if sec_form is not None:
+    notify_channel('Security code was requested. This script will have to be rerun manually later.')
+    # Include method here to handle this
+    # Click the button
+    sec_form.click()
+    sec_code = input('Please input the code you were just emailed: ')
+    ba.enter('//input[@id="securityCode"]', sec_code)
+    ba.click('//input[@value="Submit"]')
+
+notify_channel('Logged in.')
 logg.debug('Logged in.')
 ba.slow_wait()
 

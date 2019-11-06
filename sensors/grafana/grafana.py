@@ -42,7 +42,6 @@ url_dict = {
 # Panels to grab snapshots of
 snap_panels = [
     'Temperatures', 'Logged Output over Time', 'Log Output by Log Name',
-    'Overall Queries', 'Queries Blacklisted', 'Blacklisted Queries by Device',
     'Download Speeds', 'Upload Speeds'
 ]
 
