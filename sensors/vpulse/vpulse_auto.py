@@ -267,5 +267,6 @@ for task_name, task in tasks_dict.items():
         notify_channel('Error occurred in section: {}'.format(task_name))
 
 logg.debug('Script complete. Quitting instance.')
+ba.driver.quit()
 notify_channel('Competed script.')
 logg.close()
