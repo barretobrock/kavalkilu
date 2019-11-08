@@ -101,9 +101,9 @@ class BrowserAction:
                 options = PhantomDriver.default_service_args
             self.driver = PhantomDriver(driver_path, timeout, service_args=options)
 
-    def __del__(self):
+    def tear_down(self):
         """Make sure the browser is closed on cleanup"""
-        self.driver.close()
+        self.driver.quit()
 
     def get(self, url):
         """
