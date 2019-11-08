@@ -74,6 +74,9 @@ _Note: This is to prepare a Raspberry Pi device for installation of this package
  - some strange error about not able to use pandas due to Import Error with `numpy`
     - This seems to only happen to the older raspis (revision 2)
     `sudo apt-get install libatlas-base-dev`
+### Chromedriver
+ - "This version.... only supports version xx"
+    - It seems like chromedriver automatically updated the minimum allowed version of Chrome to run with it. To fix this, you'll typically just have to run `sudo apt update && sudo apt upgrade` to update Chrome to the latest version. `sudo apt list --upgradeable` can help verify the your Chrome version will change
 
 ## Tips
  - TBA!
