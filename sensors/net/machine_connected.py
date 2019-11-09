@@ -34,7 +34,7 @@ for i, row in machines_df.iterrows():
     # Ping machine
     machine_name = row['name']
     prev_status = row['prev_status']
-    status = NetTools(ip=row['ip']).ping()
+    status = NetTools(ip=row['ip']).ping(5)
     log.debug('Ping result for {}: {}'.format(machine_name, status))
     machines_df.loc[i, 'status'] = status
     if pd.isnull(prev_status):
