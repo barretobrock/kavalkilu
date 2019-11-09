@@ -123,18 +123,16 @@ class NetTools:
     def ping(self, n_times=2):
         """Pings an IP up to n times"""
 
-        proc = subprocess.Popen(
-            ['ping', '-c', '{}'.format(n_times), self.ip],
-            stdout=subprocess.PIPE
-        )
-        stdout, stderr = proc.communicate()
+        ping_cmd = ['ping', '-c', '1', self.ip]
 
-        if proc.returncode == 0:
-            # Successfully pinged
-            return 'CONNECTED'
-        else:
-            # Unsuccessfully pinged
-            return 'DISCONNECTED'
+        for t in range(n_times):
+            proc = subprocess.Popen(ping_cmd, stdout=subprocess.PIPE)
+            stdout, stderr = proc.communicate()
+            if proc.returncode == 0:
+                # Successfully pinged
+                return 'CONNECTED'
+        # Unsuccessfully pinged
+        return 'DISCONNECTED'
 
     def get_ip(self):
         # Elaborate machine name from ip
