@@ -28,7 +28,7 @@ PY3=/usr/bin/python3
 15 */4 * * *        $PY3    $HOME/$SENSORS/slackbot/slack_logger.py
 
 # Vpulse Automation
-40 03 * * * export DISPLAY=:0; python3 $HOME/$SENSORS/vpulse/vpulse_auto.py
+40 03 * * * export DISPLAY=:0; python3 $HOME/$SENSORS/vpulse/vpulse_auto.py -lvl debug
 
 # HOSTS API
 @reboot bash $HOME/kavalkilu/apis/hosts/start_service.sh

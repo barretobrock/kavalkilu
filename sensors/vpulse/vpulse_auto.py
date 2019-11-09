@@ -7,6 +7,7 @@ from kavalkilu import Log, LogArgParser, Keys, BrowserAction
 from slacktools import SlackTools
 
 
+debug = False
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
 st = SlackTools(logg)
 
@@ -61,8 +62,12 @@ def daily_cards():
         except:
             logg.debug('Done button missing. Trying to click the True button instead.')
             # That button likely wasn't rendered because Vpulse has a True/False setup
-            tf_btn = ba.get_elem('//div[@class="card-options-wrapper"]/*/button[contains(text(), "True"]')
-            tf_btn.click()
+            tf_btns = ba.get_elem('//div[@class="card-options-wrapper"]/*/button', single=False)
+            if len(tf_btns) > 0:
+                logg.debug('Found {} matching buttons. Clicking first.'.format(len(tf_btns)))
+                tf_btns[0].click()
+            else:
+                logg.debug('Could not find any buttons matching the Xpath given.')
         ba.fast_wait()
 
 
@@ -220,7 +225,7 @@ def whil_session():
 
 notify_channel('Vpulse script booted up')
 today = dtt.today()
-ba = BrowserAction('chrome', headless=True)
+ba = BrowserAction('chrome', headless=not debug)
 logg.debug('Chrome instantiated.')
 
 vpulse_home_url = 'https://member.virginpulse.com/'
@@ -235,12 +240,12 @@ ba.medium_wait()
 sec_form = ba.get_elem('//input[@value="Send code"]')
 if sec_form is not None:
     notify_channel('Security code was requested. This script will have to be rerun manually later.')
-    # Include method here to handle this
-    # Click the button
-    sec_form.click()
-    sec_code = input('Please input the code you were just emailed: ')
-    ba.enter('//input[@id="securityCode"]', sec_code)
-    ba.click('//input[@value="Submit"]')
+    if debug:
+        # Click the button
+        sec_form.click()
+        sec_code = input('Please input the code you were just emailed: ')
+        ba.enter('//input[@id="securityCode"]', sec_code)
+        ba.click('//input[@value="Submit"]')
 
 notify_channel('Logged in.')
 logg.debug('Logged in.')
