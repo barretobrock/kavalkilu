@@ -236,7 +236,7 @@ def whil_session():
 
 notify_channel('Vpulse script booted up')
 today = dtt.today()
-ba = BrowserAction('chrome', headless=not debug)
+ba = BrowserAction('chrome', headless=True)
 logg.debug('Chrome instantiated.')
 
 vpulse_home_url = 'https://member.virginpulse.com/'
