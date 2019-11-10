@@ -51,23 +51,34 @@ def daily_cards():
         logg.debug("Card view already active.")
 
     # Iterate through cards (2)
+    is_tf_btn = False
     for i in range(0, 2):
         # Get the 'done' button
         ba.scroll_absolute('up')
         done_btn = ba.get_elem('//div[@class="card-options-wrapper"]/*/button[@id="triggerCloseCurtain"]')
         ba.scroll_absolute(dir='0,20')
+        if done_btn is None:
+            logg.debug('Done button not found. Attempting to find a TF button')
+            tf_btns = ba.get_elem('//div[@class="card-options-wrapper"]/*/button', single=False)
+            if len(tf_btns) > 0:
+                logg.debug('Found {} matching buttons. Using first.'.format(len(tf_btns)))
+                done_btn = tf_btns[0]
+                is_tf_btn = True
         try:
             done_btn.click()
             logg.debug('Done button most likely clicked.')
         except:
             logg.debug('Done button missing. Trying to click the True button instead.')
-            # That button likely wasn't rendered because Vpulse has a True/False setup
-            tf_btns = ba.get_elem('//div[@class="card-options-wrapper"]/*/button', single=False)
-            if len(tf_btns) > 0:
-                logg.debug('Found {} matching buttons. Clicking first.'.format(len(tf_btns)))
-                tf_btns[0].click()
-            else:
-                logg.debug('Could not find any buttons matching the Xpath given.')
+
+        if is_tf_btn:
+            # We have one more button to click
+            complete_btn = ba.get_elem('//div[@class="card-options-wrapper"]/*/button[@ng-click="completeCard(card)"]')
+            try:
+                complete_btn.click()
+                logg.debug('TF complete button most likely clicked.')
+            except:
+                logg.debug('TF complete button missing. Wasn\'t able to click it.')
+
         ba.fast_wait()
 
 
