@@ -18,8 +18,26 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
  3. `merge` `develop` with `master` (asuming all went well.)
 
 ## Setup
+### Primary machine (server, test) setup
+#### Environment Setup
+```bash
+sudo apt install build-essential curl git git-core python3-pip python3-dev python3-pandas python3-mysqldb
+# Run chromedriver script
+sh ~/kavalkilu/setup_tools/chromedriver_update.sh
+```
+#### Git setup
+We'll want to set up SSH for this machine
+1. [Generate an SSH key](https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+2. [Add it to GitHub](https://help.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
+3. Either:
+    a. clone new repos locally using SSH
+    b. change the remote for already-cloned repos (check with `git remote -v`):
+        - Enter the following in the repo:
+            `git remote set-url origin git@github.com:barretobrock/kavalkilu.git`
+        - Check with `git pull`
+
 ### Raspberry Pi
-#### Raspi SD Card prep
+#### RasPi SD Card prep
  - Find Card 
     `lsblk`
  - Unmount the card
