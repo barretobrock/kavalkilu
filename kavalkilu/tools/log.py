@@ -7,6 +7,7 @@ import os
 import sys
 import logging
 import argparse
+import traceback
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime as dt
 
@@ -88,6 +89,13 @@ class Log:
     def error(self, text):
         """Error-level logging"""
         self.logger.error(text)
+
+    def error_with_class(self, err_obj, text):
+        """Error-level logging that also preserves the class of the error"""
+        traceback_msg = '\n'.join(traceback.format_tb(err_obj.__traceback__))
+        exception_msg = '{}: {}\n\n{}'.format(err_obj.__class__.__name__, err_obj, traceback_msg)
+        err_msg = '{}\n{}'.format(exception_msg, text)
+        self.logger.error(err_msg)
 
     def close(self):
         """Close logger"""
