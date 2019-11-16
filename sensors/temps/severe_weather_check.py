@@ -36,6 +36,9 @@ alerts = dark.get_alerts()
 
 if alerts is not None:
     for i, row in alerts.iterrows():
+        if any([x in row['title'].lower() for x in ['child']]):
+            # Skip non-weather related alerts
+            continue
         # Hash the title and date
         hashed = hashlib.md5('{}{}'.format(row['title'], row['time']).encode()).hexdigest()
         alerts.loc[i, 'hash'] = hashed

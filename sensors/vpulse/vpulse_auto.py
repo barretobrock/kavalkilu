@@ -9,7 +9,11 @@ from slacktools import SlackTools
 
 debug = False
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
-st = SlackTools(logg)
+try:
+    # Attempt to connect to Slack, don't freak out if we have a connection Error though
+    st = SlackTools(logg)
+except TimeoutError:
+    st = None
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
@@ -20,7 +24,8 @@ creds = Keys().get_key('vpulse_creds')
 
 
 def notify_channel(msg):
-    st.send_message('notifications', msg)
+    if st is not None:
+        st.send_message('notifications', msg)
 
 
 def popup_closer():
