@@ -15,12 +15,6 @@ fi
 # CD to the location of the package and pull from master
 REPO=kavalkilu
 PROJDIR=${HOME}/kavalkilu
-LT_PROJDIR=${HOME}/projects/kavalkilu
-
-if [[ -d ${LT_PROJDIR} ]]; then
-    # Laptop
-    PROJDIR=${LT_PROJDIR}
-fi
 
 # SETUP
 # --------------

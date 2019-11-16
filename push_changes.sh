@@ -8,8 +8,11 @@
 
 # SETUP
 # --------------
+REPO=kavalkilu
+PROJDIR=${HOME}/kavalkilu
+
 # FILE PATHS
-FUNCTIONS=./setup_tools/general_functions.sh
+FUNCTIONS=${PROJDIR}/setup_tools/general_functions.sh
 
 # Import common functions
 . ${FUNCTIONS} --source-only
