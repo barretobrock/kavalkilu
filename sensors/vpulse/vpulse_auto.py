@@ -163,7 +163,7 @@ def recipes_section():
                 fav = ba.get_elem('//div[@class="favorite" and div[@class="heart"]]')
                 break
             except Exception as e:
-                logg.error('No heart found. Refreshing. Error: {}'.format(e))
+                logg.error_with_class(e, 'No heart found. Refreshing.')
                 ba.driver.refresh()
                 ba.medium_wait()
         if heart is None:
@@ -217,7 +217,7 @@ def healthy_habits():
                 logg.debug('Clicked button: {}'.format(yes_id))
                 clicks += 1
             except Exception as e:
-                logg.error('Tried to click yes_btn. Error: {}'.format(e))
+                logg.error_with_class(e, 'Tried to click yes_btn.')
 
         else:
             logg.debug('Button {} seems to have already been clicked.'.format(yes_id))
@@ -284,8 +284,9 @@ for task_name, task in tasks_dict.items():
         task()
         notify_channel('Completed section: {}'.format(task_name))
     except Exception as e:
-        logg.error('An error occurred: {}'.format(e))
-        notify_channel('Error occurred in section: {}'.format(task_name))
+        err_msg = 'Error occurred in section: {}'.format(task_name)
+        logg.error_with_class(e, err_msg)
+        notify_channel(err_msg)
 
 logg.debug('Script complete. Quitting instance.')
 ba.tear_down()
