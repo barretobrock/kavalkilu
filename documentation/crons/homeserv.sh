@@ -8,11 +8,9 @@ PY3=/usr/bin/python3
 0 */4 * * *         $PY3    $HOME/$SENSORS/log_reader.py
 32 3 20 * *         $PY3    $HOME/$SENSORS/log_remover.py -lvl debug
 # PIHOLE
-5 6 * * *           bash    $HOME/$SENSORS/pihole/pihole_backup.sh
+
 # MYSQL
-25 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_to_mysql.py
 30 6 * * *          $PY3    $HOME/$SENSORS/grafana/grafana.py
-35 6 * * *          $PY3    $HOME/$SENSORS/pihole/pihole_mysql_short_term_etl.py
 # SYS DATA COLLECTION
 */10 * * * *        $PY3    $HOME/$SENSORS/net/machine_uptime.py
 */5 * * * *         $PY3    $HOME/$SENSORS/net/machine_connected.py
