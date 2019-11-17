@@ -30,8 +30,8 @@ class Log:
                 default: 'INFO'
         """
         # Name of log in logfile
-        is_child = child_name is not None
-        if is_child:
+        self.is_child = child_name is not None
+        if self.is_child:
             self.log_name = log_name
         else:
             self.log_name = '{}_{:%H%M}'.format(log_name, dt.now())
@@ -50,7 +50,7 @@ class Log:
         # Path of logfile
         self.log_path = os.path.join(log_dir, self.log_filename)
         # Create logger
-        if is_child:
+        if self.is_child:
             self.logger = logging.getLogger(self.log_name).getChild(child_name)
         else:
             self.logger = logging.getLogger(self.log_name)
@@ -109,7 +109,11 @@ class Log:
 
     def close(self):
         """Close logger"""
-        self.logger.info('Log disconnected.\n' + '-' * 80)
+        if self.is_child:
+            disconn_msg = 'Log disconnected.'
+        else:
+            disconn_msg = 'Log disconnected.\n' + '-' * 80
+        self.logger.info(disconn_msg)
         handlers = self.logger.handlers
         for handler in handlers:
             handler.close()
