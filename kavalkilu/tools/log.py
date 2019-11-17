@@ -15,20 +15,26 @@ from datetime import datetime as dt
 class Log:
     """Initiates a logging object to record processes and errors"""
 
-    def __init__(self, log_name, log_filename_prefix=None, log_dir=None, log_lvl='INFO'):
+    def __init__(self, log_name, child_name=None, log_filename_prefix=None, log_dir=None, log_lvl='INFO'):
         """
         Args:
-            log_name: str, display name of the log. Will have the time (H:M) added to the end
-                to denote separate instances)
+            log_name: str, display name of the log. Will have the time (HHMM) added to the end
+                to denote separate instances
+            child_name: str, name of the child log.
+                This is used when the log being made is considered a child to the parent log name
             log_filename_prefix: str, filename prefix (ex. 'npslog')
                 default: log_name
             log_dir: str, directory to save the log
-                default: "~/logs"
+                default: "~/logs/{log_filename_prefix}/"
             log_lvl: str, minimum logging level to write to log (Hierarchy: DEBUG -> INFO -> WARN -> ERROR)
                 default: 'INFO'
         """
         # Name of log in logfile
-        self.log_name = '{}_{:%H%M}'.format(log_name, dt.now())
+        is_child = child_name is not None
+        if is_child:
+            self.log_name = log_name
+        else:
+            self.log_name = '{}_{:%H%M}'.format(log_name, dt.now())
         if log_filename_prefix is None:
             log_filename_prefix = log_name
         # Set name of file
@@ -44,7 +50,11 @@ class Log:
         # Path of logfile
         self.log_path = os.path.join(log_dir, self.log_filename)
         # Create logger
-        self.logger = logging.getLogger(self.log_name)
+        if is_child:
+            self.logger = logging.getLogger(self.log_name).getChild(child_name)
+        else:
+            self.logger = logging.getLogger(self.log_name)
+
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         self.logger_lvl = getattr(logging, log_lvl.upper(), logging.DEBUG)
         # Set minimum logging level
