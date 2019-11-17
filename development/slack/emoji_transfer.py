@@ -17,8 +17,8 @@ okr_token = Keys().get_key('slack-okrtoken')
 too_name = Keys().get_key('too-name')
 too_token = Keys().get_key('slack-tootoken')
 
-okr = SlackTools(log, team=okr_name, xoxp_token=okr_token, cookie=okr_cookie)
-too = SlackTools(log, team=too_name, xoxp_token=too_token)
+okr = SlackTools(log.log_name, team=okr_name, xoxp_token=okr_token, cookie=okr_cookie)
+too = SlackTools(log.log_name, team=too_name, xoxp_token=too_token)
 
 # Make list of exact matches
 exact_emojis = None

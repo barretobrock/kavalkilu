@@ -16,7 +16,7 @@ print(i)
 okr_name = Keys().get_key('okr-name')
 okr_cookie = Keys().get_key('slack-okrcookie')
 okr_token = Keys().get_key('slack-okrtoken')
-st = SlackTools(okr_name, okr_token, okr_cookie)
+st = SlackTools(log.log_name, okr_name, okr_token, okr_cookie)
 
 
 st.upload_emojis(os.path.dirname(fpath), announce=False)

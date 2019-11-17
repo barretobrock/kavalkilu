@@ -12,7 +12,7 @@ log = Log('darksky', 'temp', log_lvl=LogArgParser().loglvl)
 austin = '30.3428,-97.7582'
 now = pd.datetime.now()
 
-st = SlackTools(log)
+st = SlackTools(log.log_name)
 dark = DarkSkyWeather(austin)
 hours_df = dark.hourly_summary()
 # Filter by column & get only the next 10 hours of forecasted temps

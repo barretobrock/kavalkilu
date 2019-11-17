@@ -15,7 +15,7 @@ austin = '30.3428,-97.7582'
 now = pd.datetime.now()
 fpath = os.path.join(os.path.abspath(Paths().data_dir), 'severe_weather.json')
 
-st = SlackTools(log)
+st = SlackTools(log.log_name)
 dark = DarkSkyWeather(austin)
 
 

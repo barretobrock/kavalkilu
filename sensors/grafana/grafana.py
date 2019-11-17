@@ -10,7 +10,7 @@ from slacktools import SlackTools
 
 log = Log('grafana_snapper', log_lvl=LogArgParser().loglvl)
 creds = Keys().get_key('grafana-api')
-st = SlackTools(log)
+st = SlackTools(log.log_name)
 channel = 'CMQGKKR9P'
 
 

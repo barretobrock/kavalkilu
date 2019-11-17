@@ -11,7 +11,7 @@ TRIGGER_PIN = 23
 ECHO_PIN = 24
 logg.debug('Initializing sensor...')
 ds = DistanceSensor(TRIGGER_PIN, ECHO_PIN)
-st = SlackTools(logg)
+st = SlackTools(logg.log_name)
 
 # Take an average of 10 readings
 readings = []

@@ -11,7 +11,7 @@ debug = False
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
 try:
     # Attempt to connect to Slack, don't freak out if we have a connection Error though
-    st = SlackTools(logg)
+    st = SlackTools(logg.log_name)
 except TimeoutError:
     st = None
 

@@ -32,7 +32,7 @@ WHERE
 """.format(machine_name, ip_addr)
 uptime_df = pd.read_sql_query(uptime_query, db_eng.connection)
 
-st = SlackTools(log)
+st = SlackTools(log.log_name)
 if uptime_df.empty:
     # Machine is not yet in database. Add it.
     log.info('New machine logged: {}'.format(machine_name))

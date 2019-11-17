@@ -10,7 +10,7 @@ from slacktools import SlackTools
 log = Log('slack_logger', log_lvl=LogArgParser().loglvl)
 db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
-st = SlackTools(log)
+st = SlackTools(log.log_name)
 datapath = os.path.join(Paths().data_dir, 'slack_logs.txt')
 
 

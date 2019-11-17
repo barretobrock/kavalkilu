@@ -10,7 +10,7 @@ from slacktools import SlackTools
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
 log = Log('machine_conn', log_lvl=LogArgParser().loglvl)
 today = pd.datetime.now()
-st = SlackTools(log)
+st = SlackTools(log.log_name)
 
 fpath = os.path.join(os.path.abspath(Paths().data_dir), 'machine_connected.json')
 
