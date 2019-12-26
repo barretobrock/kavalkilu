@@ -47,7 +47,7 @@ else:
 
 if garage_status['status'].values[0] != status:
     # This is probably the first time
-    st.send_message('notifications', 'Garage door is now `{}`.'.format(status.lower()))
+    st.send_message('alerts', 'Garage door is now `{}`.'.format(status.lower()))
     # Record change in database
     garage_set_query = """
         UPDATE

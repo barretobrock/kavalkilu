@@ -26,7 +26,7 @@ log_splitter = {
         'levels': ['DEBUG', 'INFO']
     },
     'error': {
-        'channel': '#errors',
+        'channel': '#logs',
         'levels': ['ERROR', 'WARN']
     }
 }
@@ -53,6 +53,8 @@ error_logs_query = """
         time ASC 
 """.format(read_from)
 result_df = pd.read_sql_query(error_logs_query, mysqlconn)
+
+msg = "`{:%H:%M}` to `{:%H:%M}`:\n".format(read_from, now)
 if not result_df.empty:
     result_df['cnt'] = 1
     result_df = result_df.groupby(['machine', 'log', 'lvl', 'exc_class', 'exc_msg',
@@ -70,20 +72,11 @@ if not result_df.empty:
             if log_type == 'normal':
                 # remove the exception-related columns
                 df = df.drop(['exc_class', 'exc_msg'], axis=1)
-            # Save before sending
-            save_log_tbl(df, datapath)
-            # Send the info to Slack
-            msg = "`{:%H:%M}` to `{:%H:%M}` in `{}`:".format(read_from, now, channel)
-            st.send_message(channel, msg)
-            st.upload_file(channel, datapath, 'log_table')
-        else:
-            msg = 'No {} logs for the period `{:%H:%M}` to `{:%H:%M}`.'.format(log_type, read_from, now)
-            st.send_message(channel, msg)
+        msg += '\t\t{}: {}\n'.format(log_type, df.shape[0])
 else:
-    channel = '#logs'
-    msg = 'No logs were able to be captured in either category ' \
-          'for the period `{:%H:%M}` to `{:%H:%M}`'.format(read_from, now)
-    st.send_message(channel, msg)
+    msg += 'No logs.'
+# Send the info to Slack
+st.send_message('logs', msg)
 
 
 

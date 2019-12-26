@@ -41,7 +41,7 @@ for i, row in machines_df.iterrows():
         # Log new machine regardless of current status
         log.info('New machine logged: {}'.format(machine_name))
         slack_msg = 'A new machine `{}` will be loaded into `logdb.devices`.'.format(machine_name)
-        st.send_message('notifications', slack_msg)
+        st.send_message('alerts', slack_msg)
         machines_df.loc[i, 'update_date'] = today
         machines_df.loc[i, 'connected_since'] = today
     else:
@@ -50,7 +50,7 @@ for i, row in machines_df.iterrows():
             log.info('Machine changed state: {}'.format(machine_name))
             slack_msg = '`{}` changed state from `{}` to `{}`. Record made in `logdb.devices`.'.format(
                 machine_name, prev_status, status)
-            st.send_message('notifications', slack_msg)
+            st.send_message('alerts', slack_msg)
             machines_df.loc[i, 'update_date'] = today
 
 # Notify on specific device state changes

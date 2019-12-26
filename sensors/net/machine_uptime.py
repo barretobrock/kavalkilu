@@ -37,7 +37,7 @@ if uptime_df.empty:
     # Machine is not yet in database. Add it.
     log.info('New machine logged: {}'.format(machine_name))
     slack_msg = 'A new machine (`{}`) will be loaded into `logdb.devices`.'.format(machine_name)
-    st.send_message('notifications', slack_msg)
+    st.send_message('alerts', slack_msg)
     new_machine_dict = {
         'name': machine_name,
         'ip': ip_addr,
@@ -66,6 +66,6 @@ else:
         """.format(uptime, machine_name, ip_addr)
         db_eng.write_sql(update_uptime_query)
         time.sleep(2)
-        st.send_message('notifications', slack_msg)
+        st.send_message('alerts', slack_msg)
 
 log.close()

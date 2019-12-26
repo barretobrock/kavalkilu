@@ -25,7 +25,7 @@ creds = Keys().get_key('vpulse_creds')
 
 def notify_channel(msg):
     if st is not None:
-        st.send_message('notifications', msg)
+        st.send_message('alerts', msg)
 
 
 def popup_closer():
