@@ -13,6 +13,7 @@ try:
     # Attempt to connect to Slack, don't freak out if we have a connection Error though
     st = SlackTools(logg.log_name)
 except TimeoutError:
+    logg.error('Unable to connect to Slack')
     st = None
 
 # TODO
@@ -45,15 +46,23 @@ def popup_closer():
 def daily_cards():
     """Handles the daily cards section"""
     ba.scroll_absolute()
-    card_btn = ba.get_elem('//div[@class="home-cards-wrapper"]/div/div[@ng-click="toggleDailyTips()"]')
-    # Get the class of the child div
-    child_div = card_btn.find_element_by_xpath('.//div')
-    if 'active-view' not in child_div.get_attribute('class'):
-        # Card view not already active, click to activate
-        logg.debug("Card view wasn't active, clicking to activate.")
-        card_btn.click()
-    else:
-        logg.debug("Card view already active.")
+    # Attempt to get make the cards section active
+    try:
+        for attempt in range(0, 3):
+            card_btn = ba.get_elem('//div[@class="home-cards-wrapper"]/div/div[@ng-click="toggleDailyTips()"]')
+            if card_btn is not None:
+                break
+            ba.medium_wait()
+        # Get the class of the child div
+        child_div = card_btn.find_element_by_xpath('.//div')
+        if 'active-view' not in child_div.get_attribute('class'):
+            # Card view not already active, click to activate
+            logg.debug("Card view wasn't active, clicking to activate.")
+            card_btn.click()
+        else:
+            logg.debug("Card view already active.")
+    except:
+        logg.debug('Unable to find the card section to click.')
 
     # Iterate through cards (2)
     is_tf_btn = False
