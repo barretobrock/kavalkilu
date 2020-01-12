@@ -11,23 +11,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
 
 
-chrome_default_options = [
-    '--disable-extensions',
-    '--mute-audio',
-    '--disable-infobars',   # Get rid of "Chrome is being controlled by automated software" notification
-    '--start-maximized',
-    '--headless',
-    '--no-sandbox',
-    '--disable-dev-shm-usage'
-]
-
-phantom_default_options = [
-    # For PhantomJS, SSL should be disabled as it is not compliant with the most recent version
-    '--ignore-ssl-errors=true',
-    '--ssl-protocol=any'
-]
-
-
 class ChromeDriver(Chrome):
     """
     Initiates Chromedriver for Selenium
@@ -37,19 +20,28 @@ class ChromeDriver(Chrome):
         options: list, any extra options to add to chrome_options.add_argument()
     """
 
+    chrome_default_options = [
+        '--disable-extensions',
+        '--mute-audio',
+        '--disable-infobars',  # Get rid of "Chrome is being controlled by automated software" notification
+        '--start-maximized',
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        '--lang=en_US'
+    ]
+
     def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60,
-                 options=chrome_default_options, headless=True):
+                 options=None, headless=True):
         self.driver_path = driver_path
+
         # Add options to Chrome
+        opt_list = options if options is not None else self.chrome_default_options
         chrome_options = Options()
-        if options is not None:
-            for option in options:
-                if 'headless' in option:
-                    if headless:
-                        # Apply the headless arg only if desired
-                        chrome_options.add_argument(option)
-                else:
-                    chrome_options.add_argument(option)
+        for option in opt_list:
+            chrome_options.add_argument(option)
+
+        if headless:
+            chrome_options.add_argument('--headless')
         # Disable notifications
         prefs = {
             'profile.default_content_setting_values.notifications': 2,
@@ -67,14 +59,24 @@ class PhantomDriver(PhantomJS):
     """
     Initiates the PhantomJS driver for Selenium
     Args for __init__:
-        driver_path: path to Chromedriver
+        driver_path: path to Chromedriver (default = '/usr/bin/chromedriver')
         timeout: int, seconds to wait until connection unsuccessful
+        options: list of phantomJS options to apply. If empty, defaults will be used
     """
 
-    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, service_args=phantom_default_options):
+    phantom_default_options = [
+        # For PhantomJS, SSL should be disabled as it is not compliant with the most recent version
+        '--ignore-ssl-errors=true',
+        '--ssl-protocol=any'
+    ]
+
+    def __init__(self, driver_path='/usr/bin/chromedriver', timeout=60, options=None):
         self.driver_path = driver_path
+
         # Apply options
-        super(PhantomDriver, self).__init__(self.driver_path, service_args=service_args)
+        opt_list = options if options is not None else self.phantom_default_options
+        super(PhantomDriver, self).__init__(self.driver_path, service_args=opt_list)
+
         # Set timeout for 1 minute to avoid multiple instances opening over time
         super(PhantomDriver, self).set_page_load_timeout(timeout)
 
@@ -91,15 +93,11 @@ class BrowserAction:
     _fast_wait = [1, 8]
 
     def __init__(self, browser='chrome', driver_path='/usr/bin/chromedriver',
-                 timeout=60, options=chrome_default_options, headless=True):
+                 timeout=60, options=None, headless=True):
         if browser == 'chrome':
-            if options is None:
-                options = chrome_default_options
             self.driver = ChromeDriver(driver_path, timeout, options, headless)
         elif browser == 'phantomjs':
-            if options is None:
-                options = PhantomDriver.default_service_args
-            self.driver = PhantomDriver(driver_path, timeout, service_args=options)
+            self.driver = PhantomDriver(driver_path, timeout, options=options)
 
     def tear_down(self):
         """Make sure the browser is closed on cleanup"""
