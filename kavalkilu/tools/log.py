@@ -98,7 +98,7 @@ class Log:
 
     def error(self, text):
         """Error-level logging"""
-        self.logger.error(text)
+        self.logger.error(text, exc_info=True)
 
     def error_with_class(self, err_obj, text):
         """Error-level logging that also preserves the class of the error"""
