@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 import time
 from datetime import datetime as dtt
-from collections import OrderedDict
-from kavalkilu import Log, LogArgParser, Keys, BrowserAction
+from kavalkilu import Log, LogArgParser, Keys, BrowserAction, NetTools, Hosts
 from slacktools import SlackTools
 
 
-debug = False
-logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl)
+ip = NetTools().get_ip()
+debug = Hosts().get_host(ip=ip)['name'] != 'homeserv'
+logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl if not debug else 'DEBUG')
 try:
     # Attempt to connect to Slack, don't freak out if we have a connection Error though
     st = SlackTools(logg.log_name)
@@ -25,8 +25,10 @@ creds = Keys().get_key('vpulse_creds')
 
 
 def notify_channel(msg):
-    if st is not None:
+    if st is not None and not debug:
         st.send_message('alerts', msg)
+    if debug:
+        logg.debug(msg)
 
 
 def popup_closer():
@@ -231,7 +233,7 @@ def healthy_habits():
         else:
             logg.debug('Button {} seems to have already been clicked.'.format(yes_id))
 
-        ba.medium_wait()
+        ba.fast_wait()
 
 
 def whil_session():
@@ -250,7 +252,7 @@ def whil_session():
 
 notify_channel('Vpulse script booted up')
 today = dtt.today()
-ba = BrowserAction('chrome', headless=True)
+ba = BrowserAction('chrome', headless=not debug)
 logg.debug('Chrome instantiated.')
 
 vpulse_home_url = 'https://member.virginpulse.com/'
@@ -265,27 +267,27 @@ ba.medium_wait()
 sec_form = ba.get_elem('//input[@value="Send code"]')
 if sec_form is not None:
     notify_channel('Security code was requested. This script will have to be rerun manually later.')
-    if debug:
-        # Click the button
-        sec_form.click()
-        sec_code = input('Please input the code you were just emailed: ')
-        ba.enter('//input[@id="securityCode"]', sec_code)
-        ba.click('//input[@value="Submit"]')
+    # if debug:
+    #     # Click the button
+    #     sec_form.click()
+    #     sec_code = input('Please input the code you were just emailed: ')
+    #     ba.enter('//input[@id="securityCode"]', sec_code)
+    #     ba.click('//input[@value="Submit"]')
 
 notify_channel('Logged in.')
 logg.debug('Logged in.')
 ba.slow_wait()
 
 # Establish an order to go through the different tasks
-tasks_dict = OrderedDict((
-    ('popup closer', popup_closer),
-    ('daily cards', daily_cards),
-    # ('financial wellness', financial_wellness),
-    ('fitness tracker', fitness_tracker),
-    ('healthy recipes', recipes_section),
-    ('healthy habits', healthy_habits),
-    ('WHIL session', whil_session)
-))
+tasks_dict = {
+    'popup closer': popup_closer,
+    'daily cards': daily_cards,
+    # 'financial wellness': financial_wellness,
+    'fitness tracker': fitness_tracker,
+    'healthy recipes': recipes_section,
+    'healthy habits': healthy_habits,
+    'WHIL session': whil_session
+}
 
 for task_name, task in tasks_dict.items():
     logg.debug('Beginning {} section.'.format(task_name))
