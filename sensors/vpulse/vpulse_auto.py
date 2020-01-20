@@ -7,7 +7,7 @@ from slacktools import SlackTools
 
 
 ip = NetTools().get_ip()
-debug = Hosts().get_host(ip=ip)['name'] != 'homeserv'
+debug = Hosts().get_host('homeserv').get('ip', 'empty') != ip
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl if not debug else 'DEBUG')
 try:
     # Attempt to connect to Slack, don't freak out if we have a connection Error though
@@ -31,53 +31,45 @@ def notify_channel(msg):
         logg.debug(msg)
 
 
-def popup_closer():
-    # Try to find the popup close button
-    try:
-        # Scroll back up to the top
-        ba.scroll_absolute()
-        ba.fast_wait()
-        pu_close_btn = ba.get_elem('//div[@id="trophy-modal-close-btn"]')
-        pu_close_btn.click()
-        logg.debug('Popup close button likely successfully clicked.')
-    except:
-        logg.debug('Popup close button non-existent, or unable to be clicked.')
-        ba.medium_wait()
+def popup_closer(xpath):
+    """Attempts to close a popup"""
+    logg.debug('Positioning to close popup')
+    ba.scroll_absolute()
+    ba.fast_wait()
+    ba.click(xpath)
+    logg.debug('Popup closing procedure complete.')
+
+
+def initial_popup_closer():
+    """Closes the initial popup that shows up"""
+    popup_closer('//div[@id="trophy-modal-close-btn"]')
 
 
 def daily_cards():
     """Handles the daily cards section"""
     ba.scroll_absolute()
     # Attempt to get make the cards section active
-    try:
-        for attempt in range(0, 3):
-            card_btn = ba.get_elem('//div[@class="home-cards-wrapper"]/div/div[@ng-click="toggleDailyTips()"]')
-            if card_btn is not None:
-                break
-            ba.medium_wait()
-        # Get the class of the child div
-        child_div = card_btn.find_element_by_xpath('.//div')
-        if 'active-view' not in child_div.get_attribute('class'):
-            # Card view not already active, click to activate
-            logg.debug("Card view wasn't active, clicking to activate.")
-            card_btn.click()
-        else:
-            logg.debug("Card view already active.")
-    except:
-        logg.debug('Unable to find the card section to click.')
+    card_btn = ba.get_elem('//div[@class="home-cards-wrapper"]/div/div[@ng-click="toggleDailyTips()"]')
+    child_div = card_btn.find_element_by_xpath('.//div')
+    if 'active-view' not in child_div.get_attribute('class'):
+        # Card view not already active, click to activate
+        logg.debug("Card view wasn't active, clicking to activate.")
+        card_btn.click()
+    else:
+        logg.debug("Card view already active.")
 
     # Iterate through cards (2)
-    is_tf_btn = False
     for i in range(0, 2):
+        is_tf_btn = False
         # Get the 'done' button
         ba.scroll_absolute('up')
         done_btn = ba.get_elem('//div[@class="card-options-wrapper"]/*/button[@id="triggerCloseCurtain"]')
-        ba.scroll_absolute(dir='0,20')
+        ba.scroll_absolute(direction='0,20')
         if done_btn is None:
             logg.debug('Done button not found. Attempting to find a TF button')
             tf_btns = ba.get_elem('//div[@class="card-options-wrapper"]/*/button', single=False)
             if len(tf_btns) > 0:
-                logg.debug('Found {} matching buttons. Using first.'.format(len(tf_btns)))
+                logg.debug(f'Found {len(tf_btns)} matching buttons. Using first.')
                 done_btn = tf_btns[0]
                 is_tf_btn = True
         try:
@@ -148,45 +140,33 @@ def recipes_section():
     ba.get(recipe_url)
     ba.slow_wait()
     # If popup, disable
-    try:
-        ba.scroll_absolute('up')
-        pu_get_app = ba.get_elem('//div[@id="interstitial-content-close"]/span')
-        pu_get_app.click()
-        logg.debug('Closed popup')
-    except:
-        logg.debug('No popup to close')
+    logg.debug('Attempting to close popup')
+    ba.click('//div[@id="interstitial-content-close"]/span')
+    logg.debug('Popup closing procedure done')
 
     # Meal buttons to click
+    logg.debug('Getting meal buttons')
     meal_btns = ba.get_elem('//button[@class="button-green dash-meal-button"]', single=False)
     meal_btns[1].click()
     logg.debug('Clicked meal button')
     ba.slow_wait()
 
     if today.strftime('%a') == 'Mon':
-        logg.info('Performing weekly activities')
+        logg.info('Today\'s Monday, performing weekly activities')
         # If a monday, favorite a recipe and add to grocery list
         # Favorite (once weekly)
         logg.info('Favoriting recipe')
-        heart = None
-        for attempt in range(0, 5):
-            try:
-                heart = ba.get_elem('//div[@class="heart"]')
-                fav = ba.get_elem('//div[@class="favorite" and div[@class="heart"]]')
-                break
-            except Exception as e:
-                logg.error_with_class(e, 'No heart found. Refreshing.')
-                ba.driver.refresh()
-                ba.medium_wait()
-        if heart is None:
-            logg.info('Could not find the heart element.')
-        else:
-            heart.click()
-            ba.medium_wait()
+        fav = ba.get_elem('//div[contains(@class, "favorite") and div[@class="heart"]]')
+        if 'is-favorite' in fav.get_attribute('class'):
+            logg.debug('Recipe we selected was already favorited. Toggling.')
+            # Unfavorite
+            fav.click()
+        # Favorite again
+        fav.click()
 
         if 'is-favorite' not in fav.get_attribute('class'):
             # Click the heart's parent
-            logg.debug("Heart click didn't work. Trying to click the favourite button instead.")
-            fav.click()
+            logg.error("Heart click didn't work. Trying to click the favourite button instead.")
             ba.medium_wait()
 
         logg.info('Adding recipe to grocery list')
@@ -196,7 +176,12 @@ def recipes_section():
         ba.medium_wait()
         # Confirm add
         ba.scroll_absolute('down')
-        ba.click('//div[@class="grocery-list-add-modal-confirm-container"]')
+        # First we need to make the recipe section smaller
+        recipe_container = ba.get_elem('//div[contains(@class, "grocery-list-add-modal-recipe")]')
+        ba.add_style_to_elem(recipe_container, 'height:10px;')
+        ba.fast_wait()
+        # Now that the element is in view we can click it
+        ba.click('//div[@class="grocery-list-add-modal-confirm-container"]/button')
         ba.medium_wait()
 
 
@@ -206,7 +191,7 @@ def healthy_habits():
     ba.get(hh_url)
     ba.medium_wait()
     yes_btns = ba.get_elem('//div/button[contains(@class, "btn-choice-yes")]', single=False)
-    logg.debug('{} yes buttons found.'.format(len(yes_btns)))
+    logg.debug(f'{len(yes_btns)} yes buttons found.')
 
     clicks = 0
     click_limit = 10  # overkill, but we'll keep it
@@ -221,19 +206,43 @@ def healthy_habits():
         if 'green-button' not in yes_btn.get_attribute('class'):
             # Button not clicked
             try:
-                # Scroll to button
                 ba.scroll_to_element(yes_btn)
-                # c.execute_script("arguments[0].scrollIntoView();", yes_btn)
-                ba.driver.execute_script("document.getElementById('{}').click()".format(yes_id))
-                logg.debug('Clicked button: {}'.format(yes_id))
+                # yes_btn.click() # Commented this out as it seems clicks are more predictable when done through JS
+                ba.click_by_id(yes_id)
+                logg.debug(f'Clicked button {yes_id}')
                 clicks += 1
             except Exception as e:
-                logg.error_with_class(e, 'Tried to click yes_btn.')
-
+                logg.error(f'Couldn\'t click button with id {yes_id}: {e}')
         else:
             logg.debug('Button {} seems to have already been clicked.'.format(yes_id))
 
         ba.fast_wait()
+
+
+def slogger():
+    """Sleep log"""
+    sleep_url = 'https://app.member.virginpulse.com/#/guide/sleep/2'
+    ba.get(sleep_url)
+    ba.medium_wait()
+
+    # Open up the Device section
+    ba.click('//div[@id="open-device-list-btn"]')
+    # Open the Manual section
+    ba.click('//div[contains(@class, "device-item") and strong[text() = "Manual Tracking"]]')
+    # Open the Enter Sleep Data Button
+    ba.click('//div[@aria-labelledby="enterSleepDataButton"]')
+    # Make sure start hour is 8
+    bed_hr = '//input[@ng-model="times.bed.hour"]'
+    ba.clear(bed_hr)
+    ba.enter(bed_hr, 8)
+    # Make sure wake hour is 4
+    wake_hr = '//input[@ng-model="times.wake.hour"]'
+    ba.clear(wake_hr)
+    ba.enter(wake_hr, 4)
+    # Enter the data
+    ba.click('//div[@class="actions"]/button[text() = "Track It!"]')
+
+
 
 
 def whil_session():
@@ -252,12 +261,12 @@ def whil_session():
 
 notify_channel('Vpulse script booted up')
 today = dtt.today()
-ba = BrowserAction('chrome', headless=not debug)
+ba = BrowserAction(logg.log_name, 'chrome', headless=not debug)
 logg.debug('Chrome instantiated.')
 
 vpulse_home_url = 'https://member.virginpulse.com/'
 ba.get(vpulse_home_url)
-ba.medium_wait()
+ba.slow_wait()
 
 ba.enter('//input[@id="username"]', creds['user'])
 ba.enter('//input[@id="password"]', creds['password'])
@@ -267,12 +276,6 @@ ba.medium_wait()
 sec_form = ba.get_elem('//input[@value="Send code"]')
 if sec_form is not None:
     notify_channel('Security code was requested. This script will have to be rerun manually later.')
-    # if debug:
-    #     # Click the button
-    #     sec_form.click()
-    #     sec_code = input('Please input the code you were just emailed: ')
-    #     ba.enter('//input[@id="securityCode"]', sec_code)
-    #     ba.click('//input[@value="Submit"]')
 
 notify_channel('Logged in.')
 logg.debug('Logged in.')
@@ -280,12 +283,13 @@ ba.slow_wait()
 
 # Establish an order to go through the different tasks
 tasks_dict = {
-    'popup closer': popup_closer,
+    'popup closer': initial_popup_closer,
     'daily cards': daily_cards,
     # 'financial wellness': financial_wellness,
     'fitness tracker': fitness_tracker,
     'healthy recipes': recipes_section,
     'healthy habits': healthy_habits,
+    'sleep logger': slogger,
     'WHIL session': whil_session
 }
 
