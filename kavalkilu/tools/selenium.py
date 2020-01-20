@@ -244,6 +244,15 @@ class BrowserAction:
                 if e is not None:
                     self.driver.execute_script(script, e)
 
+    def add_style_to_elem(self, elem, css_str):
+        """Injects CSS into elem style"""
+        js = f"arguments[0].setAttribute('style', {css_str}"
+        self.driver.execute_script(js, elem)
+
+    def click_by_id(self, elem_id):
+        js = f'document.getElementById({elem_id}).click()'
+        self.driver.execute_script(js)
+
     def rand_wait(self, sleep_range_secs):
         """
         Determines sleep time as random number between upper and lower limit,
