@@ -97,9 +97,9 @@ class Log:
         """Warn-level logging"""
         self.logger.warning(text)
 
-    def error(self, text):
+    def error(self, text, incl_info=True):
         """Error-level logging"""
-        self.logger.error(text, exc_info=True)
+        self.logger.error(text, exc_info=incl_info)
 
     def error_with_class(self, err_obj, text):
         """Error-level logging that also preserves the class of the error"""
