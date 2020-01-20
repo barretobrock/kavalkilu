@@ -8,6 +8,7 @@ PY3=/usr/bin/python3
 0 */4 * * *         $PY3    $HOME/$SENSORS/log_reader.py
 32 3 20 * *         $PY3    $HOME/$SENSORS/log_remover.py -lvl debug
 # PIHOLE
+33 8 * * *          $PY3    $HOME/$SENSORS/net/unknown_ip_monitor.py
 
 # MYSQL
 30 6 * * *          $PY3    $HOME/$SENSORS/grafana/grafana.py

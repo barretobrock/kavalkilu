@@ -15,7 +15,7 @@ st = SlackTools(log.log_name)
 fpath = os.path.join(os.path.abspath(Paths().data_dir), 'machine_connected.json')
 
 # Get connections of all the device we want to track
-machines = Hosts().get_hosts(regex=r'^(lt|ac|an|pi|homeserv).*')
+machines = Hosts().get_hosts(regex=r'^(an).*')
 machines_df = pd.DataFrame(machines)
 
 # Read in the json file if there is one

@@ -33,50 +33,50 @@ class Log:
         # Name of log in logfile
         self.is_child = child_name is not None
         if self.is_child:
-            self.log_name = log_name
+            # We've already had a logger set up, so find that and set this instance as a child of that instance
+            self.logger = logging.getLogger(log_name).getChild(child_name)
         else:
             self.log_name = f'{log_name}_{dt.now():%H%M}'
-        if log_filename_prefix is None:
-            log_filename_prefix = log_name
-        # Set name of file
-        self.log_filename = f"{log_filename_prefix}_{dt.today():%Y%m%d}.log"
-        # Set log directory (if none)
-        if log_dir is None:
-            log_dir = os.path.join(Paths().log_dir, log_name)
-        # Check if logging directory exists
-        if not os.path.exists(log_dir):
-            # If dir doesn't exist, create
-            os.makedirs(log_dir)
+            if log_filename_prefix is None:
+                log_filename_prefix = log_name
+            # Set name of file
+            self.log_filename = f"{log_filename_prefix}_{dt.today():%Y%m%d}.log"
+            # Set log directory (if none)
+            if log_dir is None:
+                log_dir = os.path.join(Paths().log_dir, log_name)
+            # Check if logging directory exists
+            if not os.path.exists(log_dir):
+                # If dir doesn't exist, create
+                os.makedirs(log_dir)
 
-        # Path of logfile
-        self.log_path = os.path.join(log_dir, self.log_filename)
-        # Create logger
-        if self.is_child:
-            self.logger = logging.getLogger(self.log_name).getChild(child_name)
-        else:
+            # Path of logfile
+            self.log_path = os.path.join(log_dir, self.log_filename)
+            # Create logger if it hasn't been created
             self.logger = logging.getLogger(self.log_name)
 
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         self.logger_lvl = getattr(logging, log_lvl.upper(), logging.DEBUG)
         # Set minimum logging level
         self.logger.setLevel(self.logger_lvl)
-        # Create file handler for log
-        # TimedRotating will delete logs older than 30 days
-        fh = TimedRotatingFileHandler(self.log_path, when='d', interval=1, backupCount=30)
-        fh.setLevel(self.logger_lvl)
-        # Create streamhandler for log (this sends streams to stdout/stderr for debug help)
-        sh = logging.StreamHandler()
-        sh.setLevel(self.logger_lvl)
-        # Set format of logs
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s %(message)s')
-        fh.setFormatter(formatter)
-        sh.setFormatter(formatter)
-        # Add handlers to log
-        self.logger.addHandler(sh)
-        self.logger.addHandler(fh)
-        # Intercept exceptions
-        sys.excepthook = self.handle_exception
-        self.info('Logging initiated.')
+
+        if not self.is_child:
+            # Create file handler for log
+            # TimedRotating will delete logs older than 30 days
+            fh = TimedRotatingFileHandler(self.log_path, when='d', interval=1, backupCount=30)
+            fh.setLevel(self.logger_lvl)
+            # Create streamhandler for log (this sends streams to stdout/stderr for debug help)
+            sh = logging.StreamHandler()
+            sh.setLevel(self.logger_lvl)
+            # Set format of logs
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s %(message)s')
+            fh.setFormatter(formatter)
+            sh.setFormatter(formatter)
+            # Add handlers to log
+            self.logger.addHandler(sh)
+            self.logger.addHandler(fh)
+            # Intercept exceptions
+            sys.excepthook = self.handle_exception
+        self.info(f'Logging initiated{" for child instance" if self.is_child else ""}.')
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         """Intercepts an exception and prints it to log file"""
@@ -110,22 +110,15 @@ class Log:
 
     def close(self):
         """Close logger"""
+        disconn_msg = 'Log disconnected'
         if self.is_child:
-            disconn_msg = 'Log disconnected.'
+            self.logger.info(f'{disconn_msg} for child instance.')
         else:
-            disconn_msg = 'Log disconnected.\n' + '-' * 80
-        self.logger.info(disconn_msg)
-        handlers = self.logger.handlers
-        for handler in handlers:
-            handler.close()
-            self.logger.removeHandler(handler)
-
-    def __del__(self):
-        """In case logger hasn't been properly closed"""
-        try:
-            self.close()
-        except:
-            pass
+            self.logger.info(f'{disconn_msg}.\n' + '-' * 80)
+            handlers = self.logger.handlers
+            for handler in handlers:
+                handler.close()
+                self.logger.removeHandler(handler)
 
 
 class LogArgParser:
