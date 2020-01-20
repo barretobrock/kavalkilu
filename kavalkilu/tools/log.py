@@ -35,11 +35,11 @@ class Log:
         if self.is_child:
             self.log_name = log_name
         else:
-            self.log_name = '{}_{:%H%M}'.format(log_name, dt.now())
+            self.log_name = f'{log_name}_{dt.now():%H%M}'
         if log_filename_prefix is None:
             log_filename_prefix = log_name
         # Set name of file
-        self.log_filename = "{}_{}.log".format(log_filename_prefix, dt.today().strftime('%Y%m%d'))
+        self.log_filename = f"{log_filename_prefix}_{dt.today():%Y%m%d}.log"
         # Set log directory (if none)
         if log_dir is None:
             log_dir = os.path.join(Paths().log_dir, log_name)
