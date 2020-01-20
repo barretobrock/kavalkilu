@@ -10,6 +10,7 @@ import argparse
 import traceback
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime as dt
+from .path import Paths
 
 
 class Log:
@@ -41,7 +42,7 @@ class Log:
         self.log_filename = "{}_{}.log".format(log_filename_prefix, dt.today().strftime('%Y%m%d'))
         # Set log directory (if none)
         if log_dir is None:
-            log_dir = os.path.join(os.path.expanduser('~'), *['logs', log_filename_prefix])
+            log_dir = os.path.join(Paths().log_dir, log_name)
         # Check if logging directory exists
         if not os.path.exists(log_dir):
             # If dir doesn't exist, create
@@ -134,6 +135,7 @@ class LogArgParser:
         self.parser.add_argument('-lvl', action='store', default='INFO')
         sysargs = sys.argv
         if 'pydevconsole.py' not in sysargs[0]:
+            # Not running tests in PyCharm, so take in args
             self.args = self.parser.parse_args()
             self.loglvl = self.args.lvl.upper()
         else:
