@@ -109,6 +109,9 @@ class BrowserAction:
         """Attempts a certain method for n times before gracefully failing"""
 
         for i in range(0, attempts):
+            if i > 0:
+                # Sleep between attempts, but let a one-off attempt through without much delay
+                time.sleep(rest_s)
             try:
                 thing = func(*args)
                 if sub_method is not None:
@@ -122,7 +125,6 @@ class BrowserAction:
                     return thing
             except Exception as e:
                 self.log.error(f'Attempt {i + 1}: fail -- {e}', incl_info=False)
-                time.sleep(rest_s)
 
     def tear_down(self):
         """Make sure the browser is closed on cleanup"""
@@ -170,7 +172,7 @@ class BrowserAction:
         self._do_attempts(self.elem_by_xpath, xpath, sub_method='send_keys', sub_method_input=entry_text,
                           attempts=attempts, rest_s=rest_s)
 
-    def elem_exists(self, xpath, attempts=STD_ATTEMPTS, rest_s=REST_S):
+    def elem_exists(self, xpath, attempts=1, rest_s=REST_S):
         """
         Determines if particular element exists
         Args:
