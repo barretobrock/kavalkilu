@@ -58,6 +58,9 @@ def daily_cards():
     else:
         logg.debug("Card view already active.")
 
+    logg.debug('Making sure no challenge cards are above')
+    ba.click('//div[@class="dont-show-challenge-card"]/a')
+
     # Iterate through cards (2)
     for i in range(0, 2):
         is_tf_btn = False
@@ -243,8 +246,6 @@ def slogger():
     ba.click('//div[@class="actions"]/button[text() = "Track It!"]')
 
 
-
-
 def whil_session():
     """Go to the WHIL page and play a video"""
     whil_url = "https://connect.whil.com/virginpulsesso/redirect?destination=home"
@@ -289,8 +290,8 @@ tasks_dict = {
     'fitness tracker': fitness_tracker,
     'healthy recipes': recipes_section,
     'healthy habits': healthy_habits,
+    'WHIL session': whil_session,
     'sleep logger': slogger,
-    'WHIL session': whil_session
 }
 
 for task_name, task in tasks_dict.items():
