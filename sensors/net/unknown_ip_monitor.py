@@ -38,12 +38,14 @@ if len(unknown_ips) > 0:
     logg.info(f'{len(unknown_ips)} unknown clients found')
     # Convert our list of dicts to dataframe, put up on #alerts
     unknown_df = pd.DataFrame(unknown_ips)
-    unknown_df = unknown_df[['ip', 'name', 'firstSeen', 'lastQuery', 'numQueries', 'macVendor']]
+    unknown_df = unknown_df[['ip', 'name', 'firstSeen', 'lastQuery', 'numQueries', 'hwaddr', 'interface', 'macVendor']]
     # Convert unix to human
     for col in ['firstSeen', 'lastQuery']:
         human_date = pd.to_datetime(unknown_df[col], unit='s').dt.tz_localize('UTC').dt.tz_convert('US/Central')
         human_date = human_date.apply(lambda x: x.replace(tzinfo=None))
         unknown_df[col] = human_date
+    # Convert : in macAddress to -
+    unknown_df['hwaddr'] = unknown_df['hwaddr'].str.replace(':', '-').str.upper()
 
     # Filter devices that have either shown up recently or have had recent activity
     unknown_df = unknown_df[(unknown_df['firstSeen'] >= lookback_period) | (unknown_df['lastQuery'] >= lookback_period)]
