@@ -184,7 +184,11 @@ class GSheetReader:
     """A class to help with reading in Google Sheets"""
     def __init__(self, sheet_key):
         pyg = __import__('pygsheets')
-        gsheets_creds = Keys().get_key('gsheet-reader')
+        try:
+            gsheets_creds = Keys().get_key('gsheet-reader')
+        except:
+            with open(os.path.join(os.path.expanduser('~'), *['keys', 'GSHEET_READER'])) as f:
+                gsheets_creds = json.loads(f.read())
         os.environ['GDRIVE_API_CREDENTIALS'] = json.dumps(gsheets_creds)
         self.gc = pyg.authorize(service_account_env_var='GDRIVE_API_CREDENTIALS')
         self.sheets = self.gc.open_by_key(sheet_key).worksheets()
@@ -194,7 +198,15 @@ class GSheetReader:
         for sheet in self.sheets:
             if sheet.title == sheet_name:
                 return sheet.get_as_df()
-        raise ValueError('The sheet name "{}" was not found in the list of available sheets: ({})'.format(sheet_name, ','.join([x.title for x in self.sheets])))
+        raise ValueError(f'The sheet name "{sheet_name}" was not found '
+                         f'in the list of available sheets: ({",".join([x.title for x in self.sheets])})')
+
+    def write_df_to_sheet(self, sheet_key, sheet_name, df):
+        """Write df to sheet"""
+        wb = self.gc.open_by_key(sheet_key)
+        sheet = wb.worksheet_by_title(sheet_name)
+        sheet.clear()
+        sheet.set_dataframe(df)
 
 
 class CSVHelper:
