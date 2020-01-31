@@ -206,7 +206,7 @@ class GSheetReader:
         wb = self.gc.open_by_key(sheet_key)
         sheet = wb.worksheet_by_title(sheet_name)
         sheet.clear()
-        sheet.set_dataframe(df)
+        sheet.set_dataframe(df, (1, 1))
 
 
 class CSVHelper:
