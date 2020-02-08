@@ -2,7 +2,7 @@
 
 # VARIABLES
 SENSORS=kavalkilu/sensors
-PY3=/usr/bin/python3
+PY3=/home/bobrock/venvs/kavkil/bin/python3
 
 # LOG ANALYSIS
 0 */4 * * *         $PY3    $HOME/$SENSORS/log_reader.py
