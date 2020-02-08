@@ -3,18 +3,11 @@
 import time
 from datetime import datetime as dtt
 from kavalkilu import Log, LogArgParser, Keys, BrowserAction, NetTools, Hosts
-from slacktools import SlackTools
 
 
 ip = NetTools().get_ip()
 debug = Hosts().get_host('homeserv').get('ip', 'empty') != ip
 logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl if not debug else 'DEBUG')
-try:
-    # Attempt to connect to Slack, don't freak out if we have a connection Error though
-    st = SlackTools(logg.log_name)
-except TimeoutError:
-    logg.error('Unable to connect to Slack')
-    st = None
 
 # TODO
 # build out a table of when monthly, weekly things were last done.
@@ -25,8 +18,6 @@ creds = Keys().get_key('vpulse_creds')
 
 
 def notify_channel(msg):
-    if st is not None and not debug:
-        st.send_message('alerts', msg)
     if debug:
         logg.debug(msg)
 

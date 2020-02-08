@@ -158,7 +158,7 @@ if not log_df.empty:
 
     query = db.write_df_to_sql('logs', log_df, debug=True)
     res = mysqlconn.execute(query)
-    log.debug('Query sent to database. Result shows {} rows affected.'.format(res.rowcount))
+    log.debug(f'Query sent to database. Result shows {res.rowcount} rows affected.')
 
 mysqlconn.close()
 

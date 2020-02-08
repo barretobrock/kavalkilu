@@ -2,18 +2,12 @@ import os
 import time
 import requests
 import pandas as pd
-from slacktools import SlackTools
 from kavalkilu import Hosts, Log, LogArgParser, Paths
+from kavalkilu.local_tools import slack_comm, alert_channel
 
 
 logg = Log('unknown_ip', log_lvl=LogArgParser().loglvl)
-try:
-    # Attempt to connect to Slack, don't freak out if we have a connection Error though
-    st = SlackTools(logg.log_name)
-    st.log.info('Hello')
-except TimeoutError:
-    logg.error('Unable to connect to Slack')
-    st = None
+
 hosts = Hosts()
 server_ip = hosts.get_host('homeserv')['ip']
 timestamp = int(round(time.time() * 1000, 0))
@@ -53,14 +47,13 @@ if len(unknown_ips) > 0:
         unknown_df = unknown_df.reset_index(drop=True)
         msg = f'{unknown_df.shape[0]} unknown client{"" if unknown_df.shape[0] == 1 else "s"} with recent activity'
         logg.info(msg)
-        st.send_message('#alerts', msg)
+        slack_comm.send_message(alert_channel, msg)
         # Read in file of already notified connections
         for i, row in unknown_df.iterrows():
             msg = f"{i + 1}: \n```{row.to_string()} \n```"
             logg.info(msg)
-            st.send_message('#alerts', msg)
+            slack_comm.send_message(alert_channel, msg)
         # Save the dataframe
         unknown_df.to_csv(prev_unknown_data_path, index=False)
 
-st.log.close()
 logg.close()

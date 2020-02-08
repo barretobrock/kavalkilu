@@ -5,7 +5,7 @@ import time
 import psutil
 import pandas as pd
 from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, NetTools
-from slacktools import SlackTools
+from kavalkilu.local_tools import slack_comm, alert_channel
 
 
 log = Log('machine_uptime', log_lvl=LogArgParser().loglvl)
@@ -32,12 +32,11 @@ WHERE
 """.format(machine_name, ip_addr)
 uptime_df = pd.read_sql_query(uptime_query, db_eng.connection)
 
-st = SlackTools(log.log_name)
 if uptime_df.empty:
     # Machine is not yet in database. Add it.
-    log.info('New machine logged: {}'.format(machine_name))
-    slack_msg = 'A new machine (`{}`) will be loaded into `logdb.devices`.'.format(machine_name)
-    st.send_message('alerts', slack_msg)
+    log.info(f'New machine logged: {machine_name}')
+    slack_msg = f'A new machine (`{machine_name}`) will be loaded into `logdb.devices`.'
+    slack_comm.send_message(alert_channel, slack_msg)
     new_machine_dict = {
         'name': machine_name,
         'ip': ip_addr,
@@ -51,9 +50,9 @@ else:
     db_uptime = uptime_df['uptime_ts'].dt.strftime('%F %T').values[0]
     if db_uptime != uptime:
         # If not, update the uptime in the db
-        log.debug('Uptime measured ({}) did not match uptime in db ({}). Updating db.'.format(uptime, db_uptime))
-        slack_msg = 'Machine `{}` was recently rebooted. Its new uptime of `{}` will be' \
-                    ' loaded into `logdb.devices`.'.format(machine_name, uptime)
+        log.debug(f'Uptime measured ({uptime}) did not match uptime in db ({db_uptime}). Updating db.')
+        slack_msg = f'Machine `{machine_name}` was recently rebooted. Its new uptime of `{uptime}` will be' \
+                    ' loaded into `logdb.devices`.'
         update_uptime_query = """
             UPDATE
                 devices
@@ -66,6 +65,6 @@ else:
         """.format(uptime, machine_name, ip_addr)
         db_eng.write_sql(update_uptime_query)
         time.sleep(2)
-        st.send_message('alerts', slack_msg)
+        slack_comm.send_message(alert_channel, slack_msg)
 
 log.close()

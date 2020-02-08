@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import pandas as pd
-from slacktools import SlackTools
 from kavalkilu import Log, LogArgParser, DarkSkyWeather
+from kavalkilu.local_tools import slack_comm, notify_channel, user_me
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
@@ -12,7 +12,6 @@ log = Log('darksky', 'temp', log_lvl=LogArgParser().loglvl)
 austin = '30.3428,-97.7582'
 now = pd.datetime.now()
 
-st = SlackTools(log.log_name)
 dark = DarkSkyWeather(austin)
 hours_df = dark.hourly_summary()
 # Filter by column & get only the next 10 hours of forecasted temps
@@ -36,7 +35,7 @@ for name, cond in logic_dict.items():
 if warning is not None:
     lowest_temp = hours_df.temperature.min()
     highest_wind = hours_df.windSpeed.max()
-    msg = '<@{}> - {} Warning: `{}C` `{}m/s`'.format('UM35HE6R5', warning.title(), lowest_temp, highest_wind)
-    st.send_message('notifications', msg)
+    msg = f'<@{user_me}> - {warning.title()} Warning: `{lowest_temp}C` `{highest_wind}m/s`'
+    slack_comm.send_message(notify_channel, msg)
 
 log.close()

@@ -3,27 +3,26 @@
 import os
 import hashlib
 import pandas as pd
-from slacktools import SlackTools
 from kavalkilu import Log, LogArgParser, DarkSkyWeather, Paths
+from kavalkilu.local_tools import slack_comm, notify_channel, user_me
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('darksky', 'temp', log_lvl=LogArgParser().loglvl)
+log = Log('severe_weather', 'temp', log_lvl=LogArgParser().loglvl)
 
 # Temp in C that serves as the floor of the warning
 austin = '30.3428,-97.7582'
 now = pd.datetime.now()
 fpath = os.path.join(os.path.abspath(Paths().data_dir), 'severe_weather.json')
 
-st = SlackTools(log.log_name)
 dark = DarkSkyWeather(austin)
 
 
 def send_warning(row):
     """Sends warning to channel"""
     msg = '<@{}> - Incoming Alert!\n`{title}`\nFrom: `{time}` to `{expires}`' \
-          '\n{description}\n\n{uri}'.format('UM35HE6R5', **row.to_dict())
-    st.send_message('notifications', msg)
+          '\n{description}\n\n{uri}'.format(user_me, **row.to_dict())
+    slack_comm.send_message(notify_channel, msg)
 
 
 # Read in the json file if there is one
@@ -40,7 +39,7 @@ if alerts is not None:
             # Skip non-weather related alerts
             continue
         # Hash the title and date
-        hashed = hashlib.md5('{}{}'.format(row['title'], row['time']).encode()).hexdigest()
+        hashed = hashlib.md5('{title}{time}'.format(**row).encode()).hexdigest()
         alerts.loc[i, 'hash'] = hashed
         # If the alert hash is not found in the dataframe, it's likely a new alert. Send a message to the channel
         if not old_alerts.empty:

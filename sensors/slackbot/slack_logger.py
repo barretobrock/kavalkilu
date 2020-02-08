@@ -4,20 +4,19 @@
 import os
 import pandas as pd
 from kavalkilu import MySQLLocal, Log, LogArgParser, Paths
-from slacktools import SlackTools
+from kavalkilu.local_tools import slack_comm, log_channel
 
 
 log = Log('slack_logger', log_lvl=LogArgParser().loglvl)
 db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
-st = SlackTools(log.log_name)
 datapath = os.path.join(Paths().data_dir, 'slack_logs.txt')
 
 
 def save_log_tbl(df, fpath=datapath):
     """Saves logs to path"""
     with open(fpath, 'w') as f:
-        f.write(st.df_to_slack_table(df))
+        f.write(slack_comm.df_to_slack_table(df))
 
 
 log_splitter = {
@@ -76,7 +75,7 @@ if not result_df.empty:
 else:
     msg += 'No logs.'
 # Send the info to Slack
-st.send_message('logs', msg)
+slack_comm.send_message(log_channel, msg)
 
 
 

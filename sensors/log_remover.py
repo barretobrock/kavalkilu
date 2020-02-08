@@ -30,6 +30,6 @@ for path, subdirs, files in os.walk(log_dir):
                 log.info('Removing file {}'.format(name))
                 os.remove(logpath)
         else:
-            log.error('Could not remove file. Path not valid: {}'.format(logpath))
+            log.error(f'Could not remove file. Path not valid: {logpath}')
 
 log.close()

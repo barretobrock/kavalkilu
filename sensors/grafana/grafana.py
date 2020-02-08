@@ -5,13 +5,12 @@ import time
 import requests
 from grafana_api.grafana_face import GrafanaFace
 from kavalkilu import Keys, Log, LogArgParser
-from slacktools import SlackTools
+from kavalkilu.local_tools import slack_comm, notify_channel
 
 
 log = Log('grafana_snapper', log_lvl=LogArgParser().loglvl)
-creds = Keys().get_key('grafana-api')
-st = SlackTools(log.log_name)
-channel = 'CMQGKKR9P'
+get_key = Keys().get_key
+creds = get_key('grafana-api')
 
 
 def get_pic_and_upload(url, name):
@@ -23,7 +22,7 @@ def get_pic_and_upload(url, name):
     with open(temp_file, 'wb') as f:
         for chunk in resp:
             f.write(chunk)
-    st.upload_file(channel, temp_file, name)
+    slack_comm.upload_file(notify_channel, temp_file, name)
 
 
 # The URL template to use
@@ -45,7 +44,8 @@ snap_panels = [
     'Download Speeds', 'Upload Speeds'
 ]
 
-st.send_message(channel, 'Daily Report coming up!')
+
+slack_comm.send_message(notify_channel, 'Daily Report coming up!')
 # Use grafana API to get dashboard UID
 gapi = GrafanaFace(auth=creds['key'], host=creds['host'])
 for dash_tag in ['home_automation', 'speedtests', 'logs', 'pihole']:
