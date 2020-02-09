@@ -44,6 +44,8 @@ class Log:
             # Set log directory (if none)
             if log_dir is None:
                 log_dir = os.path.join(Paths().log_dir, log_name)
+            else:
+                log_dir = os.path.join(Paths().log_dir, log_dir)
             # Check if logging directory exists
             if not os.path.exists(log_dir):
                 # If dir doesn't exist, create

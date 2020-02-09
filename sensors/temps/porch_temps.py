@@ -5,7 +5,7 @@ from time import sleep
 from kavalkilu import DallasTempSensor as Dallas, Log, LogArgParser, SensorLogger
 
 
-log = Log('porch_temp', 'temp', log_lvl=LogArgParser().loglvl)
+log = Log('porch_temp', log_dir='temps', log_lvl=LogArgParser().loglvl)
 # Serial numbers of the Dallas temp sensors
 sensors = [
     {

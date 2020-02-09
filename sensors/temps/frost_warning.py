@@ -6,7 +6,7 @@ from kavalkilu.local_tools import slack_comm, notify_channel, user_me
 
 
 # Initiate Log, including a suffix to the log name to denote which instance of log is running
-log = Log('darksky', 'temp', log_lvl=LogArgParser().loglvl)
+log = Log('frost_warn', log_dir='temps', log_lvl=LogArgParser().loglvl)
 
 # Temp in C that serves as the floor of the warning
 austin = '30.3428,-97.7582'

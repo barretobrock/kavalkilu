@@ -4,7 +4,7 @@
 from kavalkilu import DHTTempSensor as DHT, Log, LogArgParser, SensorLogger
 
 
-log = Log('garage_temp', 'temp', log_lvl=LogArgParser().loglvl)
+log = Log('garage_temp', log_dir='temps', log_lvl=LogArgParser().loglvl)
 # Set the pin
 TEMP_PIN = 4
 sl = SensorLogger('garage', DHT(TEMP_PIN, decimals=3))

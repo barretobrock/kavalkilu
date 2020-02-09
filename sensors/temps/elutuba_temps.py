@@ -4,7 +4,7 @@
 from kavalkilu import DHTTempSensor as DHT, Log, LogArgParser, SensorLogger
 
 
-log = Log('elutuba_temp', 'temp', log_lvl=LogArgParser().loglvl)
+log = Log('elutuba_temp', log_dir='temps', log_lvl=LogArgParser().loglvl)
 # Set the pin
 TEMP_PIN = 4
 sl = SensorLogger('living_room', DHT(TEMP_PIN, decimals=3))
