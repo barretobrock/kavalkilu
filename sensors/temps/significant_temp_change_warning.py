@@ -35,7 +35,8 @@ metrics_to_collect = dict(zip(
     ['temperature', 'apparentTemperature', 'precipIntensity', 'precipProbability'],
     ['temp', 'apptemp', 'precip_int', 'precip_prob'],
 ))
-for hour in [0, 6, 12, 15]:
+hours = [0, 6, 12, 15, 18]
+for hour in hours:
     hour_info = nextday[nextday['hour'] == hour]
     for metric, shortname in metrics_to_collect.items():
         temp_dict[f't{hour}_{shortname}'] = hour_info[metric].values[0]
@@ -46,7 +47,7 @@ if apptemp_diff >= 5:
     # Temp drops by greater than 5 degrees C. Issue warning.
     warn = 'Temp higher at midnight `{t0_temp:.2f} ({t0_apptemp:.2f})` ' \
            'than midday `{t12_temp:.2f} ({t12_apptemp:.2f})` ' \
-           'diff: `{:.1f} ({:.1f})'.format(temp_diff, apptemp_diff, **temp_dict)
+           'diff: `{:.1f} ({:.1f})`'.format(temp_diff, apptemp_diff, **temp_dict)
     send_warning(warn)
 
 # Send out daily report as well
@@ -54,7 +55,7 @@ if apptemp_diff >= 5:
 report = f"""
 *Weather Report for {tomorrow:%A, %d %B}*
 """
-for hour in [0, 6, 12, 15]:
+for hour in hours:
     precip_multiplier = int(round(temp_dict[f't{hour}_precip_prob'] * 10 / 2)) - 1
     line = '{0:02d}:00\t{{t{0}_temp:.0f}}\t({{t{0}_apptemp:.1f}})\t{{t{0}_precip_prob:.1%}}\t' \
            '{{t{0}_precip_int:.2f}}'.format(hour).format(**temp_dict)
