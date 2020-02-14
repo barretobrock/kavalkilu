@@ -3,6 +3,7 @@
 import time
 from datetime import datetime as dtt
 from kavalkilu import Log, LogArgParser, Keys, BrowserAction, NetTools, Hosts
+from kavalkilu.local_tools import slack_comm, notify_channel, user_me
 
 
 ip = NetTools().get_ip()
@@ -17,9 +18,15 @@ logg = Log('vpulse_auto', log_lvl=LogArgParser().loglvl if not debug else 'DEBUG
 creds = Keys().get_key('vpulse_creds')
 
 
-def notify_channel(msg):
+def message_channel_and_log(msg):
+    slack_comm.send_message(notify_channel, msg)
     if debug:
         logg.debug(msg)
+
+
+def get_vpoints():
+    """Collects amount of points currently available"""
+    return ba.get_text('//div[@id="progress-bar-menu-points-total-value"]')
 
 
 def popup_closer(xpath):
@@ -208,7 +215,7 @@ def healthy_habits():
             except Exception as e:
                 logg.error(f'Couldn\'t click button with id {yes_id}: {e}')
         else:
-            logg.debug('Button {} seems to have already been clicked.'.format(yes_id))
+            logg.debug(f'Button {yes_id} seems to have already been clicked.')
 
         ba.fast_wait()
 
@@ -251,12 +258,13 @@ def whil_session():
     time.sleep(310)
 
 
-notify_channel('Vpulse script booted up')
+message_channel_and_log('Vpulse script booted up')
 today = dtt.today()
 ba = BrowserAction(logg.log_name, 'chrome', headless=not debug)
 logg.debug('Chrome instantiated.')
 
 vpulse_home_url = 'https://member.virginpulse.com/'
+points_url = 'https://app.member.virginpulse.com/#/rewards/earn'
 ba.get(vpulse_home_url)
 ba.slow_wait()
 
@@ -267,11 +275,15 @@ ba.medium_wait()
 # Look for a security check
 sec_form = ba.get_elem('//input[@value="Send code"]')
 if sec_form is not None:
-    notify_channel('Security code was requested. This script will have to be rerun manually later.')
+    message_channel_and_log(f'<@{user_me}>, Security code was requested. '
+                            f'This script will have to be rerun manually later.')
 
-notify_channel('Logged in.')
+message_channel_and_log('Logged in.')
 logg.debug('Logged in.')
 ba.slow_wait()
+
+# Get the amount of points we have before operations
+points_dict = {'pre_points': get_vpoints()}
 
 # Establish an order to go through the different tasks
 tasks_dict = {
@@ -286,16 +298,23 @@ tasks_dict = {
 }
 
 for task_name, task in tasks_dict.items():
-    logg.debug('Beginning {} section.'.format(task_name))
+    logg.debug(f'Beginning {task_name} section.')
     try:
         task()
-        notify_channel('Completed section: {}'.format(task_name))
+        message_channel_and_log(f'Completed section: {task_name}')
     except Exception as e:
-        err_msg = 'Error occurred in section: {}'.format(task_name)
+        err_msg = f'Error occurred in section: {task_name}'
         logg.error_with_class(e, err_msg)
-        notify_channel(err_msg)
+        message_channel_and_log(err_msg)
+
+# Collect points after all operations
+ba.get(points_url)
+points_dict['post_points'] = get_vpoints()
+pre, post = list(map(int, points_dict.values()))
+message_channel_and_log(f'*Completion report:*\nPoints at start: `{pre:,}`\n Points at end: `{post:,}`\n '
+                        f'Difference: `{post-pre:+,}`\nRemaining: `{18000-post:,}`')
 
 logg.debug('Script complete. Quitting instance.')
 ba.tear_down()
-notify_channel('Competed script.')
+message_channel_and_log('Competed script. Instance torn down.')
 logg.close()
