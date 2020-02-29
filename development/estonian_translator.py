@@ -7,7 +7,6 @@
 import re
 import urllib.request as req
 from lxml import etree
-from collections import OrderedDict
 
 
 word_list = [
@@ -31,7 +30,8 @@ def get_root(word):
         front_placeholder_idx = content.index(front_placeholder)
         rear_placeholder_idx = content.index(rear_placeholder)
     except ValueError:
-        print('The word "{}" was not found in Lemma. This might need to be done manually'.format(word))
+        print(f'Ei leidnud sõna „{word}“ Lemmatiseerija veebileheküljel. '
+              f'Käsitsi otsides võib paremad tulemused juhtuda.')
         return None
 
     root_word = content[front_placeholder_idx + len(front_placeholder):rear_placeholder_idx]
@@ -50,11 +50,78 @@ def prep_for_xpath(url):
 root_word = get_root(word)
 
 
-def get_declinations(word):
+def get_declinations(input_word, word_type='noun'):
     """Retrieves declinations in Nom, Gen, Part in singular and plural for given word"""
     ekisynt_base_url = 'http://www.filosoft.ee/gene_et/gene.cgi?word={}&{}'
-    params = 'gi=sg+n%2C&gi=pl+n%2C&gi=sg+g%2C&gi=pl+g%2C&gi=sg+p%2C&gi=pl+p%2C'
-    content = req.urlopen(ekisynt_base_url.format(word, params)).read()
+
+
+    verb_types = {'a': 'past'}
+
+    verb_codes = ['ti', 'sin', 'sid', 's', 'sime', 'site', 'sid']
+    verb_units = ['passive', '1st p sing', '2nd p sing', '3rd p sing', '1st p plu', '2nd p plu', '3rd p plur']
+    verb_ex = ['it was <verb>ed', 'I <verb>ed', 'you (sng/informal) <verb>ed', 's/he it <verb>ed', 'we <verb>ed', 'you (pl/formal) <verb>ed', 'they <verb>ed']
+    verbs = 'p=1;p=2;p=3;p=4;p=5;p=6;p=0'
+
+    [{'code': f'{verb_codes[i]}', 'class': 'verb', 'subclass': 'past', 'desc': x, 'ex': verb_ex[i]} for i, x in enumerate(verb_units)]
+
+
+    case_dict = [
+        {'code': 'sg+n', 'class': 'noun', 'subclass': 'singular', 'case': 'NOMINATIVE'},
+        {'code': 'sg+g', 'class': 'noun', 'subclass': 'singular', 'case': 'GENITIVE'},
+        {'code': 'sg+p', 'class': 'noun', 'subclass': 'singular', 'case': 'PARTITIVE'},
+        {'code': 'sg+ill,+adt', 'class': 'noun', 'subclass': 'singular', 'case': 'ILLATIVE'},
+        {'code': 'sg+in,+mas', 'class': 'noun', 'subclass': 'singular', 'case': 'INESSIVE'},
+        {'code': 'sg+el,+mast', 'class': 'noun', 'subclass': 'singular', 'case': 'ELATIVE'},
+        {'code': 'sg+all', 'class': 'noun', 'subclass': 'singular', 'case': 'ALLATIVE'},
+        {'code': 'sg+ad', 'class': 'noun', 'subclass': 'singular', 'case': 'ADESSIVE'},
+        {'code': 'sg+abl', 'class': 'noun', 'subclass': 'singular', 'case': 'ABLATIVE'},
+        {'code': 'sg+tr,+maks', 'class': 'noun', 'subclass': 'singular', 'case': 'TRANSLATIVE'},
+        {'code': 'sg+ter', 'class': 'noun', 'subclass': 'singular', 'case': 'TERMINATIVE'},
+        {'code': 'sg+es', 'class': 'noun', 'subclass': 'singular', 'case': 'ESSIVE'},
+        {'code': 'sg+ab,+mata', 'class': 'noun', 'subclass': 'singular', 'case': 'ABESSIVE'},
+        {'code': 'sg+kom', 'class': 'noun', 'subclass': 'singular', 'case': 'COMITATIVE'},
+        {'code': 'pl+n', 'class': 'noun', 'subclass': 'plural', 'case': 'NOMINATIVE'},
+        {'code': 'pl+g', 'class': 'noun', 'subclass': 'plural', 'case': 'GENITIVE'},
+        {'code': 'pl+p', 'class': 'noun', 'subclass': 'plural', 'case': 'PARTITIVE'},
+        {'code': 'pl+ill', 'class': 'noun', 'subclass': 'plural', 'case': 'ILLATIVE'},
+        {'code': 'pl+in', 'class': 'noun', 'subclass': 'plural', 'case': 'INESSIVE'},
+        {'code': 'pl+el', 'class': 'noun', 'subclass': 'plural', 'case': 'ELATIVE'},
+        {'code': 'pl+all', 'class': 'noun', 'subclass': 'plural', 'case': 'ALLATIVE'},
+        {'code': 'pl+ad', 'class': 'noun', 'subclass': 'plural', 'case': 'ADESSIVE'},
+        {'code': 'pl+abl', 'class': 'noun', 'subclass': 'plural', 'case': 'ABLATIVE'},
+        {'code': 'pl+tr', 'class': 'noun', 'subclass': 'plural', 'case': 'TRANSLATIVE'},
+        {'code': 'pl+ter', 'class': 'noun', 'subclass': 'plural', 'case': 'TERMINATIVE'},
+        {'code': 'pl+es', 'class': 'noun', 'subclass': 'plural', 'case': 'ESSIVE'},
+        {'code': 'pl+ab', 'class': 'noun', 'subclass': 'plural', 'case': 'ABESSIVE'},
+        {'code': 'pl+kom', 'class': 'noun', 'subclass': 'plural', 'case': 'COMITATIVE'},
+        {'code': 'takse', 'class': 'verb', 'subclass': 'present', 'desc': '{subclass} passive', 'ex': 'it is <verb>ed'},
+        {'code': 'n', 'class': 'verb', 'subclass': 'present', 'desc': '1st p {subclass} sing', 'ex': 'I <verb>'},
+        {'code': 'd', 'class': 'verb', 'subclass': 'present', 'desc': '2nd p {subclass} sing', 'ex': 'you (sng/informal) <verb>'},
+        {'code': 'b', 'class': 'verb', 'subclass': 'present', 'desc': '3rd p {subclass} sing', 'ex': 's/he it <verb>'},
+        {'code': 'me', 'class': 'verb', 'subclass': 'present', 'desc': '1st p {subclass} plu', 'ex': 'we <verb>'},
+        {'code': 'te', 'class': 'verb', 'subclass': 'present', 'desc': '2nd p {subclass} plu', 'ex': 'you (pl/formal) <verb>'},
+        {'code': 'vad', 'class': 'verb', 'subclass': 'present', 'desc': '3rd p {subclass} plur', 'ex': 'they <verb>'},
+        {'code': 'ti', 'class': 'verb', 'subclass': 'past', 'desc': '{subclass} passive', 'ex': 'it was <verb>ed'},
+        {'code': 'sin', 'class': 'verb', 'subclass': 'past', 'desc': '1st p {subclass} sing', 'ex': 'I <verb>ed'},
+        {'code': 'sid', 'class': 'verb', 'subclass': 'past', 'desc': '2nd p {subclass} sing', 'ex': 'you (sng/informal) <verb>ed'},
+        {'code': 's', 'class': 'verb', 'subclass': 'past', 'desc': '3rd p {subclass} sing', 'ex': 's/he it <verb>ed'},
+        {'code': 'sime', 'class': 'verb', 'subclass': 'past', 'desc': '1st p {subclass} plu', 'ex': 'we <verb>ed'},
+        {'code': 'site', 'class': 'verb', 'subclass': 'past', 'desc': '2nd p {subclass} plu', 'ex': 'you (pl/formal) <verb>ed'},
+        {'code': 'sid', 'class': 'verb', 'subclass': 'past', 'desc': '3rd p {subclass} plu', 'ex': 'they <verb>ed'},
+        {'code': 'gu', 'class': 'verb', 'subclass': 'imperative', 'desc': '3rd p {subclass} sing', 'ex': 'let s/he/it <verb>'},
+        {'code': 'gem', 'class': 'verb', 'subclass': 'imperative', 'desc': '2nd p {subclass} plu', 'ex': 'let\'s <verb>'},
+        {'code': 'o', 'class': 'verb', 'subclass': 'present', 'desc': '{subclass} negative', 'ex': 'does not <verb>'},
+        {'code': 'ge', 'class': 'verb', 'subclass': 'present', 'desc': '{subclass} imperative plu/formal', 'ex': '<verb>!'},
+        {'code': 'ge', 'class': 'verb', 'subclass': 'present', 'desc': '{subclass} imperative plu/formal', 'ex': '<verb>!'},
+    ]
+    # Try to build the params
+    if word_type == 'noun':
+        params = '&'.join([f'gi={x["code"]},' for x in case_dict if x['class'] == 'noun'])
+    elif word_type == 'verb':
+        params = 'p=1&p=4&p=2&p=5&p=3&p=6&p=0&a=0&a=1&kv=0&kv=1&kv=2&kv=3&gif=da%2C&gif=des%2C&gif=nud%2C&gif=tud%2C&gif=v%2C&guess=on'
+        # params = '&'.join([f'{x["code"]}' for x in case_dict if x['class'] == 'verb'])
+
+    content = req.urlopen(ekisynt_base_url.format(word, params.replace(',', '%2C'))).read()
     content = str(content)
     front_placeholder = 'Eesti keele s&uuml;ntesaator</h2>\\n<table border="0" cellspacing="0" cellpadding="10"><tr><td class="MoreGray">'
     rear_placeholder = '</tr>\\n</table><hr>\\n<p class="Copyright">'
@@ -62,20 +129,13 @@ def get_declinations(word):
         front_placeholder_idx = content.index(front_placeholder)
         rear_placeholder_idx = content.index(rear_placeholder)
     except ValueError:
-        print('The word "{}" was not found in Süntesaator. This might need to be done manually'.format(word))
+        print(f'Ei leidnud sõna „{input_word}“ Süntesaatori veebileheküljel. '
+              f'Käsitsi otsides võib paremad tulemused juhtuda.')
         return None
     # Remove all the header/javascript stuff from the response & clean it up
     trimmed_content = content[front_placeholder_idx + len(front_placeholder):rear_placeholder_idx]
     trimmed_content = trimmed_content.replace('&nbsp;', '')
     # Begin extracting the different cases
-    cases = OrderedDict((
-        ('sng-nom', 'sgn'),
-        ('sng-gen', 'sgg'),
-        ('sng-prt', 'sgp'),
-        ('plu-nom', 'pln'),
-        ('plu-gen', 'plg'),
-        ('plu-prt', 'plp'),
-    ))
 
     # This is where we'll store our final result
     declinations = {
