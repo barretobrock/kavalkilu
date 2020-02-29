@@ -26,7 +26,22 @@ def message_channel_and_log(msg):
 
 def get_vpoints():
     """Collects amount of points currently available"""
-    return ba.get_text('//div[@id="progress-bar-menu-points-total-value"]')
+    points_script = "return document.getElementById('progress-bar-menu-points-total-value')"
+    points = ba.driver.execute_script(points_script).get_attribute('textContent').strip()
+
+    if points.isdigit():
+        return int(points)
+    return 0
+
+
+def get_available_rewards():
+    """Determines if any rewards are available"""
+    avail_rewards_script = "return document.getElementsByClassName('rewards-total-value')[0];"
+    avail_rewards = ba.driver.execute_script(avail_rewards_script).get_attribute('textContent').strip()
+
+    if avail_rewards != '$ 0':
+        return avail_rewards
+    return None
 
 
 def popup_closer(xpath):
@@ -57,7 +72,10 @@ def daily_cards():
         logg.debug("Card view already active.")
 
     logg.debug('Making sure no challenge cards are above')
-    ba.click('//div[@class="dont-show-challenge-card"]/a')
+    challenge_xpath = '//div[@class="dont-show-challenge-card"]/a'
+    is_challenge_card_active = ba.elem_exists(challenge_xpath)
+    if is_challenge_card_active:
+        ba.click('//div[@class="dont-show-challenge-card"]/a')
 
     # Iterate through cards (2)
     for i in range(0, 2):
@@ -273,17 +291,22 @@ ba.enter('//input[@id="password"]', creds['password'])
 ba.click('//input[@id="kc-login"]')
 ba.medium_wait()
 # Look for a security check
-sec_form = ba.get_elem('//input[@value="Send code"]')
-if sec_form is not None:
+sec_form = ba.elem_exists('//input[@value="Send code"]')
+if sec_form:
     message_channel_and_log(f'<@{user_me}>, Security code was requested. '
                             f'This script will have to be rerun manually later.')
 
 message_channel_and_log('Logged in.')
-logg.debug('Logged in.')
 ba.slow_wait()
 
 # Get the amount of points we have before operations
+ba.get(points_url)
+ba.fast_wait()
 points_dict = {'pre_points': get_vpoints()}
+ba.scroll_absolute(direction='up')
+logg.debug(f'Recorded points before starting: {points_dict["pre_points"]:,}')
+ba.get(vpulse_home_url)
+ba.fast_wait()
 
 # Establish an order to go through the different tasks
 tasks_dict = {
@@ -309,10 +332,12 @@ for task_name, task in tasks_dict.items():
 
 # Collect points after all operations
 ba.get(points_url)
+ba.medium_wait()
 points_dict['post_points'] = get_vpoints()
-pre, post = list(map(int, points_dict.values()))
-message_channel_and_log(f'*Completion report:*\nPoints at start: `{pre:,}`\n Points at end: `{post:,}`\n '
-                        f'Difference: `{post-pre:+,}`\nRemaining: `{18000-post:,}`')
+logg.debug(f'Recorded points after operations: {points_dict["post_points"]:,}')
+pre, post = points_dict.values()
+message_channel_and_log(f'*Completion report:*\n\tPoints at start: `{pre:,}`\n\tPoints at end: `{post:,}`\n\t'
+                        f'Difference: `{post-pre:+,}`\n\tRemaining: `{18000-post:,}`')
 
 logg.debug('Script complete. Quitting instance.')
 ba.tear_down()
