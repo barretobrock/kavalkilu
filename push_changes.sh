@@ -1,23 +1,27 @@
 #!/usr/bin/env bash
-# Run this script after committing
-# Example use
-# Patch
-# > sh push_changes.sh
-# Minor update
-# > sh push_changes.sh minor
+#/      --push_changes.sh--
+#/  Pushes a commit to master while also incrementing the version based on
+#/      the "level" of changes that have taken place and tagging that onto the commit.
+#/
+#/  Usage: push_changes.sh [options]
+#/
+#/  Options
+#/      -v|--version                        Prints script name & version.
+#/      -l|--level (patch|minor|major)      Sets level of update, which determines version bump (default: patch)
+#/
 
-# SETUP
-# --------------
+# DEFAULT VARIABLES
+# ------------------------------------------
+NAME="Repo Push Script"
+VERSION="0.0.1"
+LEVEL=patch
+
+# Import common variables / functions
+source ./common.sh
+
+# REPO-SPECIFIC VARIABLES
+# ------------------------------------------
 REPO=kavalkilu
-PROJDIR=${HOME}/kavalkilu
-
-# FILE PATHS
-FUNCTIONS=${PROJDIR}/setup_tools/general_functions.sh
-
-# Import common functions
-. ${FUNCTIONS} --source-only
-
-LEVEL=${1:-patch}
 
 # Get highest tag number
 VERSION=`git describe --abbrev=0 --tags`
@@ -29,7 +33,6 @@ VERSION_BITS=(${VERSION//./ })
 VNUM1=${VERSION_BITS[0]}
 VNUM2=${VERSION_BITS[1]}
 VNUM3=${VERSION_BITS[2]}
-
 
 if [[ "${LEVEL}" == "patch" ]];
 then
@@ -45,11 +48,10 @@ then
     VNUM3=0
 fi
 
-
 #create new tag
 NEW_TAG="${VNUM1}.${VNUM2}.${VNUM3}"
 
-CONFIRM="Updating ${BLUE}${VERSION}${RESET} to ${BLUE}${NEW_TAG}${RESET}. Enter to continue. CTRL+C to halt."
+CONFIRM="Updating ${REPO} ${BLUE}${VERSION}${RESET} to ${BLUE}${NEW_TAG}${RESET}. Enter to continue. CTRL+C to halt."
 read -p "$( echo -e ${CONFIRM})"
 
 # Get current hash and see if it already has a tag
@@ -60,8 +62,7 @@ NEEDS_TAG=`git describe --contains ${GIT_COMMIT}`
 if [[ -z "$NEEDS_TAG" ]]; then
     echo "Tagged with ${NEW_TAG} (Ignoring fatal:cannot describe - this means commit is untagged) "
     git tag ${NEW_TAG}
-    git push --follow-tags
+    git push --tags origin master
 else
     echo "Already a tag on this commit"
 fi
-
