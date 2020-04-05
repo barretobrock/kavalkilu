@@ -11,7 +11,7 @@ team = get_key('okr-name')
 xoxp = get_key('kodubot-usertoken')
 xoxb = get_key('kodubot-useraccess')
 
-slack_comm = SlackTools('slack_communicator', triggers=None, team=team, xoxp_token=xoxp, xoxb_token=xoxb)
+slack_comm = SlackTools(team, xoxp_token=xoxp, xoxb_token=xoxb)
 alert_channel = 'alerts'
 notify_channel = 'notifications'
 wifi_channel = 'wifi-pinger-dinger'
