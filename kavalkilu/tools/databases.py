@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import os
 import glob
 import json
 import csv
+from typing import Optional, List, Union
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, Numeric, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import pandas as pd
 from collections import OrderedDict
 from .path import Paths
 from .net import Keys
@@ -19,7 +20,7 @@ class MySQLLocal:
     without having to remember the proper methods"""
     Base = declarative_base()
 
-    def __init__(self, database_name, connection_dict=None):
+    def __init__(self, database_name: str, connection_dict: dict = None):
         """
         Args:
             connection_dict: dict, contains connection credentials
@@ -44,7 +45,7 @@ class MySQLLocal:
         self.engine = create_engine(connection_url)
         self.connection = self.engine.connect()
 
-    def write_sql(self, query):
+    def write_sql(self, query: str):
         """Writes a sql query to the database"""
 
         cursor = self.connection.begin()
@@ -56,7 +57,7 @@ class MySQLLocal:
             cursor.rollback()
             raise
 
-    def write_df_to_sql(self, tbl_name, df, debug=False):
+    def write_df_to_sql(self, tbl_name: str, df: pd.DataFrame, debug: bool = False) -> Optional[str]:
         """
         Generates an INSERT statement from a pandas DataFrame
         Args:
@@ -81,7 +82,7 @@ class MySQLLocal:
         else:
             query_log = self.write_sql(formatted_query)
 
-    def write_dataframe(self, table_name, df):
+    def write_dataframe(self, table_name: str, df: pd.DataFrame):
         """
         Writes a pandas dataframe to database
         Args:
@@ -182,7 +183,7 @@ class HomeAutoDB:
 
 class GSheetReader:
     """A class to help with reading in Google Sheets"""
-    def __init__(self, sheet_key):
+    def __init__(self, sheet_key: str):
         pyg = __import__('pygsheets')
         try:
             gsheets_creds = Keys().get_key('gsheet-reader')
@@ -193,7 +194,7 @@ class GSheetReader:
         self.gc = pyg.authorize(service_account_env_var='GDRIVE_API_CREDENTIALS')
         self.sheets = self.gc.open_by_key(sheet_key).worksheets()
 
-    def get_sheet(self, sheet_name):
+    def get_sheet(self, sheet_name: str) -> pd.DataFrame:
         """Retrieves a sheet as a pandas dataframe"""
         for sheet in self.sheets:
             if sheet.title == sheet_name:
@@ -201,7 +202,7 @@ class GSheetReader:
         raise ValueError(f'The sheet name "{sheet_name}" was not found '
                          f'in the list of available sheets: ({",".join([x.title for x in self.sheets])})')
 
-    def write_df_to_sheet(self, sheet_key, sheet_name, df):
+    def write_df_to_sheet(self, sheet_key: str, sheet_name: str, df: pd.DataFrame):
         """Write df to sheet"""
         wb = self.gc.open_by_key(sheet_key)
         sheet = wb.worksheet_by_title(sheet_name)
@@ -216,11 +217,11 @@ class CSVHelper:
         delimiter: character that delimits the CSV file. default: ';'
         linetermination: character that signals a line termination. default: '\n'
     """
-    def __init__(self, delimiter=';', lineterminator='\n'):
+    def __init__(self, delimiter: str = ';', lineterminator: str = '\n'):
         self.delimiter = delimiter
         self.lineterminator = lineterminator
 
-    def csv_to_ordered_dict(self, path_to_csv, encoding='UTF-8'):
+    def csv_to_ordered_dict(self, path_to_csv: str, encoding: str = 'UTF-8') -> List[dict]:
         """
         Imports CSV file to list of OrderedDicts
         Args:
@@ -236,7 +237,8 @@ class CSVHelper:
                 list_out.append(OrderedDict(zip(keys, row)))
         return list_out
 
-    def csv_compacter(self, compacted_data_path, path_with_glob, sort_column='', remove_files=True):
+    def csv_compacter(self, compacted_data_path: str, path_with_glob: str, sort_column: str = '',
+                      remove_files: bool = True):
         """
         Incorporates many like CSV files into one, with sorting for date column, if needed
         Args:
@@ -276,7 +278,7 @@ class CSVHelper:
                 for csvfile in list_of_files:
                     os.remove(csvfile)
 
-    def ordered_dict_to_csv(self, data_dict, path_to_csv, writetype='w'):
+    def ordered_dict_to_csv(self, data_dict: Union[dict, List[dict]], path_to_csv: str, writetype: str = 'w'):
         """
         Exports given list of OrderedDicts to CSV
         Args:

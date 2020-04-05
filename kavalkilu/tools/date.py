@@ -7,31 +7,37 @@ class DateTools:
     def __init__(self):
         pass
 
-    def last_day_of_month(self, any_day):
+    @staticmethod
+    def last_day_of_month(any_day: datetime.datetime) -> datetime.datetime:
         """Retrieves the last day of the month for the given date"""
         next_month = any_day.replace(day=28) + datetime.timedelta(days=4)
         return next_month - datetime.timedelta(days=next_month.day)
 
-    def string_to_datetime(self, datestring, strftime_string='%Y%m%d'):
+    @staticmethod
+    def string_to_datetime(datestring: str, strftime_string: str = '%Y%m%d') -> datetime.datetime:
         """Converts string to datetime"""
         return datetime.datetime.strptime(datestring, strftime_string)
 
-    def string_to_unix(self, date_string, strftime_string='%Y%m%d'):
+    @staticmethod
+    def string_to_unix(date_string: str, strftime_string: str = '%Y%m%d') -> float:
         """Converts string to unix"""
         unix = (datetime.datetime.strptime(date_string, strftime_string) - datetime.datetime(1970, 1, 1)).total_seconds()
         return unix * 1000
 
-    def unix_to_string(self, unix_date, output_fmt='%Y-%m-%d'):
+    @staticmethod
+    def unix_to_string(unix_date: float, output_fmt: str = '%Y-%m-%d') -> str:
         """Convert unix timestamp to string"""
         date_string = datetime.datetime.fromtimestamp(unix_date).strftime(output_fmt)
         return date_string
 
-    def seconds_since_midnight(self, timestamp):
+    @staticmethod
+    def seconds_since_midnight(timestamp: datetime.datetime) -> float:
         """Calculates the number of seconds since midnight"""
         seconds = (timestamp - timestamp.replace(hour=0, minute=0, second=0)).total_seconds()
         return seconds
 
-    def human_readable(self, reldelta):
+    @staticmethod
+    def human_readable(reldelta: datetime.timedelta) -> str:
         """Takes in a relative delta and makes it human readable"""
         attrs = {
             'years': 'y',

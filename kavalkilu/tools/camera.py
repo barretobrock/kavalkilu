@@ -4,12 +4,14 @@ import os
 import amcrest
 import requests
 from requests.auth import HTTPDigestAuth
+from typing import Optional, List, Tuple
 from .net import Hosts
+from .log import Log
 
 
 class Amcrest:
     """Amcrest camera-related methods"""
-    def __init__(self, ip, creds, port=80, name='camera'):
+    def __init__(self, ip: str, creds: dict, port: int = 80, name: str = 'camera'):
         self.ip = ip
         self.name = name
         self.creds = creds
@@ -17,11 +19,11 @@ class Amcrest:
         self.camera = amcrest.AmcrestCamera(ip, port, creds['user'], creds['password']).camera
         self.is_ptz_enabled = self._check_for_ptz()
 
-    def _check_for_ptz(self):
+    def _check_for_ptz(self) -> bool:
         """Checks if camera is capable of ptz actions"""
         return True if self.camera.ptz_presets_list() != '' else False
 
-    def toggle_motion(self, set_motion=True):
+    def toggle_motion(self, set_motion: bool = True):
         """Sets motion detection"""
         motion_val = 'true' if set_motion else 'false'
 
@@ -31,7 +33,7 @@ class Amcrest:
         if result.status_code != 200:
             raise Exception('Error in HTTP GET response. Status code: {}, Message: {}'.format(result.status_code, result.text))
 
-    def set_ptz_flag(self, armed):
+    def set_ptz_flag(self, armed: bool):
         """Orients PTZ-enabled cameras either to armed position (1) or disarmed (2)"""
 
         if self.camera.ptz_presets_count > 0:
@@ -43,7 +45,7 @@ class Amcrest:
                 # Something went wrong. Raise exception so it gets logged
                 raise Exception('Camera "{}" PTZ call saw unexpected response: "{}"'.format(self.name, resp))
 
-    def get_current_ptz_coordinates(self):
+    def get_current_ptz_coordinates(self) -> Optional[str]:
         """Gets the current xyz coordinates for a PTZ-enabled camera"""
         if self.is_ptz_enabled:
             ptz_list = self.camera.ptz_status().split('\r\n')[2:5]
@@ -53,7 +55,7 @@ class Amcrest:
 class SecCamGroup:
     """Methods to control a group of amcrest cameras"""
 
-    def __init__(self, creds, log):
+    def __init__(self, creds: dict, log: Log):
         self.creds = creds
         self.log = log
         cams = Hosts().get_hosts('ac-.*')
@@ -65,7 +67,7 @@ class SecCamGroup:
             }
         self.camera_dict = camera_dict
 
-    def motion_toggler(self, motion_on):
+    def motion_toggler(self, motion_on: bool):
         """Handles the processes of toggling the camera's motion detection
 
         Args:
@@ -105,7 +107,7 @@ class SecCamGroup:
 
 class AmcrestWeb:
     """Selenium-based controls for automating boring camera tasks"""
-    def __init__(self, ip, creds):
+    def __init__(self, ip: str, creds: dict):
         # Import selenium dependencies
         selenium_mod = __import__('kavalkilu.tools.selenium', fromlist=['BrowserAction'])
         BrowserAction = getattr(selenium_mod, 'BrowserAction')
@@ -143,7 +145,7 @@ class AmcrestWeb:
         # Click the Schedule section
         self.ba.click('//li[@category="storage"]/ul/li[@filename="recordPlanConfig"]/span')
 
-    def toggle_motion_detect(self, set_motion=None):
+    def toggle_motion_detect(self, set_motion: bool = None):
         self.goto_motion()
 
         if set_motion is not None:
@@ -156,7 +158,7 @@ class AmcrestWeb:
         # Click the Save button
         self.ba.click('//div[@id="page_videoDetectConfig"]/div/div/div/a[text()="Save"]')
 
-    def set_alert_schedule(self, sched_list):
+    def set_alert_schedule(self, sched_list: List[dict]):
         """
         Sets the motion detect alert schedule.
         Example schedule list:
@@ -266,8 +268,8 @@ class PiCamera:
         picamera = __import__('picamera')
         self.PiCamera = picamera.PiCamera
 
-    def capture_image(self, save_dir, res=(1280, 720), framerate=24, extra_text='', timestamp=True,
-                      vflip=False, hflip=False):
+    def capture_image(self, save_dir: str, res: Tuple[int, int] = (1280, 720), framerate: int = 24,
+                      extra_text: str = '', timestamp: bool = True, vflip: bool = False, hflip: bool = False):
         # Captue image and return path of where it is saved
         filename = '{}.png'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
         save_path = os.path.join(save_dir, filename)

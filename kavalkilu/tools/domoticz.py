@@ -1,4 +1,5 @@
 import subprocess
+from typing import Union
 
 
 class Domoticz:
@@ -8,43 +9,47 @@ class Domoticz:
         server: local IP of server running Domoticz master
         port: Domoticz connection port. default=8080
     """
-    def __init__(self, server, port=8080):
+    def __init__(self, server: str, port: int = 8080):
         self.server = server
         self.port = port
-        self.prefix_url = 'http://{}:{}/json.htm?type=command'.format(self.server, self.port)
+        self.prefix_url = f'http://{self.server}:{self.port}/json.htm?type=command'
         self.curl_type = 'Accept: application/json'
 
-    def switch_on(self, device_id):
+    def _send_command(self, cmd_url: str):
+        """Send the command to the server via cURL"""
+        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, cmd_url])
+
+    def switch_on(self, device_id: Union[int, str]):
         """Sends an 'on' command to a given switch's id"""
-        url = '{}&param=switchlight&idx={}&switchcmd=On'.format(self.prefix_url, device_id)
-        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, url])
+        url = f'{self.prefix_url}&param=switchlight&idx={device_id}&switchcmd=On'
+        self._send_command(url)
 
-    def switch_off(self, device_id):
+    def switch_off(self, device_id: Union[int, str]):
         """Sends an 'off' command to a given switch's id"""
-        url = '{}&param=switchlight&idx={}&switchcmd=Off'.format(self.prefix_url, device_id)
-        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, url])
+        url = f'{self.prefix_url}&param=switchlight&idx={device_id}&switchcmd=Off'
+        self._send_command(url)
 
-    def toggle_switch(self, device_id):
+    def toggle_switch(self, device_id: Union[int, str]):
         """Toggle a given switch between 'on' and 'off'"""
-        url = '{}&param=switchlight&idx={}&switchcmd=Toggle'.format(self.prefix_url, device_id)
-        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, url])
+        url = f'{self.prefix_url}&param=switchlight&idx={device_id}&switchcmd=Toggle'
+        self._send_command(url)
 
-    def send_sensor_data(self, device_id, value):
+    def send_sensor_data(self, device_id: Union[int, str], value: float):
         """
         Send data collected from a certain sensor
         Args:
             device_id: int, id of the given device
             value: float, measurement made by the given sensor
         """
-        url = '{}&param=udevice&idx={}&nvalue=0&svalue={}'.format(self.prefix_url, device_id, value)
-        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, url])
+        url = f'{self.prefix_url}&param=udevice&idx={device_id}&nvalue=0&svalue={value}'
+        self._send_command(url)
 
     def switch_group_off(self, group_id):
         """Switches off a group based on its id"""
-        url = '{}&param=switchscene&idx={}&switchcmd=Off'.format(self.prefix_url, group_id)
-        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, url])
+        url = f'{self.prefix_url}&param=switchscene&idx={group_id}&switchcmd=Off'
+        self._send_command(url)
 
     def switch_group_on(self, group_id):
         """Switches on a group based on its id"""
-        url = '{}&param=switchscene&idx={}&switchcmd=On'.format(self.prefix_url, group_id)
-        subprocess.check_call(['curl', '-s', '-i', '-H', self.curl_type, url])
+        url = f'{self.prefix_url}&param=switchscene&idx={group_id}&switchcmd=On'
+        self._send_command(url)
