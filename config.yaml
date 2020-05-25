@@ -3,7 +3,8 @@ REPO:
   NAME: kavalkilu
   URL: https://github.com/barretobrock/${REPO_NAME}
   GIT_URL: git+${REPO_URL}.git#egg=${REPO_NAME}
-  DIR: ${HOME}/extras/${REPO_NAME}
+  DIR: ${HOME}/${REPO_NAME}
+  VENV: ${HOME}/venvs/kavkil/bin/python
   DESC: A Library for Integrating Home Automation Components
   DEPS: [
   ]
