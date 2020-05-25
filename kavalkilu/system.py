@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Everything to record system-related stats"""
-import subprocess
-from subprocess import check_output, CalledProcessError
 import psutil
+from subprocess import check_output, CalledProcessError
+from typing import List, Union, Optional
 
 
 class SysTools:
@@ -13,7 +12,8 @@ class SysTools:
         """Nothing to initialize, as these will just serve as a bundle"""
         pass
 
-    def get_pids(self, process_name):
+    @staticmethod
+    def get_pids(process_name: str) -> Union[List, List[int]]:
         """Get the process id of the process matching the pattern provided"""
         try:
             res = check_output(['pgrep', '-f', process_name])
@@ -27,11 +27,12 @@ class SysTools:
             return pid_list
         return []
 
-    def kill_pid(self, pid):
+    @staticmethod
+    def kill_pid(pid: int):
         """Kills process with certain pid"""
         if psutil.pid_exists(pid):
-            print('PID {} found. Terminating'.format(pid))
+            print(f'PID {pid} found. Terminating')
             p = psutil.Process(pid)
             p.terminate()
         else:
-            print('PID {} was not found.'.format(pid))
+            print(f'PID {pid} was not found.')

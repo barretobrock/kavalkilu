@@ -9,14 +9,16 @@ import logging
 import argparse
 import traceback
 from logging.handlers import TimedRotatingFileHandler
+from types import TracebackType
 from datetime import datetime as dt
-from .path import Paths
 
 
 class Log:
     """Initiates a logging object to record processes and errors"""
 
-    def __init__(self, log_name, child_name=None, log_filename_prefix=None, log_dir=None, log_lvl='INFO'):
+    def __init__(self, log_name: str, child_name: str = None,
+                 log_filename_prefix: str = None, log_dir: str = None,
+                 log_lvl: str = 'INFO'):
         """
         Args:
             log_name: str, display name of the log. Will have the time (HHMM) added to the end
@@ -42,10 +44,11 @@ class Log:
             # Set name of file
             self.log_filename = f"{log_filename_prefix}_{dt.today():%Y%m%d}.log"
             # Set log directory (if none)
+            home_dir = os.path.join(os.path.expanduser('~'), 'logs')
             if log_dir is None:
-                log_dir = os.path.join(Paths().log_dir, log_name)
+                log_dir = os.path.join(home_dir, log_name)
             else:
-                log_dir = os.path.join(Paths().log_dir, log_dir)
+                log_dir = os.path.join(home_dir, log_dir)
             # Check if logging directory exists
             if not os.path.exists(log_dir):
                 # If dir doesn't exist, create
@@ -80,34 +83,34 @@ class Log:
             sys.excepthook = self.handle_exception
         self.info(f'Logging initiated{" for child instance" if self.is_child else ""}.')
 
-    def handle_exception(self, exc_type, exc_value, exc_traceback):
+    def handle_exception(self, exc_type: type, exc_value: BaseException, exc_traceback: TracebackType):
         """Intercepts an exception and prints it to log file"""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
         self.logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
-    def info(self, text):
+    def info(self, text: str):
         """Info-level logging"""
         self.logger.info(text)
 
-    def debug(self, text):
+    def debug(self, text: str):
         """Debug-level logging"""
         self.logger.debug(text)
 
-    def warning(self, text):
+    def warning(self, text: str):
         """Warn-level logging"""
         self.logger.warning(text)
 
-    def error(self, text, incl_info=True):
+    def error(self, text: str, incl_info: bool = True):
         """Error-level logging"""
         self.logger.error(text, exc_info=incl_info)
 
-    def error_with_class(self, err_obj, text):
+    def error_with_class(self, err_obj: BaseException, text: str):
         """Error-level logging that also preserves the class of the error"""
         traceback_msg = '\n'.join(traceback.format_tb(err_obj.__traceback__))
-        exception_msg = '{}: {}\n\n{}'.format(err_obj.__class__.__name__, err_obj, traceback_msg)
-        err_msg = '{}\n{}'.format(exception_msg, text)
+        exception_msg = f'{err_obj.__class__.__name__}: {err_obj}\n\n{traceback_msg}'
+        err_msg = f'{exception_msg}\n{text}'
         self.logger.error(err_msg)
 
     def close(self):
