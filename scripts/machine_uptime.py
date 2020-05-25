@@ -4,8 +4,7 @@
 import time
 import psutil
 import pandas as pd
-from kavalkilu import Log, LogArgParser, MySQLLocal, Hosts, DateTools, NetTools
-from kavalkilu.local_tools import slack_comm, alert_channel
+from kavalkilu import Log, LogArgParser, Hosts, DateTools, NetTools
 
 
 log = Log('machine_uptime', log_lvl=LogArgParser().loglvl)

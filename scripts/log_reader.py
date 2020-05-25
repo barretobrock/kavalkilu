@@ -29,6 +29,7 @@ def read_log_file(log_path, log_dict, most_recent_ts):
     if len(lines) == 0:
         return pd.DataFrame(output_list)
 
+    log_patterns = None
     for k in log_dict.keys():
         if log_dict[k]['compiled'].search(lines[0]) is not None:
             # Use these predetermined patterns to parse through the log
@@ -59,8 +60,8 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                     for j in range(i, len(lines) - 1):
                         # Try and find the error class
                         new_line = lines[j]
-                        method1 = re.search(r'^\w+\:.*', new_line)
-                        method2 = re.search(r'(Unexpected (\w|\s)+\:)((\w|\s)+\:)(.*)', new_line)
+                        method1 = re.search(r'^\w+:.*', new_line)
+                        method2 = re.search(r'(Unexpected (\w|\s)+:)((\w|\s)+:)(.*)', new_line)
 
                         if method1 is not None:
                             # We've detected a line matching this: {exception}: {message}
@@ -76,7 +77,7 @@ def read_log_file(log_path, log_dict, most_recent_ts):
                             exc_msg = method2.group(5).strip()
                             i = j
                             break
-                        elif re.search(r'^\d+\-\d+\-\d+', new_line) is not None and j != i:
+                        elif re.search(r'^\d+-\d+-\d+', new_line) is not None and j != i:
                             # We've gotten to a new item in the log. Call off the search for this mysterious class
                             exc_class = 'UnkException'
                             exc_msg = "Parsing pattern in log_reader couldn't find the Exception message"
@@ -119,14 +120,14 @@ db = MySQLLocal('logdb')
 mysqlconn = db.engine.connect()
 
 # Query the logdb and find the most recent log entry for this machine
-most_recent_query = """
+most_recent_query = f"""
     SELECT time
     FROM logs
-    WHERE machine_name = '{}'
+    WHERE machine_name = '{machine_name}'
     ORDER BY time DESC 
     LIMIT 1
 """
-most_recent = pd.read_sql_query(most_recent_query.format(machine_name), mysqlconn)
+most_recent = pd.read_sql_query(most_recent_query, mysqlconn)
 if most_recent.empty:
     # If no data, get log data for 10 days back
     most_recent_ts = (pd.datetime.now().replace(hour=0, minute=0, second=0) - pd.Timedelta('10 days'))
