@@ -13,15 +13,15 @@
 # DEFAULT VARIABLES
 # ------------------------------------------
 NAME="Repo Push Script"
-VERSION="0.0.1"
+VERSION="0.0.3"
 LEVEL=patch
 
 # Import common variables / functions
 source ./common.sh
+eval $(parse_yaml config.yaml)
 
 # REPO-SPECIFIC VARIABLES
 # ------------------------------------------
-REPO=kavalkilu
 
 # Get highest tag number
 VERSION=`git describe --abbrev=0 --tags`

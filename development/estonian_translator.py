@@ -5,8 +5,11 @@
 """
 
 import re
-import urllib.request as req
+import urllib.parse as parse
+import requests
+from io import StringIO
 from lxml import etree
+import ety
 
 
 word_list = [
@@ -20,40 +23,61 @@ word = 'restoran'
 def get_root(word):
     """Retrieves the root word (nom. sing.) from Lemmatiseerija"""
     # First, look up the word's root with the lemmatiseerija
-    lemma_url = 'http://www.filosoft.ee/lemma_et/lemma.cgi?word={}'
-    content = req.urlopen(lemma_url.format(word)).read()
-    content = str(content)
+    lemma_url = f'https://www.filosoft.ee/lemma_et/lemma.cgi?word={parse.quote(word)}'
+    content = requests.get(lemma_url).content
+    content = str(content, 'utf-8')
     # Use static placeholder un front of word to slice section of lemma
     front_placeholder = '<strong>S&otilde;na lemma on:</strong><br>'
-    rear_placeholder = '<br>\\n'
+    rear_placeholder = '<br>\n'
     try:
         front_placeholder_idx = content.index(front_placeholder)
         rear_placeholder_idx = content.index(rear_placeholder)
     except ValueError:
-        print(f'Ei leidnud sõna „{word}“ Lemmatiseerija veebileheküljel. '
-              f'Käsitsi otsides võib paremad tulemused juhtuda.')
         return None
 
-    root_word = content[front_placeholder_idx + len(front_placeholder):rear_placeholder_idx]
-    return root_word
+    return content[front_placeholder_idx + len(front_placeholder):rear_placeholder_idx]
 
 
 def prep_for_xpath(url):
     """Takes in a url and returns a tree that can be searched using xpath"""
-    content = req.urlopen(url)
+    page = requests.get(url)
+    html = page.content.decode('utf-8')
     parser = etree.HTMLParser()
-    tree = etree.parse(content, parser)
+    tree = etree.parse(StringIO(html), parser=parser)
     return tree
 
+word = 'quarantine'
+url = f'https://www.etymonline.com/search?q={parse.quote(word)}'
+content = prep_for_xpath(url)
+results = content.xpath('//div[contains(@class, "word--C9UPa")]')
+output = ''
+if len(results) > 0:
+    for result in results:
+        name = ' '.join([x for l in result.xpath('object/a') for x in l.itertext()])
+        if word in name:
+            desc = ' '.join([x for l in result.xpath('object/section') for x in l.itertext()])
+            desc = ' '.join([f'_{x}_' for x in desc.split('\n') if x.strip() != ''])
+            output += f'*{name}*:\n_{desc}_\n'
+
+etytree = ety.tree('quarantine')
+if etytree is not None:
+    output = f'\n{etytree.__str__()}\n {output}'
 
 # Using the root, look up the English version
 root_word = get_root(word)
+
+item_str = ''
+for l in result.xpath('object/a'):
+    for x in l.iter():
+        for item in [x.text, x.tail]:
+            if item is not None:
+                if item.strip() != '':
+                    item_str += f' {item}'
 
 
 def get_declinations(input_word, word_type='noun'):
     """Retrieves declinations in Nom, Gen, Part in singular and plural for given word"""
     ekisynt_base_url = 'http://www.filosoft.ee/gene_et/gene.cgi?word={}&{}'
-
 
     verb_types = {'a': 'past'}
 
@@ -63,7 +87,6 @@ def get_declinations(input_word, word_type='noun'):
     verbs = 'p=1;p=2;p=3;p=4;p=5;p=6;p=0'
 
     [{'code': f'{verb_codes[i]}', 'class': 'verb', 'subclass': 'past', 'desc': x, 'ex': verb_ex[i]} for i, x in enumerate(verb_units)]
-
 
     case_dict = [
         {'code': 'sg+n', 'class': 'noun', 'subclass': 'singular', 'case': 'NOMINATIVE'},
@@ -166,11 +189,11 @@ def get_declinations(input_word, word_type='noun'):
     return declinations
 
 
-def get_translation(word):
+def get_translation(word, target='en'):
     """Returns the English translation of the Estonian word"""
     # Find the English translation of the word using EKI
-    eki_url = 'http://www.eki.ee/dict/ies/index.cgi?Q={}&F=V&C06=en'
-    content = prep_for_xpath(eki_url.format(word))
+    eki_url = f'http://www.eki.ee/dict/ies/index.cgi?Q={parse.quote(word)}&F=V&C06={target}'
+    content = prep_for_xpath(eki_url)
 
     results = content.xpath('//div[@class="tervikart"]')
     result = []
@@ -180,8 +203,12 @@ def get_translation(word):
         # Process text in elements
         et_result = [''.join(x.itertext()) for x in et_result]
         en_result = [''.join(x.itertext()) for x in en_result]
-        if word in et_result:
-            result += en_result
+        if target == 'en':
+            if word in et_result:
+                result += en_result
+        else:
+            if word in en_result:
+                result += et_result
 
     if len(result) > 0:
         # Make all entries lowercase and remove dupes
@@ -191,17 +218,17 @@ def get_translation(word):
         return None
 
 # Find example sentence using the seletav sõnaraamat
-def get_examples(word):
+def get_examples(word, max_n=5):
     """Returns some example sentences of the Estonian word"""
     # Find the English translation of the word using EKI
-    ekss_url = 'http://www.eki.ee/dict/ekss/index.cgi?Q={}&F=M'
-    content = prep_for_xpath(ekss_url.format(word))
+    ekss_url = f'http://www.eki.ee/dict/ekss/index.cgi?Q={parse.quote(word)}&F=M'
+    content = prep_for_xpath(ekss_url)
 
     results = content.xpath('//div[@class="tervikart"]')
     exp_list = []
     for i in range(0, len(results)):
-        result = content.xpath('(//div[@class="tervikart"])[{}]/*/span[@class="m leitud_id"]'.format(i + 1))
-        examples = content.xpath('(//div[@class="tervikart"])[{}]/*/span[@class="n"]'.format(i + 1))
+        result = content.xpath(f'(//div[@class="tervikart"])[{i + 1}]/*/span[@class="m leitud_id"]')
+        examples = content.xpath(f'(//div[@class="tervikart"])[{i + 1}]/*/span[@class="n"]')
         # Process text in elements
         result = [''.join(x.itertext()) for x in result]
         examples = [''.join(x.itertext()) for x in examples]
@@ -210,9 +237,11 @@ def get_examples(word):
             exp_list += re.split('[?\.!]', ''.join(examples))
             # Strip of leading / tailing whitespace
             exp_list = [x.strip() for x in exp_list]
-            return exp_list
+            if len(exp_list) > max_n:
+                exp_list = [exp_list[x] for x in np.random.choice(len(exp_list), max_n, False).tolist()]
+            return '\n'.join([f'`{x}`' for x in exp_list])
 
-    return None
+    return f'No example sentences found for `{word}`'
 
 
 

@@ -21,7 +21,8 @@ class DateTools:
     @staticmethod
     def string_to_unix(date_string: str, strftime_string: str = '%Y%m%d') -> float:
         """Converts string to unix"""
-        unix = (datetime.datetime.strptime(date_string, strftime_string) - datetime.datetime(1970, 1, 1)).total_seconds()
+        unix = (datetime.datetime.strptime(date_string, strftime_string) -
+                datetime.datetime(1970, 1, 1)).total_seconds()
         return unix * 1000
 
     @staticmethod

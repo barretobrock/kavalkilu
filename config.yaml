@@ -1,0 +1,9 @@
+# Configuration for the repo
+REPO:
+  NAME: kavalkilu
+  URL: https://github.com/barretobrock/${REPO_NAME}
+  GIT_URL: git+${REPO_URL}.git#egg=${REPO_NAME}
+  DIR: ${HOME}/extras/${REPO_NAME}
+  DESC: A Library for Integrating Home Automation Components
+  DEPS: [
+  ]

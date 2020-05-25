@@ -1,6 +1,0 @@
-daemonize==2.5.0
-image-slicer==0.3.0
-markovify==0.7.2
-pygsheets==2.0.2
-speedtest-cli==2.1.2
-grafana-api==0.9.1
