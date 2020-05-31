@@ -1,15 +1,16 @@
 # kavalkilu
-Some updated scripts for personal use throughout various personal projects (mostly Raspberry Pi-centric).
-The main focus of these scripts is in home automation, but more precisely it's a little bit of everything.
+Home Automation Scripts for both server & clients
+
+_This package has been refactored to function as a repository for all methods & scripts that can be run on either a server environment (Ubuntu 18.04+) or a Raspberry Pi client. As such, the methods included should be able to run on a majority of the expected platforms. The main focus of these scripts is in home automation protocols._
 
 ## Installation
 ```bash
-pip3 install git+https://github.com/barretobrock/kavalkilu.git  
+python3 -m pip install git+https://github.com/barretobrock/kavalkilu.git  
 ```
 
 ## Update
 ```bash
-pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
+python3 -m pip install git+https://github.com/barretobrock/kavalkilu.git --upgrade
 ```
 
 ## Testing
@@ -18,12 +19,10 @@ pip3 install git+https://github.com/barretobrock/kavalkilu.git --upgrade
  3. `merge` `develop` with `master` (asuming all went well.)
 
 ## Setup
-### Primary machine (server, test) setup
+### Primary machine (server, development env) setup
 #### Environment Setup
 ```bash
-sudo apt install build-essential curl git git-core python3-pip python3-dev python3-pandas python3-mysqldb
-# Run chromedriver script
-sh ~/kavalkilu/setup_tools/chromedriver_update.sh
+sudo apt install build-essential curl git git-core python3-pip python3-dev python3-pandas python3-mysqldb chromium-chromedriver
 ```
 #### Git setup
 We'll want to set up SSH for this machine
@@ -36,49 +35,19 @@ We'll want to set up SSH for this machine
             `git remote set-url origin git@github.com:barretobrock/kavalkilu.git`
         - Check with `git pull`
 
-### Raspberry Pi
-#### RasPi SD Card prep
- - Find Card 
-    `lsblk`
- - Unmount the card
-    `umount /dev/mmcblk0`
- - Wipe SD card
-    `sudo dd if=/dev/zero of=/dev/mmcblk0 bs=8192 status=progress`
- - Load Raspberry Pi image
-    `sudo dd if=~/Documents/distros/2019-07-10-raspbian-buster-lite.img of=/dev/mmcblk0 conv=fsync status=progress bs=4M`
-#### Initial run
- - Make configurations (change pw, hostname, locale, enable SSH, etc)
-    `sudo raspi-config`
-    - change pw, set network, locale, enable ssh
- - Edit .bashrc to enforce locale changes
-    `echo -e "\nLC_ALL=en_US.UTF-8\nLANG=en_US.UTF-8\nLANGUAGE=en_US.UTF-8" | tee -a sudo nano .bashrc`
-### Environment Setup with Script
-_Note: This is to prepare a Raspberry Pi device for installation of this package. This is now to supplement the requirements put in the `setup.py` file._ 
-
- - Install git and others
-    ```bash
-    # Install support components
-    sudo apt-get install git git-core python3-pip python3-dev python3-pandas python3-mysqldb python3-rpi.gpio
-    # Make directories for storing things
-    mkdir data keys logs extras
-    # Add in kavalkilu repo
-    git clone https://github.com/barretobrock/kavalkilu.git
-    ```
-
-
 ## Troubleshooting
 ### git
  - After git account setup, still prompting for passphrase
     `ssh-add ~/.ssh/id_rsa`
     - Long term fix: Add the following to `~/.bashrc`
-    ```bash
-    if [ ! -S ~/.ssh/ssh_auth_sock ]; then
-      eval `ssh-agent`
-      ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock
-    fi
-    export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock
-    ssh-add -l > /dev/null || ssh-add
-    ```
+```bash
+if [[ ! -S ~/.ssh/ssh_auth_sock ]]; then
+  eval `ssh-agent`
+  ln -sf "${SSH_AUTH_SOCK}" ~/.ssh/ssh_auth_sock
+fi
+export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock
+ssh-add -l > /dev/null || ssh-add
+```
 ### python
  - python calling dist-packages version
  (better instructions to come.)
@@ -86,12 +55,7 @@ _Note: This is to prepare a Raspberry Pi device for installation of this package
 ### crontab
  - Debugging from crontab
     `tail -f /var/log/syslog`
-### raspi
- - ssh slow to respond
-    `echo "IPQoS 0x00" | sudo tee -a /etc/ssh/sshd_config`
- - some strange error about not able to use pandas due to Import Error with `numpy`
-    - This seems to only happen to the older raspis (revision 2)
-    `sudo apt-get install libatlas-base-dev`
+
 ### Chromedriver
  - "This version.... only supports version xx"
     - It seems like chromedriver automatically updated the minimum allowed version of Chrome to run with it. To fix this, you'll typically just have to run `sudo apt update && sudo apt upgrade` to update Chrome to the latest version. `sudo apt list --upgradeable` can help verify the your Chrome version will change
@@ -99,33 +63,7 @@ _Note: This is to prepare a Raspberry Pi device for installation of this package
 ## Tips
  - TBA!
 
-## Future Development & Testing
-### Porting SSH & Wifi Configurations straight from SD card after writing
-_Note: This was tested and failed to produce results. Will be revisited at some point._
- - card in `/media/${USER}`
- - add `/boot/wpa_supplicant.conf`:
-    - setup:
-    ```
-    ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-    update_config=1
-    country=US
-    
-    network={
-        ssid=""
-        psk=""
-        key_mgmt=WPA-PSK
-    }
-    ```
- - add "IPQoS 0x00" to /etc/ssh/sshd_config (if possible)
- - add `/boot/ssh`
-     - empty file    
-### Saving configs from one card & duplicating to others
-_Note: This might be abandoned, as writing to the card writes the entire card, regardless of empty space._
- - Save a compressed img from the SD card for easier distribution among all RasPis
-    `sudo dd if=/dev/mmcblk0 bs=32M status=progress | gzip -c > ~/Documents/distros/2019-08-18-raspi-with-config.img.gz`
- - When duplicating to another card, use this:
-    `gzip -cd < ~/Documents/distros/2019-08-18-raspi-with-config.img.gz | sudo dd of=/dev/mmcblk0 bs=32M status=progress`
- 
+## Future Plans?
 ### Environment Setup With Docker
 #### Docker Install
 _Note: This was a good idea, but a road block in this is that it was difficult to get RasPi components to communicate "out of the box" with the docker instance_

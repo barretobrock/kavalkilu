@@ -13,12 +13,27 @@ from types import TracebackType
 from datetime import datetime as dt
 
 
+class LogArgParser:
+    """Simple class for carrying over standard argparse routines to set log level"""
+    def __init__(self):
+        self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-lvl', action='store', default='INFO')
+        sysargs = sys.argv
+        if 'pydevconsole.py' not in sysargs[0]:
+            # Not running tests in PyCharm, so take in args
+            self.args = self.parser.parse_args()
+            self.loglvl = self.args.lvl.upper()
+        else:
+            print('Bypassing argument parser in test environment')
+            self.loglvl = 'DEBUG'
+
+
 class Log:
     """Initiates a logging object to record processes and errors"""
 
     def __init__(self, log_name: str, child_name: str = None,
                  log_filename_prefix: str = None, log_dir: str = None,
-                 log_lvl: str = 'INFO'):
+                 log_lvl: str = LogArgParser().loglvl):
         """
         Args:
             log_name: str, display name of the log. Will have the time (HHMM) added to the end
@@ -124,18 +139,3 @@ class Log:
             for handler in handlers:
                 handler.close()
                 self.logger.removeHandler(handler)
-
-
-class LogArgParser:
-    """Simple class for carrying over standard argparse routines to set log level"""
-    def __init__(self):
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-lvl', action='store', default='INFO')
-        sysargs = sys.argv
-        if 'pydevconsole.py' not in sysargs[0]:
-            # Not running tests in PyCharm, so take in args
-            self.args = self.parser.parse_args()
-            self.loglvl = self.args.lvl.upper()
-        else:
-            print('Bypassing argument parser in test environment')
-            self.loglvl = 'DEBUG'

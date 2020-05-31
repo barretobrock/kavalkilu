@@ -3,7 +3,7 @@ import requests
 import subprocess
 import re
 import socket
-from typing import List
+from typing import List, Union
 
 
 class HostsRetrievalException(Exception):
@@ -98,7 +98,7 @@ class Keys:
         else:
             raise KeyRetrievalException(f'Error requesting data. ErrCode: {response.status_code}')
 
-    def get_key(self, name: str) -> str:
+    def get_key(self, name: str) -> Union[str, dict]:
         """Returns key by name"""
 
         if name is None:
