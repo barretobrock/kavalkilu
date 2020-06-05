@@ -3,6 +3,7 @@ import requests
 import subprocess
 import re
 import socket
+import uuid
 from typing import List, Union
 
 
@@ -37,7 +38,7 @@ class Hosts:
         else:
             raise HostsRetrievalException(f'Error requesting data. ErrCode: {response.status_code}')
 
-    def get_host(self, name: str = None, ip: str = None) -> dict:
+    def get_host_and_ip(self, name: str = None, ip: str = None) -> dict:
         """Returns host at name or ip.
         Name or IP must be used.
 
@@ -60,7 +61,15 @@ class Hosts:
                 if item['ip'] == ip:
                     return item
 
-    def get_hosts(self, regex: str, key: str = 'name') -> List[dict]:
+    def get_host_from_ip(self, ip: str) -> str:
+        """Returns hostname from ip"""
+        return self.get_host_and_ip(ip=ip).get('name', None)
+
+    def get_ip_from_host(self, host: str) -> str:
+        """Returns hostname from ip"""
+        return self.get_host_and_ip(name=host).get('ip', None)
+
+    def get_hosts_and_ips(self, regex: str, key: str = 'name') -> List[dict]:
         """Returns host at name or ip.
         Name or IP must be used.
 
@@ -120,18 +129,13 @@ class Keys:
 class NetTools:
     """For pinging an ip address"""
 
-    def __init__(self, host: str = None, ip: str = None):
-        if host is not None:
-            # First, look up the hostname
-            self.ip = Hosts().get_host(name=host)['ip']
-        elif ip is not None:
-            self.ip = ip
-        else:
-            self.ip = self.get_ip()
+    def __init__(self):
+        self.ip = self.get_ip()
+        self.hostname = self.get_hostname()
 
-    def ping(self, n_times: int = 2) -> bool:
+    def ping_ip(self, ip: str, n_times: int = 2) -> bool:
         """Pings an IP up to n times"""
-        ping_cmd = ['ping', '-c', '1', self.ip]
+        ping_cmd = ['ping', '-c', '1', ip]
 
         for t in range(n_times):
             proc = subprocess.Popen(ping_cmd, stdout=subprocess.PIPE)
@@ -143,10 +147,21 @@ class NetTools:
         return False
 
     @staticmethod
+    def get_hostname() -> str:
+        """Gets machine's hostname"""
+        return socket.gethostname()
+
+    @staticmethod
     def get_ip() -> str:
+        """Gets machine's IP"""
         # Elaborate machine name from ip
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(('8.8.8.8', 80))
         ip_addr = sock.getsockname()[0]
         sock.close()
         return ip_addr
+
+    @staticmethod
+    def get_mac() -> str:
+        """Gets mac address of machine"""
+        return ':'.join(list(map(str.upper, re.findall(r'..', f'{uuid.getnode():012x}'))))
