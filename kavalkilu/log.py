@@ -11,7 +11,6 @@ import traceback
 from logging.handlers import TimedRotatingFileHandler
 from types import TracebackType
 from datetime import datetime as dt
-from typing import Union
 
 
 class LogArgParser:
@@ -34,7 +33,7 @@ class Log:
 
     def __init__(self, log_name: str, child_name: str = None,
                  log_filename_prefix: str = None, log_dir: str = None,
-                 log_lvl: Union[str, LogArgParser] = LogArgParser):
+                 log_lvl: str = None):
         """
         Args:
             log_name: str, display name of the log. Will have the time (HHMM) added to the end
@@ -76,7 +75,7 @@ class Log:
             self.logger = logging.getLogger(self.log_name)
 
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
-        if isinstance(log_lvl, LogArgParser):
+        if log_lvl is None:
             log_lvl = LogArgParser().loglvl
         self.logger_lvl = getattr(logging, log_lvl.upper(), logging.DEBUG)
         # Set minimum logging level
