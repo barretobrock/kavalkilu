@@ -11,6 +11,8 @@ import traceback
 from logging.handlers import TimedRotatingFileHandler
 from types import TracebackType
 from datetime import datetime as dt
+from .influx import InfluxDBNames, InfluxTblNames, InfluxDBLocal
+from .net import NetTools
 
 
 class LogArgParser:
@@ -33,7 +35,7 @@ class Log:
 
     def __init__(self, log_name: str, child_name: str = None,
                  log_filename_prefix: str = None, log_dir: str = None,
-                 log_lvl: str = None):
+                 log_lvl: str = None, log_to_db: bool = False):
         """
         Args:
             log_name: str, display name of the log. Will have the time (HHMM) added to the end
@@ -47,6 +49,8 @@ class Log:
             log_lvl: str, minimum logging level to write to log (Hierarchy: DEBUG -> INFO -> WARN -> ERROR)
                 default: 'INFO'
         """
+        # Whether to log errors to database
+        self.log_to_db = log_to_db
         # Name of log in logfile
         self.is_child = child_name is not None
         if self.is_child:
@@ -100,12 +104,22 @@ class Log:
             sys.excepthook = self.handle_exception
         self.info(f'Logging initiated{" for child instance" if self.is_child else ""}.')
 
+        if self.log_to_db:
+            self.debug('Establishing connection to Influxdb.')
+            self.machine = NetTools().get_hostname()
+            # Set up influx object for logging errors
+            self.influx = InfluxDBLocal(InfluxDBNames.HOMEAUTO)
+        else:
+            self.influx = None
+
     def handle_exception(self, exc_type: type, exc_value: BaseException, exc_traceback: TracebackType):
         """Intercepts an exception and prints it to log file"""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
         self.logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        # Log error to influxdb
+        self._log_error_to_influx("Uncaught exception", exc_value)
 
     def info(self, text: str):
         """Info-level logging"""
@@ -119,9 +133,27 @@ class Log:
         """Warn-level logging"""
         self.logger.warning(text)
 
+    def _log_error_to_influx(self, text: str, err_obj: BaseException = None):
+        """Logs an error to the database"""
+        if self.log_to_db:
+            log_dict = {
+                'machine': self.machine,
+                'name': self.log_name,
+                'level': 'ERROR',
+                'class': 'NA',
+                'text': text
+            }
+            if err_obj is not None:
+                # Load the error class
+                log_dict['class'] = err_obj.__class__.__name__
+            field_dict = {'entry': 1}
+            self.influx.write_single_data(InfluxTblNames.LOGS, tag_dict=log_dict, field_dict=field_dict)
+
     def error(self, text: str, incl_info: bool = True):
         """Error-level logging"""
         self.logger.error(text, exc_info=incl_info)
+        # Log error to influxdb
+        self._log_error_to_influx(text)
 
     def error_with_class(self, err_obj: BaseException, text: str):
         """Error-level logging that also preserves the class of the error"""
@@ -129,6 +161,8 @@ class Log:
         exception_msg = f'{err_obj.__class__.__name__}: {err_obj}\n\n{traceback_msg}'
         err_msg = f'{exception_msg}\n{text}'
         self.logger.error(err_msg)
+        # Log error to influxdb
+        self._log_error_to_influx(text, err_obj)
 
     def close(self):
         """Close logger"""
