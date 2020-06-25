@@ -46,14 +46,22 @@ class DateTools:
         return obj.replace(tzinfo=tz_from).astimezone(tz_to)
 
     def local_time_to_utc(self, obj: Union[datetime, str], local_tz: str = 'US/Central',
-                          fmt: str = None) -> str:
+                          fmt: str = None, as_str: bool = False) -> Union[datetime, str]:
         """Run if we're converting timestamps to UTC"""
-        return self._tz_convert(local_tz, 'UTC', obj, fmt).strftime('%F %T')
+        dt_obj = self._tz_convert(local_tz, 'UTC', obj, fmt)
+        if as_str:
+            return dt_obj.strftime('%F %T')
+        else:
+            return dt_obj
 
     def utc_to_local_time(self, obj: Union[datetime, str], local_tz: str = 'US/Central',
-                          fmt: str = None) -> str:
+                          fmt: str = None, as_str: bool = False) -> Union[datetime, str]:
         """Run if we're converting timestamps to UTC"""
-        return self._tz_convert('UTC', local_tz, obj, fmt).strftime('%F %T')
+        dt_obj = self._tz_convert('UTC', local_tz, obj, fmt)
+        if as_str:
+            return dt_obj.strftime('%F %T')
+        else:
+            return dt_obj
 
     @staticmethod
     def seconds_since_midnight(timestamp: datetime) -> float:

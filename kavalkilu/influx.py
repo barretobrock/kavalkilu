@@ -37,7 +37,7 @@ class InfluxDBLocal(InfluxDBClient):
             'fields': {x: row[x] for x in value_cols}
         }
         if time_col is not None:
-            json_dict['time'] = self.dt.local_time_to_utc(row[time_col], local_tz=self.local_tz)
+            json_dict['time'] = self.dt.local_time_to_utc(row[time_col], local_tz=self.local_tz, as_str=True)
 
         return json_dict
 
@@ -49,7 +49,7 @@ class InfluxDBLocal(InfluxDBClient):
             'fields': field_dict
         }
         if timestamp is not None:
-            json_dict['time'] = self.dt.local_time_to_utc(timestamp, local_tz=self.local_tz)
+            json_dict['time'] = self.dt.local_time_to_utc(timestamp, local_tz=self.local_tz, as_str=True)
         self.write_points(json_dict)
 
     def write_df_to_table(self, tbl: str, df: pd.DataFrame, tags: Union[List[str], str],
