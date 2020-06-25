@@ -1,9 +1,9 @@
 from datetime import datetime
-from dateutil import tz
 import pandas as pd
 from typing import Union, List
 from influxdb import InfluxDBClient
 from .net import Hosts
+from .date import DateTools
 
 
 class InfluxDBNames:
@@ -22,20 +22,9 @@ class InfluxDBLocal(InfluxDBClient):
     def __init__(self, db: str, timezone: str = 'US/Central'):
         h = Hosts()
         super().__init__(h.get_ip_from_host('homeserv'), 8086, database=db)
-        self.local_tz = tz.gettz(timezone)
-        self.utc = tz.gettz('UTC')
-
-    def _local_time_to_utc(self, obj: Union[datetime, str]) -> str:
-        """Run if we're converting timestamps to UTC"""
-        if isinstance(obj, str):
-            obj = datetime.strptime(obj, '%Y-%m-%d %H:%M:%S')
-        return obj.replace(tzinfo=self.local_tz).astimezone(self.utc).strftime('%F %T')
-
-    def _utc_to_local_time(self, obj: Union[datetime, str]) -> str:
-        """Run if we're converting timestamps to UTC"""
-        if isinstance(obj, str):
-            obj = datetime.strptime(obj, '%Y-%m-%dT%H:%M:%SZ')
-        return obj.replace(tzinfo=self.utc).astimezone(self.local_tz).strftime('%F %T')
+        self.dt = DateTools()
+        self.local_tz = timezone
+        self.utc = 'UTC'
 
     def _build_json(self, tbl: str, row: pd.Series, tags: List[str],
                     value_cols: List[str], time_col: str = None):
@@ -48,7 +37,7 @@ class InfluxDBLocal(InfluxDBClient):
             'fields': {x: row[x] for x in value_cols}
         }
         if time_col is not None:
-            json_dict['time'] = self._local_time_to_utc(row[time_col])
+            json_dict['time'] = self.dt.local_time_to_utc(row[time_col], local_tz=self.local_tz)
 
         return json_dict
 
@@ -60,7 +49,7 @@ class InfluxDBLocal(InfluxDBClient):
             'fields': field_dict
         }
         if timestamp is not None:
-            json_dict['time'] = self._local_time_to_utc(timestamp)
+            json_dict['time'] = self.dt.local_time_to_utc(timestamp, local_tz=self.local_tz)
         self.write_points(json_dict)
 
     def write_df_to_table(self, tbl: str, df: pd.DataFrame, tags: Union[List[str], str],
@@ -84,7 +73,8 @@ class InfluxDBLocal(InfluxDBClient):
         df = pd.DataFrame(data=data['values'], columns=data['columns'])
         # Convert time column to local
         if time_col is not None:
-            df[time_col] = df[time_col].apply(lambda x: self._utc_to_local_time(x))
+            df[time_col] = df[time_col].apply(
+                lambda x: self.dt.utc_to_local_time(x, self.local_tz, fmt='%Y-%m-%dT%H:%M:%SZ')
+            )
 
         return df
-

@@ -22,3 +22,8 @@ class Path:
     def get_extension(path: str) -> str:
         """Gets the file extension of a path"""
         return os.path.splitext(path)[1]
+
+    @staticmethod
+    def exists(path: str) -> bool:
+        """Determines if the file exists"""
+        return os.path.exists(path)
