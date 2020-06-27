@@ -6,5 +6,3 @@ REPO:
   DIR: ${HOME}/${REPO_NAME}
   VENV: ${HOME}/venvs/kavkil/bin/python
   DESC: A Library for Integrating Home Automation Components
-  DEPS: [
-  ]
