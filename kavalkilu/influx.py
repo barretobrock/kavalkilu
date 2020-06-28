@@ -7,15 +7,19 @@ from .date import DateTools
 
 
 class InfluxDBNames:
+    """Influx database names"""
     HOMEAUTO = 'homeauto'
 
 
 class InfluxTblNames:
-    WEATHER = 'weather'
-    TEMPS = 'temps'
-    NETSPEED = 'net-speed'
+    """Measurement (table) names for Influx"""
+    CPU = 'cpu'
     LOGS = 'logs'
     MACHINES = 'machine-activity'
+    MEM = 'mem'
+    NETSPEED = 'net-speed'
+    TEMPS = 'temps'
+    WEATHER = 'weather'
 
 
 class InfluxDBLocal(InfluxDBClient):
@@ -50,7 +54,7 @@ class InfluxDBLocal(InfluxDBClient):
         }
         if timestamp is not None:
             json_dict['time'] = self.dt.local_time_to_utc(timestamp, local_tz=self.local_tz, as_str=True)
-        self.write_points(json_dict)
+        self.write_points([json_dict])
 
     def write_df_to_table(self, tbl: str, df: pd.DataFrame, tags: Union[List[str], str],
                           value_cols: Union[List[str], str], time_col: str = None):
