@@ -51,6 +51,8 @@ class Log:
         """
         # Whether to log errors to database
         self.log_to_db = log_to_db
+        # Set the group of the log (e.g., the type of script it'll be called from
+        self.log_name_group = log_name
         # Name of log in logfile
         self.is_child = child_name is not None
         if self.is_child:
