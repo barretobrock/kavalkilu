@@ -136,18 +136,19 @@ class Log:
     def _log_error_to_influx(self, text: str, err_obj: BaseException = None):
         """Logs an error to the database"""
         if self.log_to_db:
+            err_txt = err_obj.__repr__() if err_obj is not None else text
+            err_class = err_obj.__class__.__name__ if err_obj is not None else 'NA'
             log_dict = {
                 'machine': self.machine,
                 'name': self.log_name,
                 'level': 'ERROR',
-                'class': 'NA',
-                'text': text
+                'class': err_class,
+                'text': err_txt
             }
-            if err_obj is not None:
-                # Load the error class
-                log_dict['class'] = err_obj.__class__.__name__
             field_dict = {'entry': 1}
-            self.influx.write_single_data(InfluxTblNames.LOGS, tag_dict=log_dict, field_dict=field_dict)
+            self.influx.write_single_data(InfluxTblNames.LOGS,
+                                          tag_dict=log_dict, field_dict=field_dict)
+            self.debug('Logged error to influx.')
 
     def error(self, text: str, incl_info: bool = True):
         """Error-level logging"""
