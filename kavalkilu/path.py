@@ -10,6 +10,7 @@ class Path:
         self.data_dir = os.path.join(home, 'data')
         self.keys_dir = os.path.join(home, 'keys')
         self.logs_dir = os.path.join(home, 'logs')
+        self.extras_dir = os.path.join(home, 'extras')
         self.venvs_dir = os.path.join(home, 'venvs')
         self.download_dir = os.path.join(home, 'Downloads')
 
