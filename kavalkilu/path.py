@@ -17,7 +17,9 @@ class Path:
     @staticmethod
     def easy_joiner(parent: str, paths: Union[str, List[str]]) -> str:
         """Provides an easy way to join a path"""
-        return os.path.join(parent, paths)
+        if isinstance(paths, str):
+            paths = [paths]
+        return os.path.join(parent, *paths)
 
     @staticmethod
     def get_extension(path: str) -> str:
