@@ -5,8 +5,8 @@ from typing import List, Union
 
 class Path:
     """Wrapper class that stores common paths and common methods for handling paths"""
-    def __init__(self):
-        home = os.path.expanduser('~')
+    def __init__(self, user: str = ''):
+        home = os.path.expanduser(f'~{user}')
         self.data_dir = os.path.join(home, 'data')
         self.keys_dir = os.path.join(home, 'keys')
         self.logs_dir = os.path.join(home, 'logs')
