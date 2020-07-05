@@ -17,11 +17,10 @@ from .net import NetTools
 
 class LogArgParser:
     """Simple class for carrying over standard argparse routines to set log level"""
-    def __init__(self):
+    def __init__(self, is_debugging: bool = False):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-lvl', action='store', default='INFO')
-        sysargs = sys.argv
-        if 'pydevconsole.py' not in sysargs[0]:
+        if not is_debugging:
             # Not running tests in PyCharm, so take in args
             self.args = self.parser.parse_args()
             self.loglvl = self.args.lvl.upper()
@@ -56,7 +55,8 @@ class Log:
         # Name of log in logfile
         self.is_child = child_name is not None
         if self.is_child:
-            # We've already had a logger set up, so find that and set this instance as a child of that instance
+            # We've already had a logger set up,
+            #   so find that and set this instance as a child of that instance
             self.logger = logging.getLogger(log_name).getChild(child_name)
         else:
             self.log_name = f'{log_name}_{dt.now():%H%M}'
@@ -80,33 +80,24 @@ class Log:
             # Create logger if it hasn't been created
             self.logger = logging.getLogger(self.log_name)
 
+        # Check if debugging in pycharm
+        sysargs = sys.argv
+        self.is_debugging = 'pydevconsole.py' in sysargs[0]
+
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         if log_lvl is None:
-            log_lvl = LogArgParser().loglvl
+            log_lvl = LogArgParser(self.is_debugging).loglvl
         self.logger_lvl = getattr(logging, log_lvl.upper(), logging.DEBUG)
         # Set minimum logging level
         self.logger.setLevel(self.logger_lvl)
 
         if not self.is_child:
             # Create file handler for log
-            # TimedRotating will delete logs older than 30 days
-            fh = TimedRotatingFileHandler(self.log_path, when='d', interval=1, backupCount=30)
-            fh.setLevel(self.logger_lvl)
-            # Create streamhandler for log (this sends streams to stdout/stderr for debug help)
-            sh = logging.StreamHandler()
-            sh.setLevel(self.logger_lvl)
-            # Set format of logs
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s %(message)s')
-            fh.setFormatter(formatter)
-            sh.setFormatter(formatter)
-            # Add handlers to log
-            self.logger.addHandler(sh)
-            self.logger.addHandler(fh)
-            # Intercept exceptions
-            sys.excepthook = self.handle_exception
+            self._set_handlers()
         self.info(f'Logging initiated{" for child instance" if self.is_child else ""}.')
 
-        if self.log_to_db:
+        if self.log_to_db and not self.is_debugging:
+            # Only log errors if we're not debugging
             self.debug('Establishing connection to Influxdb.')
             self.machine = NetTools().get_hostname()
             # Set up influx object for logging errors
@@ -114,7 +105,26 @@ class Log:
         else:
             self.influx = None
 
-    def handle_exception(self, exc_type: type, exc_value: BaseException, exc_traceback: TracebackType):
+    def _set_handlers(self):
+        """Sets up file & stream handlers"""
+        # TimedRotating will delete logs older than 30 days
+        fh = TimedRotatingFileHandler(self.log_path, when='d', interval=1, backupCount=30)
+        fh.setLevel(self.logger_lvl)
+        # Create streamhandler for log (this sends streams to stdout/stderr for debug help)
+        sh = logging.StreamHandler()
+        sh.setLevel(self.logger_lvl)
+        # Set format of logs
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)-8s %(message)s')
+        fh.setFormatter(formatter)
+        sh.setFormatter(formatter)
+        # Add handlers to log
+        self.logger.addHandler(sh)
+        self.logger.addHandler(fh)
+        # Intercept exceptions
+        sys.excepthook = self.handle_exception
+
+    def handle_exception(self, exc_type: type, exc_value: BaseException,
+                         exc_traceback: TracebackType):
         """Intercepts an exception and prints it to log file"""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
@@ -142,7 +152,7 @@ class Log:
             err_class = err_obj.__class__.__name__ if err_obj is not None else 'NA'
             log_dict = {
                 'machine': self.machine,
-                'name': self.log_name,
+                'name': self.log_name_group,
                 'level': 'ERROR',
                 'class': err_class,
                 'text': err_txt
