@@ -22,21 +22,30 @@ class DateTools:
             strftime_string = self.iso_datetime_fmt
         return datetime.strptime(datestring, strftime_string)
 
-    def string_to_unix(self, date_string: str, strftime_string: str = None, unit: str = 's') -> int:
+    @staticmethod
+    def dt_to_unix(dt_obj: datetime) -> int:
+        """Converts datetime object to unix"""
+        return int((dt_obj - datetime(1970, 1, 1)).total_seconds())
+
+    @staticmethod
+    def unix_to_dt(unix_ts: Union[float, int]) -> datetime:
+        """Converts unix epoch to datetime"""
+        return datetime.fromtimestamp(unix_ts)
+
+    def string_to_unix(self, date_string: str, strftime_string: str = None,
+                       unit: str = 's') -> int:
         """Converts string to unix"""
         if strftime_string is None:
             strftime_string = self.iso_datetime_fmt
-        unix = (datetime.strptime(date_string, strftime_string) -
-                datetime(1970, 1, 1)).total_seconds()
-        unix = unix * 1000 if unit == 'ms' else unix
-        return int(unix)
+        dt_obj = datetime.strptime(date_string, strftime_string)
+        unix = self.dt_to_unix(dt_obj)
+        return unix * 1000 if unit == 'ms' else unix
 
     def unix_to_string(self, unix_ts: Union[float, int], output_fmt: str = None) -> str:
         """Convert unix timestamp to string"""
         if output_fmt is None:
             output_fmt = self.iso_datetime_fmt
-        date_string = datetime.fromtimestamp(unix_ts).strftime(output_fmt)
-        return date_string
+        return self.unix_to_dt(unix_ts).strftime(output_fmt)
 
     def _tz_convert(self, from_tz: str, to_tz: str, obj: Union[datetime, str],
                     fmt: str = None) -> datetime:
