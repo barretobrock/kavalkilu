@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-from dateutil import tz
+from dateutil import tz, relativedelta
 from typing import Union
 
 
@@ -16,22 +16,26 @@ class DateTools:
         next_month = any_day.replace(day=28) + timedelta(days=4)
         return next_month - timedelta(days=next_month.day)
 
-    @staticmethod
-    def string_to_datetime(datestring: str, strftime_string: str = '%Y%m%d') -> datetime:
+    def string_to_datetime(self, datestring: str, strftime_string: str = None) -> datetime:
         """Converts string to datetime"""
+        if strftime_string is None:
+            strftime_string = self.iso_datetime_fmt
         return datetime.strptime(datestring, strftime_string)
 
-    @staticmethod
-    def string_to_unix(date_string: str, strftime_string: str = '%Y%m%d') -> float:
+    def string_to_unix(self, date_string: str, strftime_string: str = None, unit: str = 's') -> int:
         """Converts string to unix"""
+        if strftime_string is None:
+            strftime_string = self.iso_datetime_fmt
         unix = (datetime.strptime(date_string, strftime_string) -
                 datetime(1970, 1, 1)).total_seconds()
-        return unix * 1000
+        unix = unix * 1000 if unit == 'ms' else unix
+        return int(unix)
 
-    @staticmethod
-    def unix_to_string(unix_date: float, output_fmt: str = '%Y-%m-%d') -> str:
+    def unix_to_string(self, unix_ts: Union[float, int], output_fmt: str = None) -> str:
         """Convert unix timestamp to string"""
-        date_string = datetime.fromtimestamp(unix_date).strftime(output_fmt)
+        if output_fmt is None:
+            output_fmt = self.iso_datetime_fmt
+        date_string = datetime.fromtimestamp(unix_ts).strftime(output_fmt)
         return date_string
 
     def _tz_convert(self, from_tz: str, to_tz: str, obj: Union[datetime, str],
@@ -70,7 +74,7 @@ class DateTools:
         return seconds
 
     @staticmethod
-    def human_readable(reldelta: timedelta) -> str:
+    def _human_readable(reldelta: relativedelta) -> str:
         """Takes in a relative delta and makes it human readable"""
         attrs = {
             'years': 'y',
@@ -88,3 +92,8 @@ class DateTools:
                 if attr_val > 1:
                     result_list.append('{:d}{}'.format(attr_val, attrs[attr]))
         return ' '.join(result_list)
+
+    def get_human_readable_date_diff(self, start: datetime, end: datetime) -> str:
+        """Outputs a breakdown of difference between the two dates from largest to smallest"""
+        result = relativedelta.relativedelta(end, start)
+        return self._human_readable(result)
