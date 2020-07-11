@@ -1,8 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import psutil
+import signal
 from subprocess import check_output, CalledProcessError
 from typing import List, Union
+
+
+class GracefulKiller:
+    """Means of gracefully killing a script upon SIGTERM/SIGINT command
+    reception via systemd
+
+    Example:
+        >>> killer = GracefulKiller()
+        >>> # Some other code...
+        >>> while not killer.kill_now:
+        >>>     # ...
+        >>>     # spooky daemony stuff here
+        >>>     # ...
+        >>> # If we're here, systemd sent a SIGINT/SIGTERM command.
+        >>> # Now we can close out connections and log objects
+        >>> db_connection.close()
+        >>> log.close()
+    """
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        self.kill_now = False
+
+    def exit_gracefully(self, signum, frame):
+        """Sets the kill_now property to True,
+        which allows the script to exit the while loop"""
+        self.kill_now = True
 
 
 class SysTools:
