@@ -7,7 +7,7 @@ from .log import Log, LogArgParser
 from .mqtt import MQTTClient
 from .net import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
 from .path import Path
-from .system import SysTools
+from .system import SysTools, GracefulKiller
 
 from ._version import get_versions
 __version__ = get_versions()['version']
