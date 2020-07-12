@@ -81,8 +81,11 @@ class Log:
             self.logger = logging.getLogger(self.log_name)
 
         # Check if debugging in pycharm
+        # Checking Methods:
+        #   1) checks for whether code run in-console
+        #   2) check for script run in debug mode per PyCharm
         sysargs = sys.argv
-        self.is_debugging = 'pydevconsole.py' in sysargs[0]
+        self.is_debugging = any(['pydevconsole.py' in sysargs[0], sys.gettrace() is not None])
 
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         if log_lvl is None:
