@@ -19,7 +19,7 @@ class LogArgParser:
     """Simple class for carrying over standard argparse routines to set log level"""
     def __init__(self, is_debugging: bool = False):
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-l', '-lvl', '--level', action='store', default='INFO')
+        self.parser.add_argument('-lvl', '--level', action='store', default='INFO')
         if is_debugging:
             print('Bypassing argument parser in test environment')
             self.loglvl = 'DEBUG'
