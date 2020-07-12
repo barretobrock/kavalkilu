@@ -19,14 +19,14 @@ class LogArgParser:
     """Simple class for carrying over standard argparse routines to set log level"""
     def __init__(self, is_debugging: bool = False):
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-lvl', action='store', default='INFO')
-        if not is_debugging:
+        self.parser.add_argument('-l', '-lvl', '--level', action='store', default='INFO')
+        if is_debugging:
+            print('Bypassing argument parser in test environment')
+            self.loglvl = 'DEBUG'
+        else:
             # Not running tests in PyCharm, so take in args
             self.args = self.parser.parse_args()
             self.loglvl = self.args.lvl.upper()
-        else:
-            print('Bypassing argument parser in test environment')
-            self.loglvl = 'DEBUG'
 
 
 class Log:
@@ -83,6 +83,9 @@ class Log:
         # Check if debugging in pycharm
         sysargs = sys.argv
         self.is_debugging = 'pydevconsole.py' in sysargs[0]
+        if self.is_debugging and self.log_to_db:
+            self.debug('Debug mode activated. Disabling influx db logging.')
+            self.log_to_db = False
 
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         if log_lvl is None:
