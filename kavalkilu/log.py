@@ -18,6 +18,7 @@ from .net import NetTools
 class LogArgParser:
     """Simple class for carrying over standard argparse routines to set log level"""
     def __init__(self, is_debugging: bool = False):
+        self.loglvl = 'INFO'    # Default
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('-lvl', '--level', action='store', default='INFO')
         if is_debugging:
@@ -26,7 +27,13 @@ class LogArgParser:
         else:
             # Not running tests in PyCharm, so take in args
             self.args = self.parser.parse_args()
-            self.loglvl = self.args.lvl.upper()
+            # Convert args to dict to detect item
+            arg_dict = vars(self.args)
+            # Look for argument
+            for k in ['lvl', 'level']:
+                if k in arg_dict.keys():
+                    self.loglvl = arg_dict[k].upper()
+                    break
 
 
 class Log:
