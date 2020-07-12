@@ -83,9 +83,6 @@ class Log:
         # Check if debugging in pycharm
         sysargs = sys.argv
         self.is_debugging = 'pydevconsole.py' in sysargs[0]
-        if self.is_debugging and self.log_to_db:
-            self.debug('Debug mode activated. Disabling influx db logging.')
-            self.log_to_db = False
 
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         if log_lvl is None:
@@ -98,6 +95,10 @@ class Log:
             # Create file handler for log
             self._set_handlers()
         self.info(f'Logging initiated{" for child instance" if self.is_child else ""}.')
+
+        if self.is_debugging and self.log_to_db:
+            self.debug('Debug mode activated. Disabling influx db logging.')
+            self.log_to_db = False
 
         if self.log_to_db and not self.is_debugging:
             # Only log errors if we're not debugging
