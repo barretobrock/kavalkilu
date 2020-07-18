@@ -59,14 +59,12 @@ class Log:
         self.log_to_db = log_to_db
         # Set the group of the log (e.g., the type of script it'll be called from)
         self.log_name_group = log_name
-        # Create logger if it hasn't been created
-        self.logger = logging.getLogger(self.log_name)
         # Name of log in logfile
         self.is_child = child_name is not None
         if self.is_child:
             # We've already had a logger set up,
             #   so find that and set this instance as a child of that instance
-            self.logger = self.logger.getChild(child_name)
+            self.logger = logging.getLogger(self.log_name_group).getChild(child_name)
         else:
             self.log_name = f'{log_name}_{dt.now():%H%M}'
             if log_filename_prefix is None:
@@ -86,7 +84,8 @@ class Log:
 
             # Path of logfile
             self.log_path = os.path.join(log_dir, self.log_filename)
-
+            # Create logger if it hasn't been created
+            self.logger = logging.getLogger(self.log_name_group)
 
         # Check if debugging in pycharm
         # Checking Methods:
@@ -102,10 +101,9 @@ class Log:
         # Set minimum logging level
         self.logger.setLevel(self.logger_lvl)
 
-        # if not self.is_child:
-        #     # Create file handler for log
-        #     self._set_handlers()
-        self._set_handlers()
+        if not self.is_child:
+            # Create file handler for log
+            self._set_handlers()
         self.info(f'Logging initiated{" for child instance" if self.is_child else ""}.')
 
         if self.is_debugging and self.log_to_db:
