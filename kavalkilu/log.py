@@ -28,7 +28,15 @@ class LogArgParser:
             # Not running tests in PyCharm, so take in args
             self.args = self.parser.parse_known_args()
             # Convert args to dict to detect item
-            arg_dict = vars(self.args)
+            arg_dict = {}
+            if isinstance(self.args, tuple):
+                for arg in self.args:
+                    if isinstance(arg, argparse.Namespace):
+                        # Parse into dict and update
+                        arg_dict.update(vars(arg))
+            else:
+                # Hopefully is already Namespace
+                arg_dict = vars(self.args)
             # Look for argument
             for k in ['lvl', 'level']:
                 if k in arg_dict.keys():
