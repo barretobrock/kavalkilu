@@ -26,7 +26,7 @@ class LogArgParser:
             self.loglvl = 'DEBUG'
         else:
             # Not running tests in PyCharm, so take in args
-            self.args = self.parser.parse_args()
+            self.args = self.parser.parse_known_args()
             # Convert args to dict to detect item
             arg_dict = vars(self.args)
             # Look for argument
