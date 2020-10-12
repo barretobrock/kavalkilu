@@ -41,7 +41,8 @@ class Log:
 
     def __init__(self, log_name: str, child_name: str = None,
                  log_filename_prefix: str = None, log_dir: str = None,
-                 log_lvl: str = None, log_to_db: bool = False):
+                 log_lvl: str = None, log_to_db: bool = False,
+                 arg_parse: bool = True):
         """
         Args:
             log_name: str, display name of the log. Will have the time (HHMM) added to the end
@@ -54,6 +55,8 @@ class Log:
                 default: "~/logs/{log_filename_prefix}/"
             log_lvl: str, minimum logging level to write to log (Hierarchy: DEBUG -> INFO -> WARN -> ERROR)
                 default: 'INFO'
+            log_to_db: bool, if True, will log errors to database
+            arg_parse: bool, if True, will attempt to read in script arguments
         """
         # Whether to log errors to database
         self.log_to_db = log_to_db
@@ -61,6 +64,7 @@ class Log:
         self.log_name_group = log_name
         # Name of log in logfile
         self.is_child = child_name is not None
+        self.arg_parse = arg_parse
         if self.is_child:
             # We've already had a logger set up,
             #   so find that and set this instance as a child of that instance
@@ -96,7 +100,10 @@ class Log:
 
         # Get minimum log level to record (Structure goes: DEBUG -> INFO -> WARN -> ERROR)
         if log_lvl is None:
-            log_lvl = LogArgParser(self.is_debugging).loglvl
+            if self.arg_parse:
+                log_lvl = LogArgParser(self.is_debugging).loglvl
+            else:
+                log_lvl = 'INFO'
         self.logger_lvl = getattr(logging, log_lvl.upper(), logging.DEBUG)
         # Set minimum logging level
         self.logger.setLevel(self.logger_lvl)
