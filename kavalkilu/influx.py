@@ -4,7 +4,7 @@ from typing import Union, List
 from influxdb import InfluxDBClient
 from .net import Hosts
 from .date import DateTools
-from . import HOME_SERVER_HOSTNAME
+from .path import HOME_SERVER_HOSTNAME
 
 
 class InfluxDBNames:

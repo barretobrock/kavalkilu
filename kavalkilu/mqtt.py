@@ -1,7 +1,7 @@
 from paho.mqtt.client import Client, MQTTMessage
 from typing import Any, Union
 from .net import Hosts, NetTools
-from . import HOME_SERVER_HOSTNAME
+from .path import HOME_SERVER_HOSTNAME
 
 
 class MQTTClient:

@@ -12,5 +12,4 @@ from .system import SysTools, GracefulKiller
 from ._version import get_versions
 __version__ = get_versions()['version']
 __update_date__ = get_versions()['date']
-HOME_SERVER_HOSTNAME = 'tinyserv'
 del get_versions

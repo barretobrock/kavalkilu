@@ -3,7 +3,7 @@ import os
 import argparse
 from typing import List, Union
 
-
+HOME_SERVER_HOSTNAME = 'tinyserv'
 class ArgParser:
     """Argument parsing wrapper"""
     def __init__(self, desc: str):
