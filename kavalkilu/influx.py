@@ -4,6 +4,7 @@ from typing import Union, List
 from influxdb import InfluxDBClient
 from .net import Hosts
 from .date import DateTools
+from . import HOME_SERVER_HOSTNAME
 
 
 class InfluxDBNames:
@@ -25,7 +26,7 @@ class InfluxTblNames:
 class InfluxDBLocal(InfluxDBClient):
     def __init__(self, db: str, timezone: str = 'US/Central'):
         h = Hosts()
-        super().__init__(h.get_ip_from_host('homeserv'), 8086, database=db)
+        super().__init__(h.get_ip_from_host(HOME_SERVER_HOSTNAME), 8086, database=db)
         self.dt = DateTools()
         self.local_tz = timezone
         self.utc = 'UTC'

@@ -1,6 +1,7 @@
 from paho.mqtt.client import Client, MQTTMessage
 from typing import Any, Union
 from .net import Hosts, NetTools
+from . import HOME_SERVER_HOSTNAME
 
 
 class MQTTClient:
@@ -10,7 +11,7 @@ class MQTTClient:
         self.client = Client(t.get_ip())
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
-        self.client.connect(host=h.get_ip_from_host('homeserv'), port=1883, keepalive=60)
+        self.client.connect(host=h.get_ip_from_host(HOME_SERVER_HOSTNAME), port=1883, keepalive=60)
         self.connected = True
         self.subscribe = self.client.subscribe
         self.publish = self.client.publish
