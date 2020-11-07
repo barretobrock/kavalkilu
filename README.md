@@ -22,7 +22,7 @@ python3 -m pip install git+https://github.com/barretobrock/kavalkilu.git --upgra
 ### Primary machine (server, development env) setup
 #### Environment Setup
 ```bash
-sudo apt install build-essential curl git git-core python3-pip python3-dev python3-pandas python3-mysqldb chromium-chromedriver
+sudo apt install build-essential curl git python3-pip python3-dev python3-pandas chromium-chromedriver
 ```
 #### Git setup
 We'll want to set up SSH for this machine
@@ -62,45 +62,5 @@ ssh-add -l > /dev/null || ssh-add
 
 ## Tips
  - TBA!
-
-## Future Plans?
-### Environment Setup With Docker
-#### Docker Install
-_Note: This was a good idea, but a road block in this is that it was difficult to get RasPi components to communicate "out of the box" with the docker instance_
- - install some dependencies
-    ```bash
-    sudo apt get update
-    sudo apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
-    ```
- - get Docker signing key for packages
-    `curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | sudo apt-key add -`
- - add official Docker repo
-    ```bash
-    echo "deb [arch=armhf] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
-     $(lsb_release -cs) stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list
-    ```
- - install docker
-    ```bash
-    sudo apt update
-    sudo apt install -y --no-install-recommends docker-ce cgroupfs-mount
-    ```
- - enable docker on boot
-    ```bash
-    sudo systemctl enable docker
-    sudo systemctl start docker
-    ```
- - pull and run docker test image
-    ```bash
-    sudo docker run --rm arm32v7/hello-world
-    ```
- - log in to account
-    ```bash
-    # Add current user to docker perms group to be able to login successfully
-    sudo usermod -a -G docker ${USER}
-    # Now we can login
-    docker login
-    ```
-
 
 
