@@ -10,38 +10,76 @@ import argparse
 import traceback
 from logging.handlers import TimedRotatingFileHandler
 from types import TracebackType
+from typing import List, Dict, Union
 from datetime import datetime as dt
 from .influx import InfluxDBNames, InfluxTblNames, InfluxDBLocal
 from .net import NetTools
+
+
+class ArgParse(argparse.ArgumentParser):
+    """Custom wrapper for argument parsing"""
+    def __init__(self, arg_list: List[Dict[str, Union[dict, List[str]]]], parse_all: bool = True):
+        """
+        Args:
+            arg_list: List of the flags for each argument
+                typical setup:
+                >>> arg = [
+                >>>     {
+                >>>         'names': ['-l', '--level'],
+                >>>         'other': {  # These are just the additional params available for add_argument
+                >>>             'action': 'store',
+                >>>             'default': 'INFO'
+                >>>         }
+                >>>     }
+                >>>]
+            parse_all: if True, will call parse_args otherwise calls parse_known_args
+        """
+        super().__init__()
+        for arg_n in arg_list:
+            args = arg_n.get('names', [])
+            other_items = arg_n.get('other', {})
+            self.add_argument(*args, **other_items)
+        self.args = None
+        self.arg_dict = {}
+        if parse_all:
+            self.args = self.parse_args()
+        else:
+            self.args = self.parse_known_args()
+        self._process_args()
+
+    def _process_args(self):
+        """Processes args when using parse_known_args"""
+        if isinstance(self.args, tuple):
+            for arg in self.args:
+                if isinstance(arg, argparse.Namespace):
+                    # Parse into dict and update
+                    self.arg_dict.update(vars(arg))
+        else:
+            # Hopefully is already Namespace
+            self.arg_dict = vars(self.args)
 
 
 class LogArgParser:
     """Simple class for carrying over standard argparse routines to set log level"""
     def __init__(self, is_debugging: bool = False):
         self.loglvl = 'INFO'    # Default
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-lvl', '--level', action='store', default='INFO')
+        args = [
+            {
+                'names': ['-lvl', '--level'],
+                'other': {
+                    'action': 'store',
+                    'default': self.loglvl
+                }
+            }
+        ]
+        self.ap = ArgParse(args, parse_all=False)
         if is_debugging:
             print('Bypassing argument parser in test environment')
             self.loglvl = 'DEBUG'
         else:
             # Not running tests in PyCharm, so take in args
-            self.args = self.parser.parse_known_args()
-            # Convert args to dict to detect item
-            arg_dict = {}
-            if isinstance(self.args, tuple):
-                for arg in self.args:
-                    if isinstance(arg, argparse.Namespace):
-                        # Parse into dict and update
-                        arg_dict.update(vars(arg))
-            else:
-                # Hopefully is already Namespace
-                arg_dict = vars(self.args)
-            # Look for argument
-            for k in ['lvl', 'level']:
-                if k in arg_dict.keys():
-                    self.loglvl = arg_dict[k].upper()
-                    break
+            arg_dict = self.ap.arg_dict
+            self.loglvl = arg_dict.get('level', self.loglvl)
 
 
 class Log:

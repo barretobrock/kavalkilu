@@ -3,7 +3,7 @@
 from .date import DateTools
 from .errors import format_exception
 from .influx import InfluxDBNames, InfluxTblNames, InfluxDBLocal
-from .log import Log, LogArgParser
+from .log import Log, LogArgParser, ArgParse
 from .mqtt import MQTTClient
 from .net import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
 from .path import Path
