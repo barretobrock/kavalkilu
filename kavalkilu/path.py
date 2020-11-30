@@ -1,17 +1,8 @@
 """Builds common paths"""
 import os
-import argparse
 from typing import List, Union
 
 HOME_SERVER_HOSTNAME = 'tinyserv'
-class ArgParser:
-    """Argument parsing wrapper"""
-    def __init__(self, desc: str):
-        self.parser = argparse.ArgumentParser()
-
-    def add_named_arg(self):
-        """Adds a named argument to the parser"""
-        self.parser.add_argument()
 
 
 class Path:

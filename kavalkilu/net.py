@@ -133,7 +133,8 @@ class NetTools:
         self.ip = self.get_ip()
         self.hostname = self.get_hostname()
 
-    def ping_ip(self, ip: str, n_times: int = 2) -> bool:
+    @staticmethod
+    def ping_ip(ip: str, n_times: int = 2) -> bool:
         """Pings an IP up to n times"""
         ping_cmd = ['ping', '-c', '1', ip]
 

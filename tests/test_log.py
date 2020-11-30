@@ -25,3 +25,5 @@ class TestLogger(unittest.TestCase):
     def test_child_log(self):
         self.logg.debug('Hello')
         self.child_logg.debug('Hello')
+
+
