@@ -6,7 +6,7 @@ from .influx import InfluxDBNames, InfluxTblNames, InfluxDBLocal
 from .log import Log, LogArgParser, ArgParse, LogWithInflux
 from .mqtt import MQTTClient
 from .net import Hosts, HostsRetrievalException, Keys, KeyRetrievalException, NetTools
-from .path import Path
+from .path import Path, HOME_SERVER_HOSTNAME
 from .system import SysTools, GracefulKiller
 
 from ._version import get_versions
