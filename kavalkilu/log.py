@@ -176,8 +176,7 @@ class Log:
 
         if log_to_file and not self.is_debugging:
             # TimedRotating will delete logs older than 30 days
-            # fh = TimedPatternFileHandler(self.log_path, when='M', backup_cnt=2)
-            fh = TimedRotatingFileHandler(self.log_path, when='M', interval=1, backupCount=30)
+            fh = TimedRotatingFileHandler(self.log_path, when='D', interval=1, backupCount=30)
             fh.setLevel(self.log_level_int)
             fh.setFormatter(formatter)
             self.logger.addHandler(fh)
