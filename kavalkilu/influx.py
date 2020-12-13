@@ -7,37 +7,54 @@ from .date import DateTools
 from .path import HOME_SERVER_HOSTNAME
 
 
-class InfluxDBNames:
-    """Influx database names"""
-    HOMEAUTO = 'homeauto'
+class InfluxTable:
+    """Class for combining influx table name with the database it's stored in"""
+    def __init__(self, db: str, name: str):
+        self.table = name
+        self.database = db
 
 
-class InfluxTblNames:
-    """Measurement (table) names for Influx"""
-    CPU = 'cpu'
-    LOGS = 'logs'
-    MACHINES = 'machine-activity'
-    MEM = 'mem'
-    NETSPEED = 'net-speed'
-    TEMPS = 'temps'
-    WEATHER = 'weather'
+class InfluxDBHomeAuto:
+    """homeauto Influx database + tables"""
+    database = 'homeauto'
+    CPU = InfluxTable(database, 'cpu')
+    LOGS = InfluxTable(database, 'logs')
+    MACHINES = InfluxTable(database, 'machine-activity')
+    MEM = InfluxTable(database, 'mem')
+    NETSPEED = InfluxTable(database, 'net-speed')
+    TEMPS = InfluxTable(database, 'temps')
+    WEATHER = InfluxTable(database, 'weather')
+
+
+class InfluxDBPiHole:
+    """pihole Influx database + tables"""
+    database = 'pihole'
+    QUERIES = InfluxTable(database, 'queries')
+
+
+class InfluxDBTracker:
+    """tracker Influx database + tables"""
+    database = 'tracker'
+    APT_PRICES = InfluxTable(database, 'apt_prices')
 
 
 class InfluxDBLocal(InfluxDBClient):
-    def __init__(self, db: str, timezone: str = 'US/Central'):
+    def __init__(self, dbtable: InfluxTable, timezone: str = 'US/Central'):
         h = Hosts()
-        super().__init__(h.get_ip_from_host(HOME_SERVER_HOSTNAME), 8086, database=db)
+        self.database = dbtable.database
+        self.table = dbtable.table
+        super().__init__(h.get_ip_from_host(HOME_SERVER_HOSTNAME), 8086, database=self.database)
         self.dt = DateTools()
         self.local_tz = timezone
         self.utc = 'UTC'
 
-    def _build_json(self, tbl: str, row: pd.Series, tags: List[str],
+    def _build_json(self, row: pd.Series, tags: List[str],
                     value_cols: List[str], time_col: str = None):
         """Builds a single JSON object for a single item in a dataframe row
         NOTE: If time_col is None, the current time will be used.
         """
         json_dict = {
-            'measurement': tbl,
+            'measurement': self.table,
             'tags': {x: row[x] for x in tags},
             'fields': {x: row[x] for x in value_cols}
         }
@@ -46,10 +63,10 @@ class InfluxDBLocal(InfluxDBClient):
 
         return json_dict
 
-    def write_single_data(self, tbl: str, tag_dict: dict, field_dict: dict, timestamp: datetime = None):
+    def write_single_data(self, tag_dict: dict, field_dict: dict, timestamp: datetime = None):
         """Writes a single group of data to the designated table"""
         json_dict = {
-            'measurement': tbl,
+            'measurement': self.table,
             'tags': tag_dict,
             'fields': field_dict
         }
@@ -57,7 +74,7 @@ class InfluxDBLocal(InfluxDBClient):
             json_dict['time'] = self.dt.local_time_to_utc(timestamp, local_tz=self.local_tz, as_str=True)
         self.write_points([json_dict])
 
-    def write_df_to_table(self, tbl: str, df: pd.DataFrame, tags: Union[List[str], str],
+    def write_df_to_table(self, df: pd.DataFrame, tags: Union[List[str], str],
                           value_cols: Union[List[str], str], time_col: str = None):
         """Writes a dataframe to the database"""
         if isinstance(value_cols, str):
@@ -67,7 +84,7 @@ class InfluxDBLocal(InfluxDBClient):
 
         batch = []
         for idx, row in df.iterrows():
-            batch.append(self._build_json(tbl, row, tags, value_cols, time_col))
+            batch.append(self._build_json(row, tags, value_cols, time_col))
 
         self.write_points(batch)
 
