@@ -33,8 +33,8 @@ class LogWithInflux(Log):
         sys.excepthook = self.handle_exception
         self.error = self.error_with_influx
 
-    def error_with_influx(self, text: str, incl_info: bool = True):
-        self.log(ERROR, msg=text, exc_info=incl_info)
+    def error_with_influx(self, text: str, *args, **kwargs):
+        self.log(ERROR, msg=text, *args, **kwargs)
         # Try to grab the error object here, too
         err_type, err_obj, err_traceback = self.extract_err()
         # Log error to influxdb
