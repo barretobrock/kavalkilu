@@ -4,8 +4,7 @@
 General log setup file.
 """
 import sys
-from logging import Logger
-from types import TracebackType
+from logging import Logger, ERROR
 from typing import Union
 from easylogger import Log
 from .influx import InfluxDBHomeAuto, InfluxDBLocal
@@ -14,7 +13,7 @@ from .net import NetTools
 
 class LogWithInflux(Log):
     """Logging object that supports error logging to local Influxdb instance"""
-    def __init__(self, log: Union[str, 'Log', Logger], child_name: str = None, log_level_str: str = None,
+    def __init__(self, log: Union[str, 'Log', Logger] = None, child_name: str = None, log_level_str: str = None,
                  log_to_file: bool = True, log_dir: str = None, log_to_db: bool = True):
         super().__init__(log=log, child_name=child_name, log_level_str=log_level_str, log_to_file=log_to_file,
                          log_dir=log_dir)
@@ -32,15 +31,10 @@ class LogWithInflux(Log):
 
         # Reset the exception hook
         sys.excepthook = self.handle_exception
+        self.error = self.error_with_influx
 
-    def handle_exception(self, exc_type: type, exc_value: BaseException,
-                         exc_traceback: TracebackType):
-        self._handle_exception(exc_type=exc_type, exc_value=exc_value, exc_traceback=exc_traceback)
-        # Log error to influxdb
-        self._log_error_to_influx("Uncaught exception", exc_value)
-
-    def error(self, text: str, incl_info: bool = True, **kwargs):
-        self._error(text=text, incl_info=incl_info)
+    def error_with_influx(self, text: str, incl_info: bool = True):
+        self.log(ERROR, msg=text, exc_info=incl_info)
         # Try to grab the error object here, too
         err_type, err_obj, err_traceback = self.extract_err()
         # Log error to influxdb
