@@ -4,7 +4,7 @@ import subprocess
 import re
 import socket
 import uuid
-from typing import List, Union
+from typing import List, Dict
 
 
 class HostsRetrievalException(Exception):
@@ -15,30 +15,30 @@ class KeyRetrievalException(Exception):
     pass
 
 
-class Server:
+class ServerAPI:
+    """Basic methods for communicating with the main server api """
     def __init__(self):
-        self.server_ip = '192.168.1.5'
+        self.server = 'tinyserv'
         self.port = 5002
+        self.url = f'http://{self.server}.local:{self.port}'
 
-    def server_addr(self) -> str:
-        """Displays server address"""
-        return f'http://{self.server_ip}:{self.port}'
+    def _request(self, path: str, params: Dict[str, str] = None) -> List[Dict[str, str]]:
+        response = requests.get(f'{self.url}{path}', params=params)
+        if response.status_code == 200:
+            return response.json().get('data')
+        else:
+            response.raise_for_status()
 
 
-class Hosts:
+class Hosts(ServerAPI):
     """Captures host info from API call"""
     def __init__(self):
-        s_api = Server()
-        self.api_url = f'{s_api.server_addr()}/hosts'
-        response = requests.get(self.api_url)
-        if response.status_code == 200:
-            hostdata = response.json()
-            if 'data' in hostdata.keys():
-                self.hosts = hostdata['data']
-        else:
-            raise HostsRetrievalException(f'Error requesting data. ErrCode: {response.status_code}')
+        super().__init__()
 
-    def get_host_and_ip(self, name: str = None, ip: str = None) -> dict:
+    def get_all_hosts(self) -> List[Dict[str, str]]:
+        return self._request('/hosts')
+
+    def get_host_and_ip(self, name: str = None, ip: str = None) -> Dict[str, str]:
         """Returns host at name or ip.
         Name or IP must be used.
 
@@ -52,14 +52,11 @@ class Hosts:
         if not any([name is not None, ip is not None]):
             # Throw exception if nothing is set
             raise HostsRetrievalException('You must use name or ip in the args of get_host')
-
-        for item in self.hosts:
-            if name is not None:
-                if item['name'] == name:
-                    return item
-            elif ip is not None:
-                if item['ip'] == ip:
-                    return item
+        # This should only yield one result
+        result = self._request('/host', params={'name': name, 'ip': ip})
+        if len(result) > 0:
+            return result[0]
+        return {}
 
     def get_host_from_ip(self, ip: str) -> str:
         """Returns hostname from ip"""
@@ -81,49 +78,35 @@ class Hosts:
         """
         # Build the regex filter
         rex = re.compile(regex)
-
+        hosts = self.get_all_hosts()
         matches = []
-        for item in self.hosts:
+        for item in hosts:
             if rex.match(item[key]):
                 matches.append(item)
 
         return matches
 
 
-class Keys:
+class Keys(ServerAPI):
     """Captures credential info from API call
     These will eventually be put into a database complete with token-based
         authentication to avoid having these credentials accessible to all
         users on my WiFi. For now, this will be the case.
     """
     def __init__(self):
-        s_api = Server()
-        self.api_url = f'{s_api.server_addr()}/keys'
-        response = requests.get(self.api_url)
-        if response.status_code == 200:
-            data = response.json()
-            if 'data' in data.keys():
-                self.keys = data['data']
-        else:
-            raise KeyRetrievalException(f'Error requesting data. ErrCode: {response.status_code}')
+        super().__init__()
 
-    def get_key(self, name: str) -> Union[str, dict]:
+    def get_key(self, name: str) -> Dict[str, str]:
         """Returns key by name"""
 
         if name is None:
             # Throw exception if nothing is set
             raise KeyRetrievalException('You must enter a valid key name.')
 
-        for item in self.keys:
-            if item['name'] == name:
-                keys = item['keys']
-                if isinstance(keys, str):
-                    # Remove extra whitespace if returning only string
-                    return keys.strip()
-                else:
-                    return item['keys']
-        # If we arrived here, the key wasn't found
-        raise KeyRetrievalException(f'The key ({name}) was not found in the database.')
+        result = self._request(f'/key/{name}')
+        if len(result) > 0:
+            return result[0]
+        return {}
 
 
 class NetTools:
