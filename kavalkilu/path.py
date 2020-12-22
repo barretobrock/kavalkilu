@@ -31,7 +31,27 @@ class Path:
         """Determines if the file exists"""
         return self.pth.exists(path)
 
-    def get_files_in_dir(self, dir_path: str, full_paths: bool = False):
+    def get_files_in_dir(self, dir_path: str, full_paths: bool = False, recursive: bool = False) -> List[str]:
         """Retrieves all files in a particular directory, optionally returning their full paths"""
-        pass
-        # TODO this.
+        if recursive:
+            return self._get_files_recursive(dir_path=dir_path, full_paths=full_paths)
+        else:
+            return self._get_files_non_recursive(dir_path=dir_path, full_paths=full_paths)
+
+    @staticmethod
+    def _get_files_non_recursive(dir_path: str, full_paths: bool = False) -> List[str]:
+        """Retrieves only the files that are located at the directory input"""
+        files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+        if full_paths:
+            return [os.path.join(dir_path, f) for f in files]
+        return files
+
+    @staticmethod
+    def _get_files_recursive(dir_path: str, full_paths: bool = False) -> List[str]:
+        """Retrieves all files at the given directory, including those in other directories "beneath" it"""
+        files = []
+        for dirpath, _, file_list in os.walk(dir_path):
+            if full_paths:
+                file_list = [os.path.join(dirpath, x) for x in file_list]
+            files += file_list
+        return files
