@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from .date import DateTools
 from .errors import format_exception
+from .homeassistant import HAHelper
 from .influx import InfluxDBLocal, InfluxDBHomeAuto, InfluxDBPiHole, InfluxDBTracker
 from .log import LogWithInflux
 from .mqtt import MQTTClient
