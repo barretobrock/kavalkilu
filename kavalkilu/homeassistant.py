@@ -1,5 +1,5 @@
 import requests
-from kavalkilu import Hosts
+from .net import Hosts
 
 
 class HAHelper:
