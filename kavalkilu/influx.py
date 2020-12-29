@@ -91,7 +91,10 @@ class InfluxDBLocal(InfluxDBClient):
     def read_query(self, query: str, time_col: str = None) -> pd.DataFrame:
         """Reads a query to pandas dataframe"""
         result = self.query(query)
-        data = result.raw['series'][0]
+        series = result.raw['series']
+        if len(series) == 0:
+            return pd.DataFrame()
+        data = series[0]
         df = pd.DataFrame(data=data['values'], columns=data['columns'])
         # Convert time column to local
         if time_col is not None:
