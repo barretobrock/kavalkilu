@@ -48,11 +48,6 @@ class TestKeys(unittest.TestCase):
         keys = self.key.get_key('webcam')
         print(keys)
 
-    def test_host_and_ip(self):
-        haip = self.host.get_host_and_ip(name='pi-garage')
-        print(haip)
-
-
 
 if __name__ == '__main__':
     unittest.main()

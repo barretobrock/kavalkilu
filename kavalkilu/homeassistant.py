@@ -1,5 +1,6 @@
 import requests
-from .net import Hosts
+from typing import Optional, Dict, List, Union
+from .net import Hosts, Keys
 
 
 class HAHelper:
@@ -8,9 +9,38 @@ class HAHelper:
 
     def __init__(self):
         self.ip = Hosts().get_ip_from_host('hasserv')
-        self.base_url = f'http://{self.ip}:{self.PORT}'
-        self.webhook_url = f'{self.base_url}/api/webhook'
+        self.base_url = f'http://{self.ip}:{self.PORT}/api'
+        self.auth = Keys().get_key('home-assistant').get('token', '')
+        self.headers = {
+            'Authorization': f'Bearer {self.auth}',
+            'content-type': 'application/json'
+        }
 
-    def call_webhook(self, path: str):
+    def _get(self, path: str) -> requests.Response:
+        """Handles requests for the class"""
+        url = f'{self.base_url}{path}'
+        resp = requests.get(url, headers=self.headers)
+        return resp
+
+    def _post(self, path: str, payload: Dict = None) -> requests.Response:
+        """Handles requests for the class"""
+        url = f'{self.base_url}{path}'
+
+        if 'webhook' in path:
+            resp = requests.post(url)
+        else:
+            resp = requests.post(url, headers=self.headers, json=payload)
+
+        resp.raise_for_status()
+        return resp
+
+    def call_webhook(self, hook_name: str):
         """Sends a call to an automation with a webhook trigger"""
-        resp = requests.post(f'{self.webhook_url}/{path}')
+        resp = self._post(f'/webhook/{hook_name}')
+
+    def get_state(self, device_name: str) -> Dict:
+        resp = self._get(f'/states/{device_name}')
+        return resp.json()
+
+    def set_state(self, device_name: str, data: dict):
+        resp = self._post(f'/states/{device_name}', data)
