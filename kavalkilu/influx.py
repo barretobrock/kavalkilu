@@ -19,6 +19,7 @@ class InfluxDBHomeAuto:
     database = 'homeauto'
     CPU = InfluxTable(database, 'cpu')
     CPUTEMP = InfluxTable(database, 'cputemp')
+    DISK = InfluxTable(database, 'disk')
     LOGS = InfluxTable(database, 'logs')
     MACHINES = InfluxTable(database, 'machine-activity')
     MEM = InfluxTable(database, 'mem')
