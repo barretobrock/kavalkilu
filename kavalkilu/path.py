@@ -8,14 +8,14 @@ HOME_SERVER_HOSTNAME = 'tinyserv'
 class Path:
     """Wrapper class that stores common paths and common methods for handling paths"""
     def __init__(self, user: str = ''):
-        home = os.path.expanduser(f'~{user}')
+        self.home = os.path.expanduser(f'~{user}')
         self.pth = os.path
-        self.data_dir = os.path.join(home, 'data')
-        self.keys_dir = os.path.join(home, 'keys')
-        self.logs_dir = os.path.join(home, 'logs')
-        self.extras_dir = os.path.join(home, 'extras')
-        self.venvs_dir = os.path.join(home, 'venvs')
-        self.download_dir = os.path.join(home, 'Downloads')
+        self.data_dir = os.path.join(self.home, 'data')
+        self.keys_dir = os.path.join(self.home, 'keys')
+        self.logs_dir = os.path.join(self.home, 'logs')
+        self.extras_dir = os.path.join(self.home, 'extras')
+        self.venvs_dir = os.path.join(self.home, 'venvs')
+        self.download_dir = os.path.join(self.home, 'Downloads')
 
     def easy_joiner(self, parent: str, paths: Union[str, List[str]]) -> str:
         """Provides an easy way to join a path"""
