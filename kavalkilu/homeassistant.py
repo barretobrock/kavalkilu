@@ -44,8 +44,11 @@ class HAHelper:
 
     def set_state(self, device_name: str, data: dict, data_class: str = None):
         if data_class is not None:
+            attributes = {}
             if data_class == 'temp':
-                data.update({'unit_of_measurement': '°C', 'device_class': 'temperature'})
+                attributes = {'unit_of_measurement': '°C', 'device_class': 'temperature'}
             elif data_class in ['hum', 'humidity']:
-                data.update({'unit_of_measurement': '%', 'device_class': 'humidity'})
+                attributes = {'unit_of_measurement': '%', 'device_class': 'humidity'}
+            if len(attributes) > 0:
+                data.update({'attributes': attributes})
         resp = self._post(f'/states/{device_name}', data)
