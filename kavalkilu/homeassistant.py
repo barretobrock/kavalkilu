@@ -42,5 +42,10 @@ class HAHelper:
         resp = self._get(f'/states/{device_name}')
         return resp.json()
 
-    def set_state(self, device_name: str, data: dict):
+    def set_state(self, device_name: str, data: dict, data_class: str = None):
+        if data_class is not None:
+            if data_class == 'temp':
+                data.update({'unit_of_measurement': '°C', 'device_class': 'temperature'})
+            elif data_class in ['hum', 'humidity']:
+                data.update({'unit_of_measurement': '%', 'device_class': 'humidity'})
         resp = self._post(f'/states/{device_name}', data)
