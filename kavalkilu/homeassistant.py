@@ -45,7 +45,7 @@ class HAHelper:
     def set_state(self, device_name: str, data: dict, data_class: str = None):
         if data_class is not None:
             attributes = {}
-            if data_class == 'temp':
+            if data_class in ['temp', 'temperature']:
                 attributes = {'unit_of_measurement': '°C', 'device_class': 'temperature'}
             elif data_class in ['hum', 'humidity']:
                 attributes = {'unit_of_measurement': '%', 'device_class': 'humidity'}
