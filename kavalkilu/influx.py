@@ -108,8 +108,8 @@ class InfluxDBLocal(InfluxDBClient):
         result_df = result_df.reset_index(drop=True)
         # Convert time column to local
         if time_col is not None:
-            result_df[time_col] = result_df[time_col].apply(
-                lambda x: self.dt.utc_to_local_time(x, self.local_tz, fmt='%Y-%m-%dT%H:%M:%SZ')
-            )
+            # Convert the time column to Central TZ
+            result_df[time_col] = pd.to_datetime(result_df[time_col]).dt\
+                .tz_convert('US/Central').dt.strftime('%F %T')
 
         return result_df
