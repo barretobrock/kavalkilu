@@ -96,12 +96,20 @@ class InfluxDBLocal(InfluxDBClient):
         series = result.raw['series']
         if len(series) == 0:
             return pd.DataFrame()
-        data = series[0]
-        df = pd.DataFrame(data=data['values'], columns=data['columns'])
+        result_df = pd.DataFrame()
+        for s in series:
+            columns = s.get('columns', [])
+            values = s.get('values', [])
+            df = pd.DataFrame(data=values, columns=columns)
+            if s.get('tags') is not None:
+                for k, v in s.get('tags', {}).items():
+                    df[k] = v
+            result_df = result_df.append(df)
+        result_df = result_df.reset_index(drop=True)
         # Convert time column to local
         if time_col is not None:
-            df[time_col] = df[time_col].apply(
+            result_df[time_col] = result_df[time_col].apply(
                 lambda x: self.dt.utc_to_local_time(x, self.local_tz, fmt='%Y-%m-%dT%H:%M:%SZ')
             )
 
-        return df
+        return result_df
