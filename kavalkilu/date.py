@@ -9,6 +9,8 @@ class DateTools:
     def __init__(self):
         self.iso_date_fmt = '%Y-%m-%d'
         self.iso_datetime_fmt = f'{self.iso_date_fmt} %H:%M:%S'
+        self.tz_UTC = tz.gettz('UTC')
+        self.tz_CT = tz.gettz('US/Central')
 
     @staticmethod
     def last_day_of_month(any_day: datetime) -> datetime:
@@ -22,14 +24,23 @@ class DateTools:
             strftime_string = self.iso_datetime_fmt
         return datetime.strptime(datestring, strftime_string)
 
-    @staticmethod
-    def dt_to_unix(dt_obj: datetime) -> int:
+    def dt_to_unix(self, dt_obj: datetime, from_tz: str = None) -> int:
         """Converts datetime object to unix"""
-        return int((dt_obj - datetime(1970, 1, 1)).total_seconds())
+        unix_start = datetime(1970, 1, 1)
+        if dt_obj.tzinfo is not None or from_tz is not None:
+            # dt_obj is timezone-aware, so make UTC the same
+            unix_start = unix_start.replace(tzinfo=self.tz_UTC)
+        if from_tz is not None:
+            dt_obj = dt_obj.replace(tzinfo=tz.gettz(from_tz))
+
+        return int((dt_obj - unix_start).total_seconds())
 
     @staticmethod
-    def unix_to_dt(unix_ts: Union[float, int]) -> datetime:
+    def unix_to_dt(unix_ts: Union[float, int], to_tz: str = None) -> datetime:
         """Converts unix epoch to datetime"""
+        if to_tz is not None:
+            tz_obj = tz.gettz(to_tz)
+            return datetime.fromtimestamp(unix_ts, tz=tz_obj)
         return datetime.fromtimestamp(unix_ts)
 
     def string_to_unix(self, date_string: str, strftime_string: str = None,
