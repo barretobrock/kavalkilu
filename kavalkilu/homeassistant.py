@@ -8,7 +8,7 @@ class HAHelper:
     PORT = 8123
 
     def __init__(self):
-        self.ip = Hosts().get_ip_from_host('hasserv')
+        self.ip = Hosts().get_ip_from_host('homeassistant')
         self.base_url = f'http://{self.ip}:{self.PORT}/api'
         self.auth = Keys().get_key('home-assistant').get('token', '')
         self.headers = {

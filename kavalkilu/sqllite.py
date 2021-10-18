@@ -24,7 +24,7 @@ class SQLLiteLocal:
         for idx, row in df.iterrows():
             val_row = ', '.join(f'"{val}"' for val in row.tolist())
             val_list.append(f'({val_row})')
-        return f', '.join(val_list)
+        return ', '.join(val_list)
 
     def write_df_to_sql(self, tbl_name: str, df: pd.DataFrame, debug: bool = False) -> Optional[str]:
         """

@@ -6,11 +6,10 @@ from typing import Union
 
 
 class DateTools:
-    def __init__(self):
-        self.iso_date_fmt = '%Y-%m-%d'
-        self.iso_datetime_fmt = f'{self.iso_date_fmt} %H:%M:%S'
-        self.tz_UTC = tz.gettz('UTC')
-        self.tz_CT = tz.gettz('US/Central')
+    TZ_UTC = tz.gettz('UTC')
+    TZ_CT = tz.gettz('US/Central')
+    ISO_DATE_STR = '%Y-%m-%d'
+    ISO_DATETIME_STR = f'{ISO_DATE_STR} %H:%M:%S'
 
     @staticmethod
     def last_day_of_month(any_day: datetime) -> datetime:
@@ -18,20 +17,22 @@ class DateTools:
         next_month = any_day.replace(day=28) + timedelta(days=4)
         return next_month - timedelta(days=next_month.day)
 
-    def string_to_datetime(self, datestring: str, strftime_string: str = None) -> datetime:
+    @classmethod
+    def string_to_datetime(cls, datestring: str, strftime_string: str = None) -> datetime:
         """Converts string to datetime"""
         if strftime_string is None:
-            strftime_string = self.iso_datetime_fmt
+            strftime_string = cls.ISO_DATETIME_STR
         return datetime.strptime(datestring, strftime_string)
 
-    def dt_to_unix(self, dt_obj: datetime, from_tz: str = None) -> int:
+    @classmethod
+    def dt_to_unix(cls, dt_obj: datetime, from_tz: tz.tzfile = TZ_CT) -> int:
         """Converts datetime object to unix"""
         unix_start = datetime(1970, 1, 1)
         if dt_obj.tzinfo is not None or from_tz is not None:
             # dt_obj is timezone-aware, so make UTC the same
-            unix_start = unix_start.replace(tzinfo=self.tz_UTC)
+            unix_start = unix_start.replace(tzinfo=cls.TZ_UTC)
         if from_tz is not None:
-            dt_obj = dt_obj.replace(tzinfo=tz.gettz(from_tz))
+            dt_obj = dt_obj.replace(tzinfo=from_tz)
 
         return int((dt_obj - unix_start).total_seconds())
 
@@ -43,45 +44,50 @@ class DateTools:
             return datetime.fromtimestamp(unix_ts, tz=tz_obj)
         return datetime.fromtimestamp(unix_ts)
 
-    def string_to_unix(self, date_string: str, strftime_string: str = None,
-                       unit: str = 's') -> int:
+    @classmethod
+    def string_to_unix(cls, date_string: str, strftime_string: str = None,
+                       unit: str = 's', from_tz: str = TZ_CT) -> int:
         """Converts string to unix"""
         if strftime_string is None:
-            strftime_string = self.iso_datetime_fmt
+            strftime_string = cls.ISO_DATETIME_STR
         dt_obj = datetime.strptime(date_string, strftime_string)
-        unix = self.dt_to_unix(dt_obj)
+        unix = cls.dt_to_unix(dt_obj, from_tz=from_tz)
         return unix * 1000 if unit == 'ms' else unix
 
-    def unix_to_string(self, unix_ts: Union[float, int], output_fmt: str = None) -> str:
+    @classmethod
+    def unix_to_string(cls, unix_ts: Union[float, int], output_fmt: str = None) -> str:
         """Convert unix timestamp to string"""
         if output_fmt is None:
-            output_fmt = self.iso_datetime_fmt
-        return self.unix_to_dt(unix_ts).strftime(output_fmt)
+            output_fmt = cls.ISO_DATETIME_STR
+        return cls.unix_to_dt(unix_ts).strftime(output_fmt)
 
-    def _tz_convert(self, from_tz: str, to_tz: str, obj: Union[datetime, str],
+    @classmethod
+    def _tz_convert(cls, from_tz: str, to_tz: str, obj: Union[datetime, str],
                     fmt: str = None) -> datetime:
         """Converts from one timezone to another using the dateutil library"""
         tz_from = tz.gettz(from_tz)
         tz_to = tz.gettz(to_tz)
         if isinstance(obj, str):
             if fmt is None:
-                fmt = self.iso_datetime_fmt
+                fmt = cls.ISO_DATETIME_STR
             obj = datetime.strptime(obj, fmt)
         return obj.replace(tzinfo=tz_from).astimezone(tz_to)
 
-    def local_time_to_utc(self, obj: Union[datetime, str], local_tz: str = 'US/Central',
+    @classmethod
+    def local_time_to_utc(cls, obj: Union[datetime, str], local_tz: str = 'US/Central',
                           fmt: str = None, as_str: bool = False) -> Union[datetime, str]:
         """Run if we're converting timestamps to UTC"""
-        dt_obj = self._tz_convert(local_tz, 'UTC', obj, fmt)
+        dt_obj = cls._tz_convert(local_tz, 'UTC', obj, fmt)
         if as_str:
             return dt_obj.strftime('%F %T')
         else:
             return dt_obj
 
-    def utc_to_local_time(self, obj: Union[datetime, str], local_tz: str = 'US/Central',
+    @classmethod
+    def utc_to_local_time(cls, obj: Union[datetime, str], local_tz: str = 'US/Central',
                           fmt: str = None, as_str: bool = False) -> Union[datetime, str]:
         """Run if we're converting timestamps to UTC"""
-        dt_obj = self._tz_convert('UTC', local_tz, obj, fmt)
+        dt_obj = cls._tz_convert('UTC', local_tz, obj, fmt)
         if as_str:
             return dt_obj.strftime('%F %T')
         else:
@@ -109,11 +115,12 @@ class DateTools:
         for attr in attrs.keys():
             attr_val = getattr(reldelta, attr)
             if attr_val is not None:
-                if attr_val > 1:
+                if attr_val > 0:
                     result_list.append('{:d}{}'.format(attr_val, attrs[attr]))
         return ' '.join(result_list)
 
-    def get_human_readable_date_diff(self, start: datetime, end: datetime) -> str:
+    @classmethod
+    def get_human_readable_date_diff(cls, start: datetime, end: datetime) -> str:
         """Outputs a breakdown of difference between the two dates from largest to smallest"""
         result = relativedelta.relativedelta(end, start)
-        return self._human_readable(result)
+        return cls._human_readable(result)

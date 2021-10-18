@@ -1,6 +1,11 @@
 import unittest
+from unittest.mock import (
+    patch,
+    MagicMock
+)
 from kavalkilu.net import ServerAPI
 from kavalkilu import Hosts, LogWithInflux, Keys
+from tests.mocks import MockResponse
 
 
 class TestServerAPI(unittest.TestCase):
@@ -30,7 +35,16 @@ class TestHosts(unittest.TestCase):
         hosts = self.host.get_all_hosts()
         print(hosts)
 
-    def test_host_and_ip(self):
+    @patch('requests.get')
+    def test_host_and_ip(self, mock_get: MagicMock):
+
+        mock_get.return_value = MockResponse({'data': [
+            {
+                'ip': '192.168.99.99',
+                'machine_type': 'unknown',
+                'name': 'something'
+            }
+        ]}, 200)
         haip = self.host.get_host_and_ip(name='pi-garage')
         print(haip)
 

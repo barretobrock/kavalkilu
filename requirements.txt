@@ -1,4 +1,5 @@
-easylogger
+tox>=2.7.0
+https://github.com/barretobrock/easylogger/archive/main.zip
 influxdb
 numpy
 paho-mqtt

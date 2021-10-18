@@ -1,3 +1,6 @@
+.tox
+htmlcov
+.coverage
 .idea
 venv/
 __pycache__

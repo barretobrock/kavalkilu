@@ -15,7 +15,7 @@ class TestPath(unittest.TestCase):
     def test_recursive(self):
         top_level = self.path.get_files_in_dir(self.path.download_dir, recursive=False)
         all_level = self.path.get_files_in_dir(self.path.download_dir, recursive=True)
-        self.assertTrue(len(top_level) < len(all_level))
+        self.assertTrue(len(top_level) <= len(all_level))
 
 
 if __name__ == '__main__':
