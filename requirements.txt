@@ -1,5 +1,5 @@
 tox>=2.7.0
-git+git://github.com/barretobrock/easylogger@main#egg=easylogger
+easylogger @ git+https://github.com/barretobrock/easylogger@main#egg=easylogger
 influxdb
 numpy
 paho-mqtt

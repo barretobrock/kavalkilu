@@ -20,7 +20,7 @@ reqs_list = reqs_raw.strip().split('\n')
 setup_args = {
     'version': versioneer.get_version(),
     'cmdclass': versioneer.get_cmdclass(),
-    'packages': find_packages(exclude=['crons', 'development', 'scripts', 'setup_tools', 'tests']),
+    'packages': find_packages(exclude=['tests']),
     'install_requires': reqs_list,
 }
 setup_args.update(config_dict)
