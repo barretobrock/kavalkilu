@@ -4,7 +4,10 @@ import subprocess
 import re
 import socket
 import uuid
-from typing import List, Dict
+from typing import (
+    List,
+    Dict
+)
 
 
 class HostsRetrievalException(Exception):
@@ -18,9 +21,8 @@ class KeyRetrievalException(Exception):
 class ServerAPI:
     """Basic methods for communicating with the main server api """
     def __init__(self):
-        self.server = 'tinyserv'
-        self.port = 5002
-        self.url = f'http://{self.server}.local:{self.port}'
+        self.server = 'altserv'
+        self.url = f'http://{self.server}.local'
 
     def _request(self, path: str, params: Dict[str, str] = None) -> List[Dict[str, str]]:
         response = requests.get(f'{self.url}{path}', params=params)
@@ -36,7 +38,7 @@ class Hosts(ServerAPI):
         super().__init__()
 
     def get_all_hosts(self) -> List[Dict[str, str]]:
-        return self._request('/hosts')
+        return self._request('/api/hosts')
 
     def get_host_and_ip(self, name: str = None, ip: str = None) -> Dict[str, str]:
         """Returns host at name or ip.
@@ -53,7 +55,7 @@ class Hosts(ServerAPI):
             # Throw exception if nothing is set
             raise HostsRetrievalException('You must use name or ip in the args of get_host')
         # This should only yield one result
-        result = self._request('/host', params={'name': name, 'ip': ip})
+        result = self._request('/api/host', params={'name': name, 'ip': ip})
         if len(result) > 0:
             return result[0]
         return {}
@@ -103,7 +105,7 @@ class Keys(ServerAPI):
             # Throw exception if nothing is set
             raise KeyRetrievalException('You must enter a valid key name.')
 
-        result = self._request(f'/key/{name}')
+        result = self._request(f'/api/key/{name}')
         if len(result) > 0:
             return result[0]
         return {}

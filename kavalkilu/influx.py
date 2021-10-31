@@ -1,6 +1,10 @@
 from datetime import datetime
+from typing import (
+    Union,
+    List,
+    Dict
+)
 import pandas as pd
-from typing import Union, List
 from influxdb import InfluxDBClient
 from .net import Hosts
 from .date import DateTools
@@ -51,7 +55,7 @@ class InfluxDBLocal(InfluxDBClient):
         self.utc = 'UTC'
 
     def _build_json(self, row: pd.Series, tags: List[str],
-                    value_cols: List[str], time_col: str = None):
+                    value_cols: List[str], time_col: str = None) -> Dict:
         """Builds a single JSON object for a single item in a dataframe row
         NOTE: If time_col is None, the current time will be used.
         """

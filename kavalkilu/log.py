@@ -4,10 +4,16 @@
 General log setup file.
 """
 import sys
-from logging import Logger, ERROR
 from typing import Union
+from logging import (
+    Logger,
+    ERROR
+)
 from easylogger import Log
-from .influx import InfluxDBHomeAuto, InfluxDBLocal
+from .influx import (
+    InfluxDBHomeAuto,
+    InfluxDBLocal
+)
 from .net import NetTools
 
 

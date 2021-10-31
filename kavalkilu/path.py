@@ -1,6 +1,9 @@
 """Builds common paths"""
 import os
-from typing import List, Union
+from typing import (
+    List,
+    Union
+)
 
 HOME_SERVER_HOSTNAME = 'tinyserv'
 

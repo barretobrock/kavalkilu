@@ -1,8 +1,8 @@
 import os
 from typing import Optional
+import sqlite3
 import pandas as pd
 from pandas.core.dtypes.common import is_datetime_or_timedelta_dtype
-import sqlite3
 
 
 class SQLLiteLocal:

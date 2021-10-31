@@ -1,6 +1,11 @@
+from typing import (
+    Dict
+)
 import requests
-from typing import Optional, Dict, List, Union
-from .net import Hosts, Keys
+from .net import (
+    Hosts,
+    Keys
+)
 
 
 class HAHelper:

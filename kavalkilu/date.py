@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import datetime, timedelta
-from dateutil import tz, relativedelta
 from typing import Union
+from datetime import (
+    datetime,
+    timedelta
+)
+from dateutil import (
+    tz,
+    relativedelta
+)
 
 
 class DateTools:

@@ -1,6 +1,12 @@
-from paho.mqtt.client import Client, MQTTMessage
 from typing import Any
-from .net import Hosts, NetTools
+from paho.mqtt.client import (
+    Client,
+    MQTTMessage
+)
+from .net import (
+    Hosts,
+    NetTools
+)
 from .path import HOME_SERVER_HOSTNAME
 
 

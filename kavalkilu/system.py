@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import psutil
+# -*- coding: utf-8 -*
 import signal
-from subprocess import check_output, CalledProcessError
-from typing import List, Union
+from typing import (
+    List,
+    Union
+)
+import psutil
+from subprocess import (
+    check_output,
+    CalledProcessError
+)
 
 
 class GracefulKiller:

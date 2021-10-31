@@ -18,7 +18,7 @@ class TestServerAPI(unittest.TestCase):
         pass
 
     def test_connection(self):
-        hosts = self.api._request('/hosts')
+        hosts = self.api._request('/api/hosts')
         print(hosts)
 
 
