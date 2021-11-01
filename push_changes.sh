@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Calls the push_changes file at whatever path the py-package-manager repo is in
 PPM_PATH=../extras/py-package-manager/push_changes.sh
+if [[ ! -f "${PPM_PATH}" ]]
+then
+    # The newer method is to bring kavalkilu into the same directory with the other projects
+    PPM_PATH=../py-package-manager/push_changes.sh
+fi
 
 if [[ ! -z "${PPM_PATH}" ]]
 then
