@@ -52,10 +52,12 @@ class DateTools:
 
     @classmethod
     def string_to_unix(cls, date_string: str, strftime_string: str = None,
-                       unit: str = 's', from_tz: str = TZ_CT) -> int:
+                       unit: str = 's', from_tz: Union[str, tz.tzfile] = TZ_CT) -> int:
         """Converts string to unix"""
         if strftime_string is None:
             strftime_string = cls.ISO_DATETIME_STR
+        if isinstance(from_tz, str):
+            from_tz = tz.gettz(from_tz)
         dt_obj = datetime.strptime(date_string, strftime_string)
         unix = cls.dt_to_unix(dt_obj, from_tz=from_tz)
         return unix * 1000 if unit == 'ms' else unix
