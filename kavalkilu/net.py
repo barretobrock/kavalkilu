@@ -21,8 +21,8 @@ class KeyRetrievalException(Exception):
 class ServerAPI:
     """Basic methods for communicating with the main server api """
     def __init__(self):
-        self.server = 'altserv'
-        self.url = f'http://{self.server}.local'
+        self.server = '192.168.1.11'
+        self.url = f'http://{self.server}'
 
     def _request(self, path: str, params: Dict[str, str] = None) -> List[Dict[str, str]]:
         response = requests.get(f'{self.url}{path}', params=params)
