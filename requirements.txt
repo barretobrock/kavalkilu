@@ -1,9 +1,0 @@
-tox>=2.7.0
-easylogger @ git+https://github.com/barretobrock/easylogger@main#egg=easylogger
-influxdb
-numpy
-paho-mqtt
-pandas
-psutil
-python-dateutil
-requests>=2.25.1

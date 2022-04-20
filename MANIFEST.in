@@ -1,2 +1,0 @@
-include versioneer.py
-include kavalkilu/_version.py
