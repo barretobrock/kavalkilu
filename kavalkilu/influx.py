@@ -6,9 +6,9 @@ from typing import (
 )
 import pandas as pd
 from influxdb import InfluxDBClient
-from .net import Hosts
-from .date import DateTools
-from .path import HOME_SERVER_HOSTNAME
+from kavalkilu.net import Hosts
+from kavalkilu.date import DateTools
+from kavalkilu.path import HOME_SERVER_HOSTNAME
 
 
 class InfluxTable:
@@ -117,3 +117,19 @@ class InfluxDBLocal(InfluxDBClient):
                 .tz_convert('US/Central').dt.strftime('%F %T')
 
         return result_df
+
+    def log_exception(self, machine: str, app_name: str, err_obj: Exception):
+        err_txt = err_obj.__repr__()
+        err_class = err_obj.__class__.__name__ if err_obj is not None else 'NA'
+        log_dict = {
+            'machine': machine,
+            'name': app_name,
+            'level': 'ERROR',
+            'class': err_class,
+            'text': err_txt
+        }
+        field_dict = {
+            'entry': 1
+        }
+        self.write_single_data(tag_dict=log_dict, field_dict=field_dict)
+        # self.log.debug('Logged error to influx.')

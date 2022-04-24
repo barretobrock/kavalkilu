@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "kavalkilu"
-version = '2.0.0'
+version = '2.0.1'
 description = "A library for integrating some common home automation components"
 authors = ["bobrock <bobrock@tuta.io>"]
 license = "MIT"
@@ -16,8 +16,8 @@ packages = [
 include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-loguru = "0.6.0"
+python = "^3.10"
+pukr = { git = "https://github.com/barretobrock/pukr.git", branch = "main" }
 influxdb = "^5.3.1"
 numpy = "^1.22.3"
 pandas = "^1.4.2"

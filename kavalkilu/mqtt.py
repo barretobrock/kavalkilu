@@ -3,11 +3,12 @@ from paho.mqtt.client import (
     Client,
     MQTTMessage
 )
-from .net import (
+from loguru import logger
+from kavalkilu.net import (
     Hosts,
     NetTools
 )
-from .path import HOME_SERVER_HOSTNAME
+from kavalkilu.path import HOME_SERVER_HOSTNAME
 
 
 class MQTTClient:
@@ -25,7 +26,7 @@ class MQTTClient:
     @staticmethod
     def _on_connect(client: Client, userdata: Any, flags: Any, rc: int):
         """Set up a callback function to ensure the connection to Server was successful"""
-        print(f'Connected with result code {rc}.')
+        logger.info(f'Connected with result code {rc}.')
 
         # Subscribing in on_connect means that if we lose connection and reconnect
         # then subscriptions will be renewed
@@ -34,7 +35,7 @@ class MQTTClient:
     @staticmethod
     def _on_message(client: Client, userdata: Any, msg: MQTTMessage):
         """Callback for when PUBLISH message is received from the server"""
-        print(f'{msg.topic} {msg.payload}')
+        logger.debug(f'{msg.topic} {msg.payload}')
 
     def disconnect(self):
         """Disconnect from the broker"""

@@ -4,14 +4,16 @@ from unittest.mock import (
     MagicMock
 )
 from kavalkilu.net import ServerAPI
-from kavalkilu import Hosts, LogWithInflux, Keys
+from kavalkilu import (
+    Hosts,
+    Keys
+)
 from tests.mocks import MockResponse
 
 
 class TestServerAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        # cls.log = LogWithInflux('server-api')
         cls.api = ServerAPI()
 
     def setUp(self) -> None:
@@ -25,7 +27,6 @@ class TestServerAPI(unittest.TestCase):
 class TestHosts(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.log = LogWithInflux('server-api')
         cls.host = Hosts()
 
     def setUp(self) -> None:
@@ -52,7 +53,6 @@ class TestHosts(unittest.TestCase):
 class TestKeys(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        # cls.log = LogWithInflux('server-api')
         cls.key = Keys()
 
     def setUp(self) -> None:

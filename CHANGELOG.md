@@ -15,6 +15,12 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [2.0.1] - 2022-04-24
+#### Changed
+ - The method for handling error logging to influx for automated notifications was moved to `InfluxDBLocal` class 
+#### Deprecated
+ - Old logging objects - influx logging will need to be done separate
+ 
 ### [2.0.0] - 2022-04-20
 #### Added
  - CHANGELOG

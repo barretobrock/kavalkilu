@@ -1,5 +1,4 @@
 """Net-related tools"""
-import requests
 import subprocess
 import re
 import socket
@@ -8,6 +7,7 @@ from typing import (
     List,
     Dict
 )
+import requests
 
 
 class HostsRetrievalException(Exception):

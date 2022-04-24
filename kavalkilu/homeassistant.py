@@ -2,7 +2,7 @@ from typing import (
     Dict
 )
 import requests
-from .net import (
+from kavalkilu.net import (
     Hosts,
     Keys
 )
@@ -41,7 +41,7 @@ class HAHelper:
 
     def call_webhook(self, hook_name: str):
         """Sends a call to an automation with a webhook trigger"""
-        resp = self._post(f'/webhook/{hook_name}')
+        _ = self._post(f'/webhook/{hook_name}')
 
     def get_state(self, device_name: str) -> Dict:
         resp = self._get(f'/states/{device_name}')
@@ -56,4 +56,4 @@ class HAHelper:
                 attributes = {'unit_of_measurement': '%', 'device_class': 'humidity'}
             if len(attributes) > 0:
                 data.update({'attributes': attributes})
-        resp = self._post(f'/states/{device_name}', data)
+        _ = self._post(f'/states/{device_name}', data)

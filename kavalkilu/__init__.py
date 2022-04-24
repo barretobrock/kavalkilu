@@ -9,7 +9,6 @@ from .influx import (
     InfluxDBPiHole,
     InfluxDBTracker
 )
-from .log import LogWithInflux
 from .mqtt import MQTTClient
 from .net import (
     Hosts,
@@ -22,12 +21,11 @@ from .path import (
     Path,
     HOME_SERVER_HOSTNAME
 )
-from .sqllite import SQLLiteLocal
 from .system import (
     SysTools,
     GracefulKiller
 )
 
 
-__version__ = '2.0.0'
-__update_date__ = '2022-04-20_17:34:46'
+__version__ = '2.0.1'
+__update_date__ = '2022-04-24_11:05:22'

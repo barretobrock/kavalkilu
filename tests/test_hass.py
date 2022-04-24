@@ -1,12 +1,11 @@
 import unittest
-from kavalkilu import HAHelper, LogWithInflux
+from kavalkilu import HAHelper
 
 
 class TestHASS(unittest.TestCase):
     """Test HA Helper methods"""
     @classmethod
     def setUpClass(cls) -> None:
-        cls.log = LogWithInflux('server-api')
         cls.hass = HAHelper()
 
     def setUp(self) -> None:
