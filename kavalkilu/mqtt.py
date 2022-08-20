@@ -1,12 +1,14 @@
 from typing import Any
+
+from loguru import logger
 from paho.mqtt.client import (
     Client,
-    MQTTMessage
+    MQTTMessage,
 )
-from loguru import logger
+
 from kavalkilu.net import (
     Hosts,
-    NetTools
+    NetTools,
 )
 from kavalkilu.path import HOME_SERVER_HOSTNAME
 

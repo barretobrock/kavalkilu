@@ -5,7 +5,7 @@ _This package has been refactored to function as a repository for all methods & 
 
 ## Installation
 ```bash
-python3 -m pip install git+https://github.com/barretobrock/kavalkilu.git  
+python3 -m pip install git+https://github.com/barretobrock/kavalkilu.git
 ```
 
 ## Update
@@ -62,5 +62,3 @@ ssh-add -l > /dev/null || ssh-add
 
 ## Tips
  - TBA!
-
-

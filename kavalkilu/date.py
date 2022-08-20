@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import Union
 from datetime import (
     datetime,
-    timedelta
+    timedelta,
 )
+from typing import Union
+
 from dateutil import (
+    relativedelta,
     tz,
-    relativedelta
 )
 
 

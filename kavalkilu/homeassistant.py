@@ -1,10 +1,10 @@
-from typing import (
-    Dict
-)
+from typing import Dict
+
 import requests
+
 from kavalkilu.net import (
     Hosts,
-    Keys
+    Keys,
 )
 
 

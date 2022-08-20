@@ -1,13 +1,19 @@
 from datetime import datetime
 from typing import (
-    Union,
+    Dict,
     List,
-    Dict
+    Union,
 )
-import pandas as pd
+
 from influxdb import InfluxDBClient
-from kavalkilu.net import Hosts
+import pandas as pd
+from pukr import PukrLog
+
 from kavalkilu.date import DateTools
+from kavalkilu.net import (
+    Hosts,
+    NetTools,
+)
 from kavalkilu.path import HOME_SERVER_HOSTNAME
 
 
@@ -45,10 +51,13 @@ class InfluxDBTracker:
 
 
 class InfluxDBLocal(InfluxDBClient):
-    def __init__(self, dbtable: InfluxTable, timezone: str = 'US/Central'):
+    def __init__(self, dbtable: InfluxTable, app_name: str = 'unnamed app',
+                 timezone: str = 'US/Central'):
         h = Hosts()
         self.database = dbtable.database
         self.table = dbtable.table
+        self.machine = NetTools.get_hostname()
+        self.app_name = app_name
         super().__init__(h.get_ip_from_host(HOME_SERVER_HOSTNAME), 8086, database=self.database)
         self.dt = DateTools()
         self.local_tz = timezone
@@ -69,7 +78,7 @@ class InfluxDBLocal(InfluxDBClient):
 
         return json_dict
 
-    def write_single_data(self, tag_dict: dict, field_dict: dict, timestamp: datetime = None):
+    def write_single_data(self, tag_dict: Dict, field_dict: Dict, timestamp: datetime = None):
         """Writes a single group of data to the designated table"""
         json_dict = {
             'measurement': self.table,
@@ -94,7 +103,7 @@ class InfluxDBLocal(InfluxDBClient):
 
         self.write_points(batch)
 
-    def read_query(self, query: str, time_col: str = None) -> pd.DataFrame:
+    def read_query_to_dataframe(self, query: str, time_col: str = None) -> pd.DataFrame:
         """Reads a query to pandas dataframe"""
         result = self.query(query)
         series = result.raw['series']
@@ -118,12 +127,12 @@ class InfluxDBLocal(InfluxDBClient):
 
         return result_df
 
-    def log_exception(self, machine: str, app_name: str, err_obj: Exception):
-        err_txt = err_obj.__repr__()
+    def log_exception(self, err_obj: Exception):
+        err_txt = str(err_obj)
         err_class = err_obj.__class__.__name__ if err_obj is not None else 'NA'
         log_dict = {
-            'machine': machine,
-            'name': app_name,
+            'machine': self.machine,
+            'name': self.app_name,
             'level': 'ERROR',
             'class': err_class,
             'text': err_txt
@@ -132,4 +141,54 @@ class InfluxDBLocal(InfluxDBClient):
             'entry': 1
         }
         self.write_single_data(tag_dict=log_dict, field_dict=field_dict)
-        # self.log.debug('Logged error to influx.')
+
+    def influx_exception_decorator(self, logger: PukrLog):
+        """
+        Decorator for capturing exceptions and logging them to influx and the log object
+
+        Example:
+            >>>@inflx.influx_exception_decorator(logger=log)
+            >>>def my_func():
+            >>>     return 'whatever'
+        """
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    # Log exception
+                    self.log_exception(e)
+                    logger.exception(e)
+                    # Re-raise exception
+                    raise
+            return wrapper
+        return decorator
+
+    def influx_exception_hook(self, exc_type, exc_value, exc_traceback):
+        """
+        Exception catcher for use with sys.excepthook
+
+        Note:
+            Use with the decorator is not recommended - this will result in duplication of the exception logged
+
+        Example:
+            >>> sys.excepthook = inflx.influx_exception_hook
+        """
+        self.log_exception(exc_value)
+        raise exc_value
+
+
+if __name__ == '__main__':
+    import sys
+
+    from pukr import get_logger
+
+    inflx = InfluxDBLocal(dbtable=InfluxDBHomeAuto.LOGS, machine='test', app_name='test_app')
+    log = get_logger('test_log')
+    sys.excepthook = inflx.influx_exception_hook
+
+    @inflx.influx_exception_decorator(logger=log)
+    def thang():
+        return 1/0
+
+    thang()

@@ -1,10 +1,9 @@
+from datetime import datetime as dt
 import unittest
-from datetime import (
-    datetime as dt,
-    timedelta
-)
+
 from dateutil import tz
 from dateutil.relativedelta import relativedelta
+
 from kavalkilu import DateTools
 
 

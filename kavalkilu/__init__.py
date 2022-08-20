@@ -4,28 +4,27 @@ from .date import DateTools
 from .errors import format_exception
 from .homeassistant import HAHelper
 from .influx import (
-    InfluxDBLocal,
     InfluxDBHomeAuto,
+    InfluxDBLocal,
     InfluxDBPiHole,
-    InfluxDBTracker
+    InfluxDBTracker,
 )
 from .mqtt import MQTTClient
 from .net import (
     Hosts,
     HostsRetrievalException,
-    Keys,
     KeyRetrievalException,
-    NetTools
+    Keys,
+    NetTools,
 )
 from .path import (
+    HOME_SERVER_HOSTNAME,
     Path,
-    HOME_SERVER_HOSTNAME
 )
 from .system import (
+    GracefulKiller,
     SysTools,
-    GracefulKiller
 )
 
-
-__version__ = '2.0.1'
-__update_date__ = '2022-04-24_11:05:22'
+__version__ = '2.0.2'
+__update_date__ = '2022-08-20_17:36:59'

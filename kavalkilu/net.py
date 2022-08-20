@@ -1,12 +1,13 @@
 """Net-related tools"""
-import subprocess
 import re
 import socket
-import uuid
+import subprocess
 from typing import (
+    Dict,
     List,
-    Dict
 )
+import uuid
+
 import requests
 
 

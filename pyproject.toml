@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "kavalkilu"
-version = '2.0.1'
+version = '2.0.2'
 description = "A library for integrating some common home automation components"
 authors = ["bobrock <bobrock@tuta.io>"]
 license = "MIT"
@@ -18,21 +18,29 @@ include = ["CHANGELOG.md"]
 [tool.poetry.dependencies]
 python = "^3.10"
 pukr = { git = "https://github.com/barretobrock/pukr.git", branch = "main" }
-influxdb = "^5.3.1"
-numpy = "^1.22.3"
-pandas = "^1.4.2"
-paho-mqtt = "1.6.1"
-psutil = "5.9.0"
-python-dateutil = "2.8.2"
-requests = ">=2.25.0"
+influxdb = "~5"
+numpy = "~1.22"
+pandas = "~1.4"
+paho-mqtt = "~1"
+psutil = "~5"
+python-dateutil = "~2"
+requests = "~2"
 # Optional dependencies would go down here
 # example = { version = ">=1.7.0", optional = true }
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.1.1"
-pytest-cov = "^3.0.0"
-flake8 = "^4.0.1"
-tox = "^3.24.5"
+pre-commit = "~2"
+pytest = "~7"
+pytest-cov = "~3"
+flake8 = "~4"
+tox = "~3"
+
+[tool.isort]
+profile = 'black'
+force_grid_wrap = 2
+force_sort_within_sections = true
+skip_gitignore = true
+skip_glob = ['*_pb2.py', '*_pb2_grpc.py']
 
 [tool.poetry.extras]
 test = ["pytest"]

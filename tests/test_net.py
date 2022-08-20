@@ -1,13 +1,14 @@
 import unittest
 from unittest.mock import (
+    MagicMock,
     patch,
-    MagicMock
 )
-from kavalkilu.net import ServerAPI
+
 from kavalkilu import (
     Hosts,
-    Keys
+    Keys,
 )
+from kavalkilu.net import ServerAPI
 from tests.mocks import MockResponse
 
 

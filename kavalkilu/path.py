@@ -2,7 +2,7 @@
 import os
 from typing import (
     List,
-    Union
+    Union,
 )
 
 HOME_SERVER_HOSTNAME = 'tinyserv'
