@@ -183,7 +183,7 @@ if __name__ == '__main__':
 
     from pukr import get_logger
 
-    inflx = InfluxDBLocal(dbtable=InfluxDBHomeAuto.LOGS, machine='test', app_name='test_app')
+    inflx = InfluxDBLocal(dbtable=InfluxDBHomeAuto.LOGS, app_name='test_app')
     log = get_logger('test_log')
     sys.excepthook = inflx.influx_exception_hook
 

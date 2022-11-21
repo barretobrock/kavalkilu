@@ -15,6 +15,12 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
 
+### [2.0.3] - 2022-11-21
+#### Added
+ - Makefile
+#### Changed
+ - Server name for net api calls
+
 ### [2.0.2] - 2022-08-20
 #### Added
  - pre-commit

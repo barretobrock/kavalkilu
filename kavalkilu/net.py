@@ -22,7 +22,7 @@ class KeyRetrievalException(Exception):
 class ServerAPI:
     """Basic methods for communicating with the main server api """
     def __init__(self):
-        self.server = '192.168.1.11'
+        self.server = 'keys.kodu.lan'
         self.url = f'http://{self.server}'
 
     def _request(self, path: str, params: Dict[str, str] = None) -> List[Dict[str, str]]:
