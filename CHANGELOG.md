@@ -14,6 +14,12 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Fixed
 #### Security
 __BEGIN-CHANGELOG__
+ 
+### [2.1.0] - 2023-06-18
+#### Added
+ - Python 3.11 support
+#### Changed
+ - Makefile for dev support
 
 ### [2.0.3] - 2022-11-21
 #### Added
