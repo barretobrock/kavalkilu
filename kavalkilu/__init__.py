@@ -26,5 +26,5 @@ from .system import (
     SysTools,
 )
 
-__version__ = '2.1.0'
-__update_date__ = '2023-06-18_11:17:19'
+__version__ = '2.1.1'
+__update_date__ = '2023-07-24_18:13:48'

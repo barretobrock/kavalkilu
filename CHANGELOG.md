@@ -15,6 +15,10 @@ _Note: 'Unreleased' section below is used for untagged changes that will be issu
 #### Security
 __BEGIN-CHANGELOG__
  
+### [2.1.1] - 2023-07-24
+#### Changed
+ - Made Home Assistant endpoint more flexible in terms of updating sensor states
+ 
 ### [2.1.0] - 2023-06-18
 #### Added
  - Python 3.11 support
